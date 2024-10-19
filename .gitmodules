@@ -1,0 +1,3 @@
+[submodule "extern/olo"]
+	path = extern/olo
+	url = https://github.com/open-logic/open-logic.git
