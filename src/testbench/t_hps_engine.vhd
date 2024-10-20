@@ -31,12 +31,13 @@ entity t_hps_engine is
 end entity;
 
 architecture tbench of t_hps_engine is
-    type can_frame_addresses_t is array (0 to 2) of std_logic_vector(31 downto 0);
+    type can_frame_addresses_t is array (0 to 3) of std_logic_vector(31 downto 0);
 
     signal can_frame_addresses : can_frame_addresses_t := (
         0 => x"FF200000", 
         1 => x"FF200004",
-        2 => x"FF200008"
+        2 => x"FF200008",
+        3 => x"FF20000C"
     );
 begin
 
@@ -67,19 +68,21 @@ begin
     
 
     -- Read operation
-    for i in 0 to 2 loop
-        axi_araddr <= can_frame_addresses(i)(20 downto 0);
-        axi_arvalid <= '1';       -- Valid read address
-        wait until clk = '1' and clk'event;
-        wait until axi_arready = '1';  -- Wait for ready signal
-        axi_arvalid <= '0';       -- Deassert valid
+    for k in 0 to 19 loop
+        for i in 0 to 3 loop
+            axi_araddr <= can_frame_addresses(i)(20 downto 0);
+            axi_arvalid <= '1';       -- Valid read address
+            wait until clk = '1' and clk'event;
+            wait until axi_arready = '1';  -- Wait for ready signal
+            axi_arvalid <= '0';       -- Deassert valid
 
-        axi_rready <= '1';        -- Ready to accept read data
-        wait until axi_rvalid = '1';
-        wait until clk = '1' and clk'event;
-        axi_rready <= '0';        -- Deassert ready
+            axi_rready <= '1';        -- Ready to accept read data
+            wait until axi_rvalid = '1';
+            wait until clk = '1' and clk'event;
+            axi_rready <= '0';        -- Deassert ready
 
-        --wait for 50 ns;
+            --wait for 50 ns;
+        end loop;
     end loop;
 
     wait;
