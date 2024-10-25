@@ -41,9 +41,10 @@ OLO_BASE_SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
-	../../src/exchange_interface_multible_addresses/axireg.vhd \
-	../../src/exchange_interface_multible_addresses/axi_interconnect.vhd \
-	../../src/exchange_interface_multible_addresses/de1_exchange_interface.vhd \
+	../../src/exchange_interface/axireg.vhd \
+    ../../src/exchange_interface/exchange_testbench.vhd \
+	../../src/exchange_interface/axi_interconnect.vhd \
+	../../src/exchange_interface/de1_exchange_interface.vhd \
     t_hps_engine.vhd \
 	t_exchange_interface.vhd
 
@@ -76,4 +77,4 @@ sim: run
 # Ziel: Bereinigen
 clean:
 	@echo "Bereinige GHDL-Artefakte..."
-	@rm -f *.o *.cf *.ghw
+	@rm -f *.o *.cf *.ghw *.vcd

@@ -69,3 +69,6 @@ _output_files/
 PLLJ_PLLSPE_INFO.txt
 @Oszimilian
 Comment
+
+*.ghw
+*.vcd

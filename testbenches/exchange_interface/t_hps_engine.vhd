@@ -31,13 +31,14 @@ entity t_hps_engine is
 end entity;
 
 architecture tbench of t_hps_engine is
-    type can_frame_addresses_t is array (0 to 3) of std_logic_vector(31 downto 0);
+    type can_frame_addresses_t is array (0 to 4) of std_logic_vector(20 downto 0);
 
     signal can_frame_addresses : can_frame_addresses_t := (
-        0 => x"FF200000", 
-        1 => x"FF200004",
-        2 => x"FF200008",
-        3 => x"FF20000C"
+        0 => "000000000000000000000", 
+        1 => "000000000000000000100",
+        2 => "000000000000000001000",
+        3 => "000000000000000001100",
+        4 => "000000000000000010000"
     );
 begin
 
@@ -69,8 +70,8 @@ begin
 
     -- Read operation
     for k in 0 to 19 loop
-        for i in 0 to 3 loop
-            axi_araddr <= can_frame_addresses(i)(20 downto 0);
+        for i in 0 to 4 loop
+            axi_araddr <= can_frame_addresses(i);
             axi_arvalid <= '1';       -- Valid read address
             wait until clk = '1' and clk'event;
             wait until axi_arready = '1';  -- Wait for ready signal

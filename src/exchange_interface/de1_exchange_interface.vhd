@@ -86,6 +86,22 @@ architecture rtl of de1_exchange_interface is
     signal m2_axi_rvalid     : std_logic;
     signal m2_axi_rready     : std_logic;
 
+    -- Input
+    signal input_fifo_data_s  : std_logic_vector(160-1 downto 0);
+    signal input_fifo_valid_s : std_logic;
+    signal input_fifo_ready_s : std_logic;
+    signal fifo_full_s        : std_logic;
+
+    -- can-core-signals
+    signal timestamp_s          : std_logic_vector(47 downto 0);
+    signal can_id_s             : std_logic_vector(28 downto 0);
+    signal rtr_s                : std_logic;
+    signal eff_s                : std_logic;
+    signal err_s                : std_logic;
+    signal dlc_s                : std_logic_vector(3 downto 0);
+    signal data_s               : std_logic_vector(63 downto 0);
+    signal core_error_s         : std_logic_vector(3 downto 0);
+
 begin
 
     intercon : entity work.axi_interconnect
@@ -172,31 +188,73 @@ begin
 	);
 
     axireg_inst_i0: entity work.axireg
-    port map(
-       clk => clk,
-       rst_n => rst_n,
- 
-       axi_slave_awaddr    => m1_axi_awaddr,
-       axi_slave_awvalid   => m1_axi_awvalid,
-       axi_slave_awready   => m1_axi_awready,
-   
-       axi_slave_wdata     => m1_axi_wdata,
-       axi_slave_wvalid    => m1_axi_wvalid,
-       axi_slave_wready    => m1_axi_wready,
-   
-       axi_slave_bresp     => m1_axi_bresp,
-       axi_slave_bvalid    => m1_axi_bvalid,
-       axi_slave_bready    => m1_axi_bready,
-   
-       axi_slave_araddr    => m1_axi_araddr,
-       axi_slave_arvalid   => m1_axi_arvalid,
-       axi_slave_arready   => m1_axi_arready,
-   
-       axi_slave_rdata     => m1_axi_rdata,
-       axi_slave_rvalid    => m1_axi_rvalid,
-       axi_slave_rready    => m1_axi_rready,
-       axi_slave_rresp     => m1_axi_rresp
-   );
+        generic map(
+            CanDataLengh_g          => 64,
+            AddrSpaceStartPos_g     => "000000000000000000000",
+            FifoDepth_g             => 6
+        )
+        port map(
+            clk => clk,
+            rst_n => rst_n,
+        
+            axi_slave_awaddr    => m1_axi_awaddr,
+            axi_slave_awvalid   => m1_axi_awvalid,
+            axi_slave_awready   => m1_axi_awready,
+        
+            axi_slave_wdata     => m1_axi_wdata,
+            axi_slave_wvalid    => m1_axi_wvalid,
+            axi_slave_wready    => m1_axi_wready,
+        
+            axi_slave_bresp     => m1_axi_bresp,
+            axi_slave_bvalid    => m1_axi_bvalid,
+            axi_slave_bready    => m1_axi_bready,
+        
+            axi_slave_araddr    => m1_axi_araddr,
+            axi_slave_arvalid   => m1_axi_arvalid,
+            axi_slave_arready   => m1_axi_arready,
+        
+            axi_slave_rdata     => m1_axi_rdata,
+            axi_slave_rvalid    => m1_axi_rvalid,
+            axi_slave_rready    => m1_axi_rready,
+            axi_slave_rresp     => m1_axi_rresp,
+
+            timestamp           => timestamp_s,
+            can_id              => can_id_s,
+            rtr                 => rtr_s,
+            eff                 => eff_s,
+            err                 => err_s,
+            dlc                 => dlc_s,
+            data                => data_s,
+            core_error          => core_error_s,
+
+            input_fifo_valid    => input_fifo_valid_s,
+            input_fifo_ready    => input_fifo_ready_s,
+
+            fifo_full           => fifo_full_s
+    );
+
+    exchange_testbench_i0 : entity work.exchange_testbench
+        generic map(
+            TestDataLen_g           => 10
+        )
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            timestamp               => timestamp_s,
+            can_id                  => can_id_s,
+            rtr                     => rtr_s,
+            eff                     => eff_s,
+            err                     => err_s,
+            dlc                     => dlc_s,
+            data                    => data_s,
+            core_error              => core_error_s,
+
+            output_fifo_valid       => input_fifo_valid_s,
+            output_fifo_ready       => input_fifo_ready_s,
+
+           fifo_full               => fifo_full_s
+        );
 
 end rtl;
 

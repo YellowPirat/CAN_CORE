@@ -94,9 +94,9 @@ architecture rtl of axi_interconnect is
 
   -- Address ranges for slaves
   constant SLAVE1_BASE_ADDR : std_logic_vector(31 downto 0) := x"ff200000";
-  constant SLAVE1_HIGH_ADDR : std_logic_vector(31 downto 0) := x"ff20000C";
-  constant SLAVE2_BASE_ADDR : std_logic_vector(31 downto 0) := x"ff20000D";
-  constant SLAVE2_HIGH_ADDR : std_logic_vector(31 downto 0) := x"ff20003D";
+  constant SLAVE1_HIGH_ADDR : std_logic_vector(31 downto 0) := x"ff200020";
+  constant SLAVE2_BASE_ADDR : std_logic_vector(31 downto 0) := x"ff200021";
+  constant SLAVE2_HIGH_ADDR : std_logic_vector(31 downto 0) := x"ff200040";
 
   constant SLAVE1_BASE_ADDR_a : std_logic_vector(20 downto 0) := SLAVE1_BASE_ADDR(20 downto 0);
   constant SLAVE1_HIGH_ADDR_a : std_logic_vector(20 downto 0) := SLAVE1_HIGH_ADDR(20 downto 0);

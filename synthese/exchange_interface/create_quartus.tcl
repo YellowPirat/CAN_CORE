@@ -41,9 +41,10 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_mast
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface_multible_addresses/axireg.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface_multible_addresses/axi_interconnect.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface_multible_addresses/de1_exchange_interface.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd 
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd 
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd 
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
 set_global_assignment -name VHDL_FILE de1_exchange_interface_base.vhd
 
 
