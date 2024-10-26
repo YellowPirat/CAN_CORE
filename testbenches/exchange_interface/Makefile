@@ -1,8 +1,9 @@
 # Variablen
 OLO_BASE_SRC_DIR := ../../extern/olo/src/base  # Verzeichnis für die Basis-VHDL-Dateien
+PROJECT_NAME := t_exchange_interface
 
 # Manuelle Auflistung der VHDL-Dateien ohne Zeilenfortsetzung
-OLO_BASE_SRC_FILES = \
+SRC_FILES = \
     ../../extern/olo/src/base/vhdl/olo_base_pkg_array.vhd \
     ../../extern/olo/src/base/vhdl/olo_base_pkg_math.vhd \
     ../../extern/olo/src/base/vhdl/olo_base_pkg_logic.vhd \
@@ -55,7 +56,7 @@ ghdlinit: analyze
 # Ziel: VHDL-Dateien mit GHDL analysieren
 analyze:
 	@echo "Analysiere Basis VHDL-Dateien..."
-	@for file in $(OLO_BASE_SRC_FILES); do \
+	@for file in $(SRC_FILES); do \
 		echo "Analysiere $$file..."; \
 		ghdl -a "$$file"; \
 	done
@@ -63,12 +64,12 @@ analyze:
 # Elaborate step
 elaborate: analyze
 	@echo "Elaboriere das Design..."
-	ghdl -e t_exchange_interface
+	ghdl -e $(PROJECT_NAME)
 
 # Run simulation
 run: elaborate
 	@echo "Starte Simulation..."
-	ghdl -r t_exchange_interface --wave=output.ghw
+	ghdl -r $(PROJECT_NAME) --wave=output.ghw
 
 # Combine all in one target: sim
 sim: run
