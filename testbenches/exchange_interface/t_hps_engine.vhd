@@ -45,7 +45,7 @@ begin
 
   hps_engine: process
   begin
-    wait for 50 ns;
+    wait for 150 ns;
 
     -- Write operation
     

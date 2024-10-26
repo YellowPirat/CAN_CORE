@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.can_core_intf.all;
+
 --library olo;
 
 entity axireg is
@@ -48,13 +50,14 @@ port(
 	data              : in  std_logic_vector(CanDataLengh_g -1 downto 0);
 	core_error        : in  std_logic_vector(3 downto 0);
 	
-	--input_fifo_data   : in  std_logic_vector(FifoFrameWidth_g - 1 downto 0);
 	-- DATA-CNTR-INPUT
 	input_fifo_valid  : in  std_logic;
 	input_fifo_ready  : out std_logic;
 	
 	-- ERROR
 	fifo_full         : out std_logic
+
+
 );
 end entity axireg;
 
@@ -78,19 +81,28 @@ architecture rtl of axireg is
 
 	signal fifo_empty_s      : std_logic;
 	signal fifo_full_s       : std_logic;
-	signal depth_s           : std_logic_vector(2 downto 0);
+	signal depth_s           : std_logic_vector(4 downto 0);
 
 	signal input_fifo_data   : std_logic_vector(FifoFrameWidth_g - 1 downto 0);
 
 	-- FIFO OUTPUT CNTR
-	type state_output_t is (idle_s, read_s, next_s);
+	type state_output_t is (idle_s, read_s, store_s, error_s, start_s);
 	signal current_state_output, next_state_output : state_output_t;
 
 	-- RESET
 	signal rst_h : std_logic;
 
-	constant AddrSpaceStartPosPlus4_g : std_logic_vector(20 downto 0) := std_logic_vector(unsigned(AddrSpaceStartPos_g) + 4);
+	-- FSM CNTR
+	signal en_s, err_s       	: std_logic;
 
+	-- AXI REG
+	signal axireg_s				: std_logic_vector(FifoFrameWidth_g - 1 downto 0);
+
+	-- Intf
+	signal can_core_intf_fifo_input_s  		: can_core_intf_t;
+	signal can_core_intf_fifo_axireg_s		: can_core_intf_t;
+	signal can_core_intf_axireg_input_s		: can_core_intf_t;
+	signal error_code_s						: std_logic_vector(4 downto 0);
 
 begin
 
@@ -99,17 +111,24 @@ begin
 	axi_slave_rresp <= "00";
 	rst_h <= not rst_n;
 
-	-- Input Mapping
 
-	input_fifo_data(TimeStampLengh_g - 1 downto 0) <= timestamp;
-	input_fifo_data(TimeStampLengh_g + 29 - 1 downto TimeStampLengh_g) <= can_id;
-	input_fifo_data(TimeStampLengh_g + 29) <= rtr;
-	input_fifo_data(TimeStampLengh_g + 30) <= eff;
-	input_fifo_data(TimeStampLengh_g + 31) <= err;
-	input_fifo_data(TimeStampLengh_g + 36 - 1 downto TimeStampLengh_g + 32) <= dlc;
-	input_fifo_data(TimeStampLengh_g + CanDataLengh_g + 36 - 1 downto TimeStampLengh_g + 36) <= data;
-	input_fifo_data(TimeStampLengh_g + CanDataLengh_g + 40 - 1 downto TimeStampLengh_g + CanDataLengh_g + 36) <= core_error;
-	input_fifo_data(FifoFrameWidth_g - 1 downto TimeStampLengh_g + CanDataLengh_g + 40) <= (others => '0');
+	-- Input Mapping
+	error_code_s(3 downto 0)								<= core_error;
+	error_code_s(4) 										<= '0';									
+	can_core_intf_fifo_input_s.error_codes					<= error_code_s;
+	can_core_intf_fifo_input_s.frame_type					<= "00";
+	can_core_intf_fifo_input_s.buffer_usage					<= "00000";
+	can_core_intf_fifo_input_s.timestamp					<= timestamp;
+	can_core_intf_fifo_input_s.can_dlc						<= dlc;
+	can_core_intf_fifo_input_s.can_id						<= can_id;
+	can_core_intf_fifo_input_s.rtr							<= rtr;
+	can_core_intf_fifo_input_s.eff							<= eff;
+	can_core_intf_fifo_input_s.err							<= err;
+	can_core_intf_fifo_input_s.data						<= data;
+
+	input_fifo_data <= std_logic_vector(to_can_core_vector(can_core_intf_fifo_input_s));
+
+
 
 	-- AXI LITE INTERFACE
 	slave_i0 : entity work.olo_axi_lite_slave
@@ -159,35 +178,48 @@ begin
 	begin 
 		next_state_output <= current_state_output;
 		output_ready_s <= '0';
+		en_s <= '0';
+		err_s <= '0';
 
 		case current_state_output is
 			when idle_s => 
-				if output_valid_s = '1' then
+				if rd_rd = '1' and unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 16 and unsigned(depth_s) > 0 then
 					next_state_output <= read_s;
-				end if;
-
-			when read_s =>
-				if rd_rd = '1' and unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 16 then
-					next_state_output <= next_s;
-				end if;
-				
-			when next_s =>
-				if output_valid_s = '1' then 
-					next_state_output <= read_s;
+				elsif rd_rd = '1' and unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 16 and unsigned(depth_s) = 0 then
+					next_state_output <= error_s;
 				else 
 					next_state_output <= idle_s;
 				end if;
+
+			when read_s =>
+				if output_valid_s = '1' then 
+					next_state_output <= store_s;
+				end if;
+				
+			when store_s =>
+				next_state_output <= idle_s;
+				en_s <= '1';
 				output_ready_s <= '1';
+
+			when error_s =>
+				next_state_output <= idle_s;
+				err_s <= '1';
+				en_s <= '1';
+
+			when start_s =>
+				next_state_output <= read_s;
+
 
 			when others => 
 				next_state_output <= idle_s;	
 		end case;
 	end process o_p;
 
-	current_state_output <= idle_s when rst_n = '0' else next_state_output when rising_edge(clk);
+	current_state_output <= start_s when rst_n = '0' else next_state_output when rising_edge(clk);
 
+	
 
-
+	-- FIFO
 	fifo_i0 : entity work.olo_base_fifo_sync
 		generic map(
 			Width_g		=> FifoFrameWidth_g,
@@ -211,39 +243,39 @@ begin
 		);
 
 
-	
+
+
+
+	can_core_intf_fifo_axireg_s <= get_empty_can_core_intf when rst_n = '0' else can_core_intf_axireg_input_s when rising_edge(clk);
+
+	can_core_intf_axireg_input_s.error_codes(3 downto 0) 	<= to_can_core_intf(can_core_vector_t(output_data_s)).error_codes(3 downto 0) 		when en_s = '1' 				else can_core_intf_fifo_axireg_s.error_codes(3 downto 0);
+	can_core_intf_axireg_input_s.error_codes(4) 			<= '1' 																				when err_s = '1' and en_s = '1' else can_core_intf_fifo_axireg_s.error_codes(4);
+	can_core_intf_axireg_input_s.frame_type 				<= to_can_core_intf(can_core_vector_t(output_data_s)).frame_type 					when en_s = '1' 				else can_core_intf_fifo_axireg_s.frame_type;
+	can_core_intf_axireg_input_s.buffer_usage 				<= depth_s;
+	can_core_intf_axireg_input_s.timestamp					<= to_can_core_intf(can_core_vector_t(output_data_s)).timestamp						when en_s = '1'					else can_core_intf_fifo_axireg_s.timestamp;
+	can_core_intf_axireg_input_s.can_dlc					<= to_can_core_intf(can_core_vector_t(output_data_s)).can_dlc						when en_s = '1'					else can_core_intf_fifo_axireg_s.can_dlc;
+	can_core_intf_axireg_input_s.can_id						<= to_can_core_intf(can_core_vector_t(output_data_s)).can_id						when en_s = '1'					else can_core_intf_fifo_axireg_s.can_id;
+	can_core_intf_axireg_input_s.rtr						<= to_can_core_intf(can_core_vector_t(output_data_s)).rtr							when en_s = '1'					else can_core_intf_fifo_axireg_s.rtr;
+	can_core_intf_axireg_input_s.eff						<= to_can_core_intf(can_core_vector_t(output_data_s)).eff							when en_s = '1'					else can_core_intf_fifo_axireg_s.eff;
+	can_core_intf_axireg_input_s.err						<= to_can_core_intf(can_core_vector_t(output_data_s)).err							when en_s = '1' 				else can_core_intf_fifo_axireg_s.err;
+	can_core_intf_axireg_input_s.data						<= to_can_core_intf(can_core_vector_t(output_data_s)).data							when en_s = '1'					else can_core_intf_fifo_axireg_s.data;
+
+
 	p_rb : process(clk)
 	begin
 		if rising_edge(clk) then
 			rb_rd_valid <= '0';
 			if rd_rd = '1' then
 				if unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) then 
-					-- error-codes
-					rb_rd_data(3 downto 0) <= output_data_s(TimeStampLengh_g + CanDataLengh_g + 40 - 1 downto TimeStampLengh_g + CanDataLengh_g + 36);
-					rb_rd_data(4) <= '1';
-					-- frame-type
-					rb_rd_data(6 downto 5) <= "00"; --Normal CAN-Frame
-					-- buffer-usage
-					rb_rd_data(9 downto 7) <= depth_s;
-					rb_rd_data(11 downto 10) <= "00";
-					-- timestamp
-					rb_rd_data(31 downto 12) <= output_data_s(19 downto 0);
+					rb_rd_data <= to_can_core_vector(can_core_intf_fifo_axireg_s)(31 downto 0);
 				elsif unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 4 then 
-					-- timestamp
-					rb_rd_data(27 downto 0) <= output_data_s(47 downto 20);
-					-- can-dlc
-					rb_rd_data(31 downto 28) <= output_data_s(TimeStampLengh_g + 36 - 1 downto TimeStampLengh_g + 32);
+					rb_rd_data <= to_can_core_vector(can_core_intf_fifo_axireg_s)(63 downto 32);
 				elsif unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 8 then
-					-- can_id
-					rb_rd_data(28 downto 0) <= output_data_s(TimeStampLengh_g + 29 - 1 downto TimeStampLengh_g);
-					--rtr eff err
-					rb_rd_data(29) <= output_data_s(TimeStampLengh_g + 29);
-					rb_rd_data(30) <= output_data_s(TimeStampLengh_g + 30);
-					rb_rd_data(31) <= output_data_s(TimeStampLengh_g + 31);
+					rb_rd_data <= to_can_core_vector(can_core_intf_fifo_axireg_s)(95 downto 64);
 				elsif unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 12 then 
-					rb_rd_data <= input_fifo_data( (CanDataLengh_g / 2) + TimeStampLengh_g + 36 - 1 downto TimeStampLengh_g + 36);
+					rb_rd_data <= to_can_core_vector(can_core_intf_fifo_axireg_s)(127 downto 96);
 				elsif unsigned(rb_addr) = unsigned(AddrSpaceStartPos_g) + 16 then
-					rb_rd_data <= input_fifo_data( CanDataLengh_g + TimeStampLengh_g + 36 - 1 downto (CanDataLengh_g / 2) + TimeStampLengh_g + 36);
+					rb_rd_data <= to_can_core_vector(can_core_intf_fifo_axireg_s)(159 downto 128);
  				else
 					rb_rd_data(31 downto 0) <= (others => '0');
 				end if;

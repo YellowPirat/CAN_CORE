@@ -191,7 +191,7 @@ begin
         generic map(
             CanDataLengh_g          => 64,
             AddrSpaceStartPos_g     => "000000000000000000000",
-            FifoDepth_g             => 6
+            FifoDepth_g             => 20
         )
         port map(
             clk => clk,
