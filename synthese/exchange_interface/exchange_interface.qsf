@@ -19,7 +19,7 @@
 #
 # Quartus Prime
 # Version 23.1std.0 Build 991 11/28/2023 SC Lite Edition
-# Date created = 23:30:19  October 24, 2024
+# Date created = 15:08:09  October 27, 2024
 #
 # -------------------------------------------------------------------------- #
 #
@@ -41,7 +41,7 @@ set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY de1_exchange_interface_base
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 23.1STD.0
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "23:30:19  OCTOBER 24, 2024"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "15:08:09  OCTOBER 27, 2024"
 set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.0 Lite Edition"
 set_global_assignment -name QIP_FILE de1_soc/synthesis/de1_soc.qip
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/base/vhdl/olo_base_pkg_array.vhd
@@ -82,6 +82,8 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_mast
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
+set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd

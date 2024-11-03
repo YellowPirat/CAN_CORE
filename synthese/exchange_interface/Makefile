@@ -40,7 +40,7 @@ compile: output_files/$(PROJECT_NAME).merge.summary
 rbf: output_files/$(PROJECT_NAME).rbf
 
 output_files/$(PROJECT_NAME).rbf: output_files/$(PROJECT_NAME).sof
-	quartus_cpf -c output_files/$(PROJECT_NAME).sof output_files/$(PROJECT_NAME).rbf
+	quartus_cpf -c output_files/$(PROJECT_NAME).sof ../../linux/yellowPirat.rbf
 
 
 

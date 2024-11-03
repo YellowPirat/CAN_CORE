@@ -40,7 +40,9 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pkg_
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_simple.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
-set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd 
+set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
+set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd 
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd 
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd 
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd 

@@ -241,6 +241,12 @@ architecture rtl of de1_exchange_interface_base is
   signal m2_axi_rresp		: std_logic_vector(1 downto 0);
   signal m2_axi_rvalid     : std_logic;
   signal m2_axi_rready     : std_logic;
+
+  -- SHIELD
+  signal dbg_led_s          : std_logic_vector(5 downto 0);
+  signal stb_s              : std_logic_vector(5 downto 0);
+  signal rxd_s              : std_logic_vector(5 downto 0);
+  signal txd_s              : std_logic_vector(5 downto 0);
  
 	 
 component de1_soc is
@@ -510,5 +516,16 @@ de1_exchange_interface_i0 : entity work.de1_exchange_interface
     axi_arid        => h2f_lw_axi_arid,
     axi_rlast       => h2f_lw_axi_rlast
   );
+
+shield_adapter_i0 : entity work.shield_adapter
+  port map(
+    gpio_b          => GPIO_0,
+    dbg_led_i       => dbg_led_s,
+    stb_i           => stb_s,
+    rxd_o           => rxd_s,
+    txd_i           => txd_s
+  );
+
+  stb_s <= "000000";
 
 end;

@@ -72,3 +72,10 @@ Comment
 
 *.ghw
 *.vcd
+
+extern/linux
+extern/rootfs
+extern/u-boot-socfpga
+
+*.tar.gz
+*.scr
