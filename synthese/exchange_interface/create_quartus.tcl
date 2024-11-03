@@ -1,7 +1,7 @@
 project_new -overwrite -family CYCLONEV -part 5CSEMA5F31C6 exchange_interface
 
 set_global_assignment -name TOP_LEVEL_ENTITY de1_exchange_interface_base
-set_global_assignment -name QIP_FILE de1_soc/synthesis/de1_soc.qip
+set_global_assignment -name QIP_FILE ../../project_files/de1_soc/synthesis/de1_soc.qip
 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/base/vhdl/olo_base_pkg_array.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/base/vhdl/olo_base_pkg_math.vhd 

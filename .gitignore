@@ -79,3 +79,5 @@ extern/u-boot-socfpga
 
 *.tar.gz
 *.scr
+
+project_files/de1_soc/*
