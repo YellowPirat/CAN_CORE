@@ -81,3 +81,4 @@ extern/u-boot-socfpga
 *.scr
 
 project_files/de1_soc/*
+*.diff
