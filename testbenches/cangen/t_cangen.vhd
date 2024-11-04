@@ -5,28 +5,21 @@ use ieee.numeric_std.all;
 use std.textio.all;
 
 entity cangen is
+  port(
+    rst_n     : in std_logic;
+    rxd_o     : out std_logic;
+    simstop   : in boolean := false
+  );
 end entity;
 
 architecture sim of cangen is
 
-    signal clk, rst_n, step, rxd : std_logic := '0';
-    signal simstop : boolean := false;
+    signal step, rxd : std_logic := '0';
 
     signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0);
 
 begin
 
-  -- Clock generation
-  clk_p : process
-  begin
-    clk <= '0';
-    wait for 10 ns; 
-    clk <= '1'; 
-    wait for 10 ns;
-    if simstop then
-      wait;
-    end if;
-  end process clk_p;
 
   step_p : process
   begin 
@@ -39,27 +32,11 @@ begin
     end if;
   end process step_p; 
 
-  -- Reset generation
-  rst_p : process
-  begin
-    rst_n <= '0';
-    wait for 20 ns;
-    rst_n <= '1';
-    wait;
-  end process rst_p;
-
-  simstop_p : process
-  begin
-  wait for 10 ms;
-    simstop <= true;
-    wait;
-  end process simstop_p;
-
     p_read : process(rst_n,step)
     --------------------------------------------------------------------------------------------------
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
-    file test_vector                : text open read_mode is "canw4.csv";
+    file test_vector                : text open read_mode is "../cangen/canw4.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;
@@ -84,5 +61,7 @@ begin
         end if;
       end if;
     end process p_read;
+
+    rxd_o <= rxd;
 
 end architecture;
