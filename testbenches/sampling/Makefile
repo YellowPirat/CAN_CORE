@@ -51,6 +51,8 @@ SRC_FILES = \
 	../cangen/t_cangen.vhd \
 	../../src/sampling/edge_detect.vhd \
 	../../src/sampling/sample_cnt.vhd \
+    ../../src/sampling/idle_detect.vhd \
+    ../../src/sampling/destuffing.vhd \
 	../../src/sampling/de1_sampling.vhd \
 	t_sampling.vhd 
 

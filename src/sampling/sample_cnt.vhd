@@ -14,18 +14,29 @@ end entity;
 
 architecture rtl of sample_cnt is
 
-    signal q, d     : unsigned(5 downto 0);
+    signal q, d     : unsigned(6 downto 0);
 
 begin
+    
+    cnt_p : process(clk)
+    begin
+        if rising_edge(clk) then
+            if enable_i = '1' then
+                if reload_i = '1' or q = 0 then
+                    q <= to_unsigned(100, d'length);
+                else
+                    q <= q - 1;
+                end if;
+            end if;
 
-    q <= to_unsigned(50, q'length) when rst_n = '0' else d when rising_edge(clk);
-    d <=    q when enable_i = '0' else
-            to_unsigned(50, d'length) when reload_i = '1' else
-            to_unsigned(50, d'length) when q = 0 else
-            q - 1;
+            if rst_n = '0' then
+                q <= to_unsigned(100, d'length);
+            end if;
+        end if;
+    end process cnt_p;
 
     
-    sample_o <= '1' when q = 25 else '0';    
+    sample_o <= '1' when q = 50 else '0';    
 
 
 end architecture;

@@ -32,7 +32,7 @@ begin
   rst_p : process
   begin
     rst_n <= '0';
-    wait for 20 ns;
+    wait for 100 ns;
     rst_n <= '1';
     wait;
   end process rst_p;

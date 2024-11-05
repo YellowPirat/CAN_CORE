@@ -14,9 +14,10 @@ end entity;
 
 architecture sim of cangen is
 
-    signal step, rxd : std_logic := '0';
+    signal step : std_logic := '0';
+    signal rxd : std_logic := '1';
 
-    signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0);
+    signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0) := (others => '1');
 
 begin
 
@@ -40,6 +41,7 @@ begin
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;
+    variable v_data_str             : string(1 to 80);
     begin
       
       if(rst_n='0') then
@@ -55,6 +57,7 @@ begin
             for kk in 1 to NUM_COL loop
                 read(row,v_data_read(kk));
             end loop; 
+
             value1_std_logic_8_bit    <= std_logic_vector(to_unsigned(v_data_read(1), 8));
             rxd <= value1_std_logic_8_bit(0);
             

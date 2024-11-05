@@ -15,7 +15,7 @@ architecture rtl of edge_detect is
 
     type state_t is (idle_s, change_s);
     signal current_state, new_state : state_t;
-    signal edge_s           : std_logic;
+    signal edge_s           : std_logic := '0';
 
 begin
 
@@ -28,21 +28,29 @@ begin
         
         case current_state is 
             when idle_s => 
-                if data_i = '1' then
+                if data_i = '0' then
                     new_state <= change_s;
                     edge_s <= '1';
                 end if;
             when change_s =>
-                if data_i = '0' then
+                if data_i = '1' then
                     new_state <= idle_s;
                     edge_s <= '1';
                 end if;
             when others => 
                 new_state <= idle_s;
+                edge_s <= '0';
         end case;
     end process edge_detect_p;
 
-    current_state <= idle_s when rst_n = '0' else new_state when rising_edge(clk);
-
+    p : process(clk)
+    begin 
+        if rising_edge(clk) then 
+            current_state <= new_state;
+            if rst_n = '0' then 
+                current_state <= idle_s;
+            end if;
+        end if;
+    end process p;
 
 end architecture;

@@ -16,8 +16,9 @@ architecture rtl of de1_sampling is
     signal rxd_sync_s       : std_logic_vector(0 downto 0);
     signal edge_s           : std_logic;
     signal sample_s         : std_logic;
-    signal sample_data_s    : std_logic;
-    signal p_s              : std_logic;
+    signal enable_sample_s  : std_logic;
+    signal stuff_bit_s      : std_logic;
+    signal bit_stuff_error  : std_logic;
 
     signal rst_h            : std_logic;
 begin
@@ -25,6 +26,9 @@ begin
     rst_h  <= not rst_n;
 
     sync_stage_i0 : entity work.olo_intf_sync
+        generic map(
+            RstLevel_g      => '1'
+        )
         port map(
             Clk             => clk,
             Rst             => rst_h,
@@ -45,11 +49,30 @@ begin
             clk             => clk,
             rst_n           => rst_n,
             reload_i        => edge_s,
-            enable_i        => '1',
+            enable_i        => enable_sample_s,
             sample_o        => sample_s
         );
 
-    sample_data_s <= '0' when rst_n = '0' else p_s when rising_edge(clk);
-    p_s <= sample_data_s when sample_s = '0' else rxd_sync_s(0);
+    idle_detect_i0 : entity work.idle_detect
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
+            frame_end_i     => '0',
+            edge_i          => edge_s,
+            enable_o        => enable_sample_s
+        );
+
+    destuffing_i0 : entity work.destuffing
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
+            data_i          => rxd_sync_s(0),
+            sample_i        => sample_s,
+            bus_active_i    => enable_sample_s,
+            stuff_bit_o     => stuff_bit_s,
+            error_o         => bit_stuff_error
+        );
+
+
 
 end architecture;

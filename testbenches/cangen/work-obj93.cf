@@ -1,4 +1,0 @@
-v 4
-file . "t_cangen.vhd" "0b760aef14537ebea21ac5e835270b9b7e365422" "20241027153933.813":
-  entity cangen at 1( 0) + 0 on 47;
-  architecture sim of cangen at 10( 151) + 0 on 48;
