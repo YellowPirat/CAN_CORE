@@ -16,6 +16,7 @@ architecture sim of cangen is
 
     signal step : std_logic := '0';
     signal rxd : std_logic := '1';
+    signal active_s : std_logic := '0';
 
     signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0) := (others => '1');
 
@@ -60,8 +61,11 @@ begin
 
             value1_std_logic_8_bit    <= std_logic_vector(to_unsigned(v_data_read(1), 8));
             rxd <= value1_std_logic_8_bit(0);
-            
+            active_s <= '1';
+        else
+            active_s <= '0';
         end if;
+          
       end if;
     end process p_read;
 

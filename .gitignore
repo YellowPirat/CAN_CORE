@@ -82,3 +82,5 @@ extern/u-boot-socfpga
 
 project_files/de1_soc/*
 *.diff
+
+*.cf

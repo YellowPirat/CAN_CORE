@@ -17,8 +17,11 @@ cd extern/linux
 git checkout socfpga-6.1
 cd ../../
 
+
 # Create Quartus project and hps core (Can be skipped if already done)
+cd project_files
 make qip
+cd ../synthese/exchange_interface
 make qpf
 
 # Compile exchange_interface
