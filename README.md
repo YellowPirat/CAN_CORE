@@ -50,4 +50,4 @@ gtkterm --port=/dev/ttyUSB0
 
 Read data from the AXI register 
 ```
-sudo memtool md 0xff200000+20
+sudo memtool md 0xff200000+28

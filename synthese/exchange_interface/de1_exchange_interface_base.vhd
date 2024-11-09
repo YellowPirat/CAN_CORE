@@ -3,7 +3,7 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.math_real.all;
 
-
+use work.axi_lite_intf.all;
     
 entity de1_exchange_interface_base is
 	port(
@@ -242,6 +242,11 @@ architecture rtl of de1_exchange_interface_base is
   signal m2_axi_rvalid     : std_logic;
   signal m2_axi_rready     : std_logic;
 
+  -- Exchange Interface
+
+  signal axi_intf_o     : axi_lite_output_intf_t;
+  signal axi_intf_i     : axi_lite_input_intf_t;
+
   -- SHIELD
   signal dbg_led_s          : std_logic_vector(5 downto 0);
   signal stb_s              : std_logic_vector(5 downto 0);
@@ -371,43 +376,45 @@ begin
    port map(
       clk_clk => CLOCK_50,
       hps_0_h2f_lw_axi_clock_clk      => CLOCK_50,
+      hps_0_h2f_reset_reset_n         => hps_reset_n,
+
       hps_0_h2f_lw_axi_master_awid    => h2f_lw_axi_awid,
-      hps_0_h2f_lw_axi_master_awaddr  => h2f_lw_axi_awaddr,
+      hps_0_h2f_lw_axi_master_awaddr  => axi_intf_o.axi_awaddr,
       hps_0_h2f_lw_axi_master_awlen   => h2f_lw_axi_awlen,
       hps_0_h2f_lw_axi_master_awsize  => h2f_lw_axi_awsize,
       hps_0_h2f_lw_axi_master_awburst => h2f_lw_axi_awburst,
       hps_0_h2f_lw_axi_master_awlock  => h2f_lw_axi_awlock,
       hps_0_h2f_lw_axi_master_awcache => h2f_lw_axi_awcache,
       hps_0_h2f_lw_axi_master_awprot  => h2f_lw_axi_awprot,
-      hps_0_h2f_lw_axi_master_awvalid => h2f_lw_axi_awvalid,
-      hps_0_h2f_lw_axi_master_awready => h2f_lw_axi_awready,
+      hps_0_h2f_lw_axi_master_awvalid => axi_intf_o.axi_awvalid,
+      hps_0_h2f_lw_axi_master_awready => axi_intf_i.axi_awready,
       hps_0_h2f_lw_axi_master_wid     => h2f_lw_axi_wid,
-      hps_0_h2f_lw_axi_master_wdata   => h2f_lw_axi_wdata,
+      hps_0_h2f_lw_axi_master_wdata   => axi_intf_o.axi_wdata,
       hps_0_h2f_lw_axi_master_wstrb   => h2f_lw_axi_wstrb,
       hps_0_h2f_lw_axi_master_wlast   => h2f_lw_axi_wlast,
-      hps_0_h2f_lw_axi_master_wvalid  => h2f_lw_axi_wvalid,
-      hps_0_h2f_lw_axi_master_wready  => h2f_lw_axi_wready,
+      hps_0_h2f_lw_axi_master_wvalid  => axi_intf_o.axi_wvalid,
+      hps_0_h2f_lw_axi_master_wready  => axi_intf_i.axi_wready,
       hps_0_h2f_lw_axi_master_bid     => std_logic_vector(h2f_lw_axi_bid),
-      hps_0_h2f_lw_axi_master_bresp   => std_logic_vector(h2f_lw_axi_bresp),
-      hps_0_h2f_lw_axi_master_bvalid  => h2f_lw_axi_bvalid,
-      hps_0_h2f_lw_axi_master_bready  => h2f_lw_axi_bready,
+      hps_0_h2f_lw_axi_master_bresp   => axi_intf_i.axi_bresp,
+      hps_0_h2f_lw_axi_master_bvalid  => axi_intf_i.axi_bvalid,
+      hps_0_h2f_lw_axi_master_bready  => axi_intf_o.axi_bready,
       hps_0_h2f_lw_axi_master_arid    => h2f_lw_axi_arid,
-      hps_0_h2f_lw_axi_master_araddr  => h2f_lw_axi_araddr,
+      hps_0_h2f_lw_axi_master_araddr  => axi_intf_o.axi_araddr,
       hps_0_h2f_lw_axi_master_arlen   => h2f_lw_axi_arlen,
       hps_0_h2f_lw_axi_master_arsize  => h2f_lw_axi_arsize,
       hps_0_h2f_lw_axi_master_arburst => h2f_lw_axi_arburst,
       hps_0_h2f_lw_axi_master_arlock  => h2f_lw_axi_arlock,
       hps_0_h2f_lw_axi_master_arcache => h2f_lw_axi_arcache,
       hps_0_h2f_lw_axi_master_arprot  => h2f_lw_axi_arprot,
-      hps_0_h2f_lw_axi_master_arvalid => h2f_lw_axi_arvalid,
-      hps_0_h2f_lw_axi_master_arready => h2f_lw_axi_arready,
+      hps_0_h2f_lw_axi_master_arvalid => axi_intf_o.axi_arvalid,
+      hps_0_h2f_lw_axi_master_arready => axi_intf_i.axi_arready,
       hps_0_h2f_lw_axi_master_rid     => std_logic_vector(h2f_lw_axi_rid),
-      hps_0_h2f_lw_axi_master_rdata   => std_logic_vector(h2f_lw_axi_rdata),
-      hps_0_h2f_lw_axi_master_rresp   => std_logic_vector(h2f_lw_axi_rresp),
+      hps_0_h2f_lw_axi_master_rdata   => axi_intf_i.axi_rdata,
+      hps_0_h2f_lw_axi_master_rresp   => axi_intf_i.axi_rresp,
       hps_0_h2f_lw_axi_master_rlast   => h2f_lw_axi_rlast,
-      hps_0_h2f_lw_axi_master_rvalid  => h2f_lw_axi_rvalid,
-      hps_0_h2f_lw_axi_master_rready  => h2f_lw_axi_rready,
-      hps_0_h2f_reset_reset_n         => hps_reset_n,
+      hps_0_h2f_lw_axi_master_rvalid  => axi_intf_i.axi_rvalid,
+      hps_0_h2f_lw_axi_master_rready  => axi_intf_o.axi_rready ,
+      
       hps_ddr3_mem_a => HPS_DDR3_ADDR,
       hps_ddr3_mem_ba => HPS_DDR3_BA,
       hps_ddr3_mem_ck => HPS_DDR3_CK_P,
@@ -489,27 +496,12 @@ de1_exchange_interface_i0 : entity work.de1_exchange_interface
     clk             => CLOCK_50,
     rst_n           => hps_reset_n,
 
-    axi_awaddr      => h2f_lw_axi_awaddr,
-    axi_awvalid     => h2f_lw_axi_awvalid,
-    axi_awready     => h2f_lw_axi_awready,
+    axi_intf_i          => axi_intf_o,
+    axi_intf_o          => axi_intf_i
+  );
 
-    axi_wdata       => h2f_lw_axi_wdata,
-    axi_wvalid      => h2f_lw_axi_wvalid,
-    axi_wready      => h2f_lw_axi_wready,
-
-    axi_bresp       => h2f_lw_axi_bresp,
-    axi_bvalid      => h2f_lw_axi_bvalid,
-    axi_bready      => h2f_lw_axi_bready,
-
-    axi_araddr      => h2f_lw_axi_araddr,
-    axi_arvalid     => h2f_lw_axi_arvalid,
-    axi_arready     => h2f_lw_axi_arready,
-
-    axi_rdata       => h2f_lw_axi_rdata,
-    axi_rresp       => h2f_lw_axi_rresp,
-    axi_rvalid      => h2f_lw_axi_rvalid,
-    axi_rready      => h2f_lw_axi_rready,
-
+axi_shit_cntr_i0 : entity work.axi_shit_cntr
+  port map(
     axi_awid        => h2f_lw_axi_awid,
     axi_bid         => h2f_lw_axi_bid,
     axi_rid         => h2f_lw_axi_rid,

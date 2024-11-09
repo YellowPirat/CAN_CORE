@@ -2,33 +2,18 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
+use work.axi_lite_intf.all;
+use work.can_core_intf.all;
+
 entity de1_exchange_interface is
     port (
         -- Global clock and reset
         clk           : in std_logic;
         rst_n         : in std_logic;
         
-        -- AXI slave interface (from master)
-        axi_awaddr  : in  std_logic_vector(20 downto 0);
-        axi_awvalid : in  std_logic;
-        axi_awready : out std_logic;
-    
-        axi_wdata   : in  std_logic_vector(31 downto 0);
-        axi_wvalid  : in  std_logic;
-        axi_wready  : out std_logic;
-    
-        axi_bresp   : out std_logic_vector(1 downto 0);
-        axi_bvalid  : out std_logic;
-        axi_bready  : in  std_logic;
-    
-        axi_araddr  : in  std_logic_vector(20 downto 0);
-        axi_arvalid : in  std_logic;
-        axi_arready : out std_logic;
-    
-        axi_rdata   : out std_logic_vector(31 downto 0);
-        axi_rresp   : out std_logic_vector(1 downto 0);
-        axi_rvalid  : out std_logic;
-        axi_rready  : in  std_logic;
+
+        axi_intf_o    : out axi_lite_input_intf_t;
+        axi_intf_i    : in  axi_lite_output_intf_t;
 
         -- SHIT SIGNALS
 
@@ -41,220 +26,61 @@ entity de1_exchange_interface is
 end de1_exchange_interface;
 
 architecture rtl of de1_exchange_interface is
+    signal can_intf_s           : can_core_comb_intf_t;
+    signal can_valid_s          : std_logic;
+    signal can_ready_s          : std_logic;
+    
 
-    -- S1 INTERCONNECT OUT
-    signal m1_axi_awaddr    : std_logic_vector(20 downto 0);
-    signal m1_axi_awvalid   : std_logic;
-    signal m1_axi_awready   : std_logic;
-    
-    signal m1_axi_wdata		: std_logic_vector(31 downto 0);
-    signal m1_axi_wvalid		: std_logic;
-    signal m1_axi_wready     : std_logic;
-    
-    signal m1_axi_bresp      : std_logic_vector(1 downto 0);
-    signal m1_axi_bvalid     : std_logic;
-    signal m1_axi_bready     : std_logic;
-    
-    signal m1_axi_araddr		: std_logic_vector(20 downto 0);
-    signal m1_axi_arvalid    : std_logic;
-    signal m1_axi_arready    : std_logic;
-    
-    signal m1_axi_rdata      : std_logic_vector(31 downto 0);
-    signal m1_axi_rresp		: std_logic_vector(1 downto 0);
-    signal m1_axi_rvalid     : std_logic;
-    signal m1_axi_rready     : std_logic;
-    
-    -- S2 INTERCONNECT OUT
-    signal m2_axi_awaddr		: std_logic_vector(20 downto 0);
-    signal m2_axi_awvalid    : std_logic;
-    signal m2_axi_awready    : std_logic;
-    
-    signal m2_axi_wdata		: std_logic_vector(31 downto 0);
-    signal m2_axi_wvalid		: std_logic;
-    signal m2_axi_wready     : std_logic;
-    
-    signal m2_axi_bresp      : std_logic_vector(1 downto 0);
-    signal m2_axi_bvalid     : std_logic;
-    signal m2_axi_bready     : std_logic;
-    
-    signal m2_axi_araddr		: std_logic_vector(20 downto 0);
-    signal m2_axi_arvalid    : std_logic;
-    signal m2_axi_arready    : std_logic;
-    
-    signal m2_axi_rdata      : std_logic_vector(31 downto 0);
-    signal m2_axi_rresp		: std_logic_vector(1 downto 0);
-    signal m2_axi_rvalid     : std_logic;
-    signal m2_axi_rready     : std_logic;
-
-    -- Input
-    signal input_fifo_data_s  : std_logic_vector(160-1 downto 0);
-    signal input_fifo_valid_s : std_logic;
-    signal input_fifo_ready_s : std_logic;
-    signal fifo_full_s        : std_logic;
-
-    -- can-core-signals
-    signal timestamp_s          : std_logic_vector(47 downto 0);
-    signal can_id_s             : std_logic_vector(28 downto 0);
-    signal rtr_s                : std_logic;
-    signal eff_s                : std_logic;
-    signal err_s                : std_logic;
-    signal dlc_s                : std_logic_vector(3 downto 0);
-    signal data_s               : std_logic_vector(63 downto 0);
-    signal core_error_s         : std_logic_vector(3 downto 0);
+    signal s1_axi_s               : axi_lite_comb_intf_t;
+    signal s2_axi_s               : axi_lite_comb_intf_t;
+    signal m_axi_intf_s           : axi_lite_comb_intf_t;
 
 begin
 
-    intercon : entity work.axi_interconnect
-    generic map(
-        C_S_AXI_DATA_WIDTH                      => 32,
-        C_S_AXI_ADDR_WIDTH                      => 21
-    )
-	port map(
-        -- MASTER INTERFACE
-        S_AXI_ACLK								=> clk,
-        S_AXI_ARESETN							=> rst_n,
-        
-        S_AXI_AWADDR							=> axi_awaddr,
-        S_AXI_AWVALID							=> axi_awvalid,
-        S_AXI_AWREADY							=> axi_awready,
-        
-        S_AXI_WDATA								=> axi_wdata,
-        S_AXI_WVALID							=> axi_wvalid,
-        S_AXI_WREADY							=> axi_wready,
-        
-        S_AXI_BRESP								=> axi_bresp,
-        S_AXI_BVALID							=> axi_bvalid,
-        S_AXI_BREADY							=> axi_bready,
-        
-        S_AXI_ARADDR							=> axi_araddr,
-        S_AXI_ARVALID							=> axi_arvalid,
-        S_AXI_ARREADY							=> axi_arready,
-        
-        S_AXI_RDATA								=> axi_rdata,
-        S_AXI_RRESP								=> axi_rresp,
-        S_AXI_RVALID							=> axi_rvalid,
-        S_AXI_RREADY							=> axi_rready,
 
-        -- Shit
-        S_AXI_AWID                              => axi_awid,
-        S_AXI_BID                               => axi_bid,
-        S_AXI_RID                               => axi_rid,
-        S_AXI_ARID                              => axi_arid,
-        S_AXI_RLAST                             => axi_rlast,
-		
-        -- SLAVE INTERFACE 1
-        M1_AXI_AWADDR							=> m1_axi_awaddr,
-        M1_AXI_AWVALID							=> m1_axi_awvalid,
-        M1_AXI_AWREADY							=> m1_axi_awready,
 
-        M1_AXI_WDATA 							=> m1_axi_wdata,
-        M1_AXI_WVALID							=> m1_axi_wvalid,
-        M1_AXI_WREADY							=> m1_axi_wready,
-
-        M1_AXI_BRESP							=> m1_axi_bresp,
-        M1_AXI_BVALID							=> m1_axi_bvalid,
-        M1_AXI_BREADY							=> m1_axi_bready,
-
-        M1_AXI_ARADDR							=> m1_axi_araddr,
-        M1_AXI_ARVALID 							=> m1_axi_arvalid,
-        M1_AXI_ARREADY 							=> m1_axi_arready,
-
-        M1_AXI_RDATA  							=> m1_axi_rdata,
-        M1_AXI_RRESP  							=> m1_axi_rresp,
-        M1_AXI_RVALID 							=> m1_axi_rvalid,
-        M1_AXI_RREADY 							=> m1_axi_rready,
-	 
-		-- SLAVE INTERFACE 2
-        M2_AXI_AWADDR							=> m2_axi_awaddr,
-        M2_AXI_AWVALID							=> m2_axi_awvalid,
-        M2_AXI_AWREADY							=> m2_axi_awready,
-
-        M2_AXI_WDATA 							=> m2_axi_wdata,
-        M2_AXI_WVALID							=> m2_axi_wvalid,
-        M2_AXI_WREADY							=> m2_axi_wready,
-
-        M2_AXI_BRESP							=> m2_axi_bresp,
-        M2_AXI_BVALID							=> m2_axi_bvalid,
-        M2_AXI_BREADY							=> m2_axi_bready,
-
-        M2_AXI_ARADDR							=> m2_axi_araddr,
-        M2_AXI_ARVALID 							=> m2_axi_arvalid,
-        M2_AXI_ARREADY 							=> m2_axi_arready,
-        
-        M2_AXI_RDATA  							=> m2_axi_rdata,
-        M2_AXI_RRESP  							=> m2_axi_rresp,
-        M2_AXI_RVALID 							=> m2_axi_rvalid,
-        M2_AXI_RREADY 							=> m2_axi_rready
-	);
-
-    axireg_inst_i0: entity work.axireg
-        generic map(
-            CanDataLengh_g          => 64,
-            AddrSpaceStartPos_g     => "000000000000000000000",
-            FifoDepth_g             => 20
-        )
+    intercon_i0 : entity work.axi_interconnect
         port map(
-            clk => clk,
-            rst_n => rst_n,
-        
-            axi_slave_awaddr    => m1_axi_awaddr,
-            axi_slave_awvalid   => m1_axi_awvalid,
-            axi_slave_awready   => m1_axi_awready,
-        
-            axi_slave_wdata     => m1_axi_wdata,
-            axi_slave_wvalid    => m1_axi_wvalid,
-            axi_slave_wready    => m1_axi_wready,
-        
-            axi_slave_bresp     => m1_axi_bresp,
-            axi_slave_bvalid    => m1_axi_bvalid,
-            axi_slave_bready    => m1_axi_bready,
-        
-            axi_slave_araddr    => m1_axi_araddr,
-            axi_slave_arvalid   => m1_axi_arvalid,
-            axi_slave_arready   => m1_axi_arready,
-        
-            axi_slave_rdata     => m1_axi_rdata,
-            axi_slave_rvalid    => m1_axi_rvalid,
-            axi_slave_rready    => m1_axi_rready,
-            axi_slave_rresp     => m1_axi_rresp,
+            -- MASTER -> SLAVE
+            m_axi_intf                              => m_axi_intf_s,
 
-            timestamp           => timestamp_s,
-            can_id              => can_id_s,
-            rtr                 => rtr_s,
-            eff                 => eff_s,
-            err                 => err_s,
-            dlc                 => dlc_s,
-            data                => data_s,
-            core_error          => core_error_s,
+            -- SLAVE -> MASTER
+            s1_axi_intf                             => s1_axi_s,
+            s2_axi_intf                             => s2_axi_s,
 
-            input_fifo_valid    => input_fifo_valid_s,
-            input_fifo_ready    => input_fifo_ready_s,
+            -- Shit
+            S_AXI_AWID                              => axi_awid,
+            S_AXI_BID                               => axi_bid,
+            S_AXI_RID                               => axi_rid,
+            S_AXI_ARID                              => axi_arid,
+            S_AXI_RLAST                             => axi_rlast
+        );
 
-            fifo_full           => fifo_full_s
-    );
 
-    exchange_testbench_i0 : entity work.exchange_testbench
-        generic map(
-            TestDataLen_g           => 10
-        )
+    axiret_i0 : entity work.axireg
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
+        
+            axi_intf_i      => axi_intf_i,
+            axi_intf_o      => axi_intf_o,
+
+            can_intf        => can_intf_s,
+            can_valid_i     => can_valid_s,
+            can_ready_o     => can_ready_s
+        );
+
+    can_core_sim_i0 : entity work.exchange_testbench
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
-            timestamp               => timestamp_s,
-            can_id                  => can_id_s,
-            rtr                     => rtr_s,
-            eff                     => eff_s,
-            err                     => err_s,
-            dlc                     => dlc_s,
-            data                    => data_s,
-            core_error              => core_error_s,
-
-            output_fifo_valid       => input_fifo_valid_s,
-            output_fifo_ready       => input_fifo_ready_s,
-
-           fifo_full               => fifo_full_s
+            can_core_intf           => can_intf_s,
+            output_fifo_valid       => can_valid_s,
+            output_fifo_ready       => can_ready_s
         );
+
+    
 
 end rtl;
 

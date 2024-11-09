@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all; 
 use ieee.numeric_std.all; 
 
+use work.axi_lite_intf.all;
+
 entity t_exchange_interface is
 end entity;
 
@@ -10,28 +12,8 @@ architecture tbench of t_exchange_interface is
   signal clk, rst_n : std_logic := '0';
   signal simstop : boolean := false;
 
-  signal axi_awaddr_s     : std_logic_vector(20 downto 0);
-  signal axi_awvalid_s    : std_logic := '0';
-  signal axi_awready_s    : std_logic;
-
-  signal axi_wdata_s      : std_logic_vector(31 downto 0) := (others => '0');
-  signal axi_wvalid_s     : std_logic := '0';
-  signal axi_wready_s     : std_logic;
-
-  signal axi_bresp_s      : std_logic_vector(1 downto 0);
-  signal axi_bvalid_s     : std_logic;
-  signal axi_bready_s     : std_logic := '0';
-
-  signal axi_araddr_s     : std_logic_vector(20 downto 0) := (others => '0');
-  signal axi_arvalid_s    : std_logic := '0';
-  signal axi_arready_s    : std_logic;
-
-  signal axi_rdata_s      : std_logic_vector(31 downto 0);
-  signal axi_rresp_s      : std_logic_vector(1 downto 0);
-  signal axi_rvalid_s     : std_logic;
-  signal axi_rready_s     : std_logic := '0';
-
-
+  signal axi_intf_o     : axi_lite_output_intf_t;
+  signal axi_intf_i     : axi_lite_input_intf_t;
 
 begin
   
@@ -69,26 +51,26 @@ begin
       clk                 => clk,
       rst_n               => rst_n,
 
-      axi_awaddr        => axi_awaddr_s,
-      axi_awvalid       => axi_awvalid_s,
-      axi_awready       => axi_awready_s,
+      axi_awaddr        => axi_intf_o.axi_awaddr,
+      axi_awvalid       => axi_intf_o.axi_awvalid,
+      axi_awready       => axi_intf_i.axi_awready,
 
-      axi_wdata         => axi_wdata_s,
-      axi_wvalid        => axi_wvalid_s,
-      axi_wready        => axi_wready_s,
+      axi_wdata         => axi_intf_o.axi_wdata,
+      axi_wvalid        => axi_intf_o.axi_wvalid,
+      axi_wready        => axi_intf_i.axi_wready,
 
-      axi_bresp         => axi_bresp_s,
-      axi_bvalid        => axi_bvalid_s,
-      axi_bready        => axi_bready_s,
+      axi_bresp         => axi_intf_i.axi_bresp,
+      axi_bvalid        => axi_intf_i.axi_bvalid,
+      axi_bready        => axi_intf_o.axi_bready,
 
-      axi_araddr        => axi_araddr_s,
-      axi_arvalid       => axi_arvalid_s,
-      axi_arready       => axi_arready_s,
+      axi_araddr        => axi_intf_o.axi_araddr,
+      axi_arvalid       => axi_intf_o.axi_arvalid,
+      axi_arready       => axi_intf_i.axi_arready,
 
-      axi_rdata         => axi_rdata_s,
-      axi_rresp         => axi_rresp_s,
-      axi_rvalid        => axi_rvalid_s,
-      axi_rready        => axi_rready_s          
+      axi_rdata         => axi_intf_i.axi_rdata,
+      axi_rresp         => axi_intf_i.axi_rresp,
+      axi_rvalid        => axi_intf_i.axi_rvalid,
+      axi_rready        => axi_intf_o.axi_rready          
     );
 
 
@@ -98,26 +80,8 @@ begin
         clk                 => clk,
         rst_n               => rst_n,
 
-        axi_awaddr        => axi_awaddr_s,
-        axi_awvalid       => axi_awvalid_s,
-        axi_awready       => axi_awready_s,
-
-        axi_wdata         => axi_wdata_s,
-        axi_wvalid        => axi_wvalid_s,
-        axi_wready        => axi_wready_s,
-
-        axi_bresp         => axi_bresp_s,
-        axi_bvalid        => axi_bvalid_s,
-        axi_bready        => axi_bready_s,
-
-        axi_araddr        => axi_araddr_s,
-        axi_arvalid       => axi_arvalid_s,
-        axi_arready       => axi_arready_s,
-
-        axi_rdata         => axi_rdata_s,
-        axi_rresp         => axi_rresp_s,
-        axi_rvalid        => axi_rvalid_s,
-        axi_rready        => axi_rready_s
+        axi_intf_i          => axi_intf_o,
+        axi_intf_o          => axi_intf_i
     );
 
 

@@ -42,14 +42,18 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_s
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd 
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd 
+
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_lite_intf.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_addr_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_shit_cntr.vhd
+
 set_global_assignment -name VHDL_FILE de1_exchange_interface_base.vhd
-
-
 
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
