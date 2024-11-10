@@ -1,13 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_textio.all;
 use ieee.numeric_std.all;
-use std.textio.all;
 
-entity sampling is
+
+entity core is
 end entity;
 
-architecture sim of sampling is
+architecture sim of core is
 
     signal clk, rst_n: std_logic := '0';
     signal simstop : boolean := false;
@@ -22,29 +21,29 @@ architecture sim of sampling is
 begin
 
   -- Clock generation
-  clk_p : process
-  begin
-    clk <= '0';
-    wait for 10 ns; 
-    clk <= '1'; 
-    wait for 10 ns;
-    if simstop then
-      wait;
-    end if;
-  end process clk_p;
+    clk_p : process
+    begin
+        clk <= '0';
+        wait for 10 ns; 
+        clk <= '1'; 
+        wait for 10 ns;
+        if simstop then
+            wait;
+        end if;
+    end process clk_p;
 
   -- Reset generation
-  rst_p : process
-  begin
-    rst_n <= '0';
-    wait for 100 ns;
-    rst_n <= '1';
-    wait;
-  end process rst_p;
+    rst_p : process
+    begin
+        rst_n <= '0';
+        wait for 100 ns;
+        rst_n <= '1';
+        wait;
+    end process rst_p;
 
     simstop_p : process
     begin
-    wait for 500 us;
+        wait for 500 us;
         simstop <= true;
         wait;
     end process simstop_p;
@@ -67,5 +66,15 @@ begin
             sample_o      => sample_s,
             stuff_bit_o   => stuff_bit_s
         );
+
+    core_i0 : entity work.de1_core
+    port map(
+        clk           => clk,
+        rst_n         => rst_n,
+
+        rxd_sync_i    => rxd_sync_s,
+        sample_i      => sample_s,
+        stuff_bit_i   => stuff_bit_s
+    );
 
 end architecture;

@@ -6,7 +6,12 @@ entity de1_sampling is
     port (
         clk                 : in    std_logic;
         rst_n               : in    std_logic;
-        rxd_i               : in    std_logic
+
+        rxd_i               : in    std_logic;
+
+        rxd_sync_o          : out   std_logic;
+        sample_o            : out   std_logic;
+        stuff_bit_o         : out   std_logic
     );
 end entity;
 
