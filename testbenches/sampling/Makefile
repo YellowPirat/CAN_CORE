@@ -43,11 +43,6 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
-    ../../src/exchange_interface/can_core_intf.vhd \
-	../../src/exchange_interface/axireg.vhd \
-    ../../src/exchange_interface/exchange_testbench.vhd \
-	../../src/exchange_interface/axi_interconnect.vhd \
-	../../src/exchange_interface/de1_exchange_interface.vhd \
 	../cangen/t_cangen.vhd \
 	../../src/sampling/edge_detect.vhd \
 	../../src/sampling/sample_cnt.vhd \

@@ -6,6 +6,9 @@
 # Clone the repository
 git clone --recurse-submodules https://github.com/YellowPirat/CAN_CORE.git
 
+# If you forgot the recurse-flag ;=)
+git submodule update
+
 # Navigate to the project
 cd CAN_CORE
 
@@ -27,6 +30,9 @@ make qpf
 # Compile exchange_interface
 make compile
 make rbf
+
+# Enable stuff
+sudo update-binfmts --enable qemu-arm
 
 # Create Linux (Can be skipped if already done)
 cd ../../linux
