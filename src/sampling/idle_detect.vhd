@@ -8,7 +8,8 @@ entity idle_detect is
         rst_n               : in    std_logic;
         frame_end_i         : in    std_logic;
         edge_i              : in    std_logic;
-        hard_reload_o       : out   std_logic
+        hard_reload_o       : out   std_logic;
+        bus_active_o        : out   std_logic
     );
 end entity;
 
@@ -18,15 +19,18 @@ architecture rtl of idle_detect is
     signal current_state, new_state : state_t;
 
     signal reload_s      : std_logic := '0';
+    signal bus_active_s  : std_logic;
 
 begin
 
+    bus_active_o <= bus_active_s;
     hard_reload_o <= reload_s;
 
     idle_detect_p : process(current_state, edge_i, frame_end_i)
     begin 
         new_state <= current_state;
         reload_s <= '0';
+        bus_active_s <= '0';
         
         case current_state is 
             when idle_s => 
@@ -35,6 +39,7 @@ begin
                     new_state <= active_s;
                 end if;
             when active_s =>
+                bus_active_s <= '1';
                 if frame_end_i = '1' then
                     new_state <= idle_s;
                 end if;

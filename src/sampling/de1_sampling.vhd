@@ -21,10 +21,11 @@ architecture rtl of de1_sampling is
     signal rxd_sync_s       : std_logic_vector(0 downto 0);
     signal edge_s           : std_logic;
     signal sample_s         : std_logic;
-    signal enable_sample_s  : std_logic;
+    signal bus_active_s  : std_logic;
     signal stuff_bit_s      : std_logic;
     signal bit_stuff_error  : std_logic;
     signal hard_reload_s    : std_logic;
+    signal sync_enable_s    : std_logic;
 
     signal rst_h            : std_logic;
 begin
@@ -59,6 +60,7 @@ begin
 
             reload_i        => edge_s,
             hard_reload_i   => hard_reload_s,
+            sync_enable_i   => sync_enable_s,
 
             sample_o        => sample_s
         );
@@ -71,19 +73,29 @@ begin
             frame_end_i     => '0',
             edge_i          => edge_s,
 
-            hard_reload_o   => hard_reload_s
+            hard_reload_o   => hard_reload_s, 
+            bus_active_o    => bus_active_s
         );
 
-    --destuffing_i0 : entity work.destuffing
-    --    port map(
-    --        clk             => clk,
-    --        rst_n           => rst_n,
-    --        data_i          => rxd_sync_s(0),
-    --        sample_i        => sample_s,
-    --        bus_active_i    => enable_sample_s,
-    --        stuff_bit_o     => stuff_bit_s,
-    --       error_o         => bit_stuff_error
-    --    );
+    destuffing_i0 : entity work.destuffing
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
+            data_i          => rxd_sync_s(0),
+            sample_i        => sample_s,
+            bus_active_i    => bus_active_s,
+            stuff_bit_o     => stuff_bit_s,
+           error_o         => bit_stuff_error
+        );
+
+    sample_validator_i0 : entity work.sample_validator
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
+            data_i          => rxd_sync_s(0),
+            sample_i        => sample_s,
+            edge_detect_o   => sync_enable_s
+        );
 
 
 

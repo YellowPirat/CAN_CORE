@@ -2,18 +2,19 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity edge_detect is
+entity sample_validator is
     port (
         clk                 : in    std_logic;
         rst_n               : in    std_logic;
 
         data_i              : in    std_logic;
+        sample_i            : in    std_logic;
 
         edge_detect_o       : out    std_logic
     );
 end entity;
 
-architecture rtl of edge_detect is
+architecture rtl of sample_validator is
 
     type state_t is (dominant_s, recessive_s);
     signal current_state, new_state : state_t;
@@ -23,19 +24,19 @@ begin
 
     edge_detect_o <= edge_s;
 
-    edge_detect_p : process(current_state, data_i)
+    sample_validator_p : process(current_state, data_i, sample_i)
     begin 
         new_state <= current_state;
         edge_s <= '0';
         
         case current_state is 
             when dominant_s => 
-                if data_i = '0'then
+                if data_i = '0' and sample_i = '1' then
                     new_state <= recessive_s;
                     edge_s <= '1';
                 end if;
             when recessive_s =>
-                if data_i = '1'then
+                if data_i = '1' and sample_i = '1' then
                     new_state <= dominant_s;
                     edge_s <= '1';
                 end if;
@@ -43,7 +44,7 @@ begin
                 new_state <= dominant_s;
                 edge_s <= '0';
         end case;
-    end process edge_detect_p;
+    end process sample_validator_p;
 
     p : process(clk)
     begin 

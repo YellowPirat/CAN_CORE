@@ -8,6 +8,7 @@ entity sample_cnt is
         rst_n               : in    std_logic;
         reload_i            : in    std_logic;
         hard_reload_i       : in    std_logic;
+        sync_enable_i       : in    std_logic;
         sample_o            : out   std_logic
     );
 end entity;
@@ -57,7 +58,7 @@ begin
         end if;
     end process;
 
-    sampling_p : process(current_state, reload_i, hard_reload_i, done_s)
+    sampling_p : process(current_state, reload_i, hard_reload_i, done_s, sync_enable_i)
     begin 
         new_state <= current_state;
         reload_value_s <= to_unsigned(0, reload_value_s'length);
@@ -86,7 +87,7 @@ begin
                     new_state <= phase_sig_one_s;
                     reload_value_s <= to_unsigned(32, reload_value_s'length);
                     reload_quantum_s <= '1';
-                elsif reload_i = '1' then
+                elsif reload_i = '1' and sync_enable_i = '1' then
                     new_state <= resync_p_s;
                     store_s <= '1';
                 end if;
@@ -123,7 +124,7 @@ begin
                     new_state <= sync_seg_s;
                     reload_value_s <= to_unsigned(12, reload_value_s'length);
                     reload_quantum_s <= '1';
-                elsif reload_i = '1' then
+                elsif reload_i = '1' and sync_enable_i = '1' then
                     new_state <= resync_n_s;
                     reload_value_s <= to_unsigned(12, reload_value_s'length);
                     reload_quantum_s <= '1';
