@@ -45,6 +45,7 @@ SRC_FILES = \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
 	../cangen/t_cangen.vhd \
 	../../src/sampling/edge_detect.vhd \
+    ../../src/sampling/quantum_cnt.vhd \
 	../../src/sampling/sample_cnt.vhd \
     ../../src/sampling/idle_detect.vhd \
     ../../src/sampling/destuffing.vhd \

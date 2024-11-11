@@ -24,6 +24,7 @@ architecture rtl of de1_sampling is
     signal enable_sample_s  : std_logic;
     signal stuff_bit_s      : std_logic;
     signal bit_stuff_error  : std_logic;
+    signal hard_reload_s    : std_logic;
 
     signal rst_h            : std_logic;
 begin
@@ -45,7 +46,9 @@ begin
         port map(
             clk             => clk,
             rst_n           => rst_n,
+
             data_i          => rxd_sync_s(0),
+
             edge_detect_o   => edge_s
         );
 
@@ -53,8 +56,10 @@ begin
         port map(
             clk             => clk,
             rst_n           => rst_n,
+
             reload_i        => edge_s,
-            enable_i        => enable_sample_s,
+            hard_reload_i   => hard_reload_s,
+
             sample_o        => sample_s
         );
 
@@ -62,21 +67,23 @@ begin
         port map(
             clk             => clk,
             rst_n           => rst_n,
+
             frame_end_i     => '0',
             edge_i          => edge_s,
-            enable_o        => enable_sample_s
+
+            hard_reload_o   => hard_reload_s
         );
 
-    destuffing_i0 : entity work.destuffing
-        port map(
-            clk             => clk,
-            rst_n           => rst_n,
-            data_i          => rxd_sync_s(0),
-            sample_i        => sample_s,
-            bus_active_i    => enable_sample_s,
-            stuff_bit_o     => stuff_bit_s,
-            error_o         => bit_stuff_error
-        );
+    --destuffing_i0 : entity work.destuffing
+    --    port map(
+    --        clk             => clk,
+    --        rst_n           => rst_n,
+    --        data_i          => rxd_sync_s(0),
+    --        sample_i        => sample_s,
+    --        bus_active_i    => enable_sample_s,
+    --        stuff_bit_o     => stuff_bit_s,
+    --       error_o         => bit_stuff_error
+    --    );
 
 
 
