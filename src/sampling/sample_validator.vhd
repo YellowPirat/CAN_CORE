@@ -9,51 +9,43 @@ entity sample_validator is
 
         data_i              : in    std_logic;
         sample_i            : in    std_logic;
+        edge_i              : in    std_logic;
 
-        edge_detect_o       : out    std_logic
+        resync_valid_o      : out    std_logic
     );
 end entity;
 
 architecture rtl of sample_validator is
 
-    type state_t is (dominant_s, recessive_s);
-    signal current_state, new_state : state_t;
-    signal edge_s           : std_logic := '0';
+    signal sample_edge_s           : std_logic;
+    signal resync_valid_s          : std_logic;
 
 begin
 
-    edge_detect_o <= edge_s;
+    resync_valid_o <= resync_valid_s;
 
-    sample_validator_p : process(current_state, data_i, sample_i)
-    begin 
-        new_state <= current_state;
-        edge_s <= '0';
-        
-        case current_state is 
-            when dominant_s => 
-                if data_i = '0' and sample_i = '1' then
-                    new_state <= recessive_s;
-                    edge_s <= '1';
-                end if;
-            when recessive_s =>
-                if data_i = '1' and sample_i = '1' then
-                    new_state <= dominant_s;
-                    edge_s <= '1';
-                end if;
-            when others => 
-                new_state <= dominant_s;
-                edge_s <= '0';
-        end case;
-    end process sample_validator_p;
+    sample_edge_detect_i0 : entity work.sample_edge_detect
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
 
-    p : process(clk)
-    begin 
-        if rising_edge(clk) then 
-            current_state <= new_state;
-            if rst_n = '0' then 
-                current_state <= dominant_s;
-            end if;
-        end if;
-    end process p;
+            data_i              => data_i,
+            sample_i            => sample_i,
+
+            edge_detect_o       => sample_edge_s
+        );
+
+    resync_cntr_i0 : entity work.resync_cntr
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            sample_edge_i       => sample_edge_s,
+            raw_data_edge_i     => edge_i,
+
+            resync_valid_o      => resync_valid_s
+        );
+
+    
 
 end architecture;

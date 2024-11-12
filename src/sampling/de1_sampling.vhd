@@ -4,14 +4,16 @@ use ieee.numeric_std.all;
 
 entity de1_sampling is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                     : in    std_logic;
+        rst_n                   : in    std_logic;
 
-        rxd_i               : in    std_logic;
+        rxd_i                   : in    std_logic;
+        frame_finished_i        : in    std_logic;
 
-        rxd_sync_o          : out   std_logic;
-        sample_o            : out   std_logic;
-        stuff_bit_o         : out   std_logic
+        rxd_sync_o              : out   std_logic;
+        sample_o                : out   std_logic;
+        stuff_bit_o             : out   std_logic;
+        bus_active_detect_o     : out   std_logic
     );
 end entity;
 
@@ -21,7 +23,7 @@ architecture rtl of de1_sampling is
     signal rxd_sync_s       : std_logic_vector(0 downto 0);
     signal edge_s           : std_logic;
     signal sample_s         : std_logic;
-    signal bus_active_s  : std_logic;
+    signal bus_active_s     : std_logic;
     signal stuff_bit_s      : std_logic;
     signal bit_stuff_error  : std_logic;
     signal hard_reload_s    : std_logic;
@@ -31,6 +33,10 @@ architecture rtl of de1_sampling is
 begin
     rxd_async_s(0) <= rxd_i;
     rst_h  <= not rst_n;
+    rxd_sync_o <= rxd_sync_s(0);
+    sample_o <= sample_s;
+    stuff_bit_o <= stuff_bit_s;
+    bus_active_detect_o <= bus_active_s;
 
     sync_stage_i0 : entity work.olo_intf_sync
         generic map(
@@ -70,7 +76,7 @@ begin
             clk             => clk,
             rst_n           => rst_n,
 
-            frame_end_i     => '0',
+            frame_end_i     => frame_finished_i,
             edge_i          => edge_s,
 
             hard_reload_o   => hard_reload_s, 
@@ -81,20 +87,25 @@ begin
         port map(
             clk             => clk,
             rst_n           => rst_n,
+
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
             bus_active_i    => bus_active_s,
+            
             stuff_bit_o     => stuff_bit_s,
-           error_o         => bit_stuff_error
+            error_o          => bit_stuff_error
         );
 
-    sample_validator_i0 : entity work.sample_validator
+    resync_validator_i0 : entity work.sample_validator
         port map(
             clk             => clk,
             rst_n           => rst_n,
+
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
-            edge_detect_o   => sync_enable_s
+            edge_i          => edge_s,
+
+            resync_valid_o  => sync_enable_s
         );
 
 
