@@ -42,6 +42,10 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
+    ../../src/exchange_interface/per_intf.vhd \
+    ../../src/exchange_interface/cntr_missed_frame.vhd \
+    ../../src/exchange_interface/cnt_missed_frame.vhd \
+    ../../src/exchange_interface/per_status.vhd \
     ../../src/exchange_interface/can_core_intf.vhd \
     ../../src/exchange_interface/axi_lite_intf.vhd \
     ../../src/exchange_interface/axi_fifo_cntr.vhd \

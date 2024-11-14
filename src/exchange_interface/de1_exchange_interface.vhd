@@ -65,6 +65,8 @@ begin
             axi_intf_i      => axi_intf_i,
             axi_intf_o      => axi_intf_o,
 
+            bus_active_i    => '1',
+
             can_intf        => can_intf_s,
             can_valid_i     => can_valid_s,
             can_ready_o     => can_ready_s
