@@ -43,6 +43,11 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_mast
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
 
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_intf.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/cntr_missed_frame.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/cnt_missed_frame.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status.vhd
+
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_lite_intf.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
