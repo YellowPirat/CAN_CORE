@@ -6,7 +6,7 @@ class CANFrame:
     def __init__(self):
         # Standard CAN Frame Fields (108 bits total)
         self.sof: int = 0          # Start of Frame (1 bit)
-        self.identifier: int = 0    # 11 bits for standard frame
+        self.identifier: int = 0   # 11 bits for standard frame
         self.rtr: int = 0          # Remote Transmission Request (1 bit)
         self.ide: int = 0          # Identifier Extension (1 bit)
         self.r0: int = 0           # Reserved bit (1 bit)
@@ -83,17 +83,29 @@ class CANFrame:
         return bits
 
 def write_can_frame_to_file(filename: str, frame: CANFrame):
-    # Change extension to .csv
-    if not filename.endswith('.csv'):
-        filename = filename.replace('.txt', '.csv')
-        if not filename.endswith('.csv'):
-            filename += '.csv'
-            
     with open(filename, 'w') as f:
         bits = frame.generate_frame_bits()
-        # Write each bit as a row in CSV format
-        for bit in bits:
-            f.write(f"{bit}\n")
+        bit_stuffing_counter = 0
+        previous_bit = bits[0]
+        for i in range(len(bits) - 10): # CRC delimiter, ACK, ACK delimiter, EOF -> all recessive
+            current_bit = bits[i]
+
+            if current_bit == previous_bit:
+                bit_stuffing_counter += 1
+            else:
+                bit_stuffing_counter = 0
+
+            if bit_stuffing_counter == 5:
+                f.write(f"{1 if current_bit == 0 else 0}\n")
+                bit_stuffing_counter = 0
+            else:
+                f.write(f"{current_bit}\n")
+            
+            previous_bit = current_bit
+
+        for i in range(len(bits) - 10, len(bits) - 1):
+            f.write(f"{bits[i]}\n")
+        f.write(f"{bits[-1]}")
 
 if __name__ == "__main__":
     frame = CANFrame()
@@ -105,4 +117,4 @@ if __name__ == "__main__":
     frame.dlc = 8                  # 8 bytes of data
     frame.data = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88]
     
-    write_can_frame_to_file("can_frame.csv", frame)
+    write_can_frame_to_file("standard_can_frame.csv", frame)
