@@ -26,9 +26,9 @@ begin
   step_p : process
   begin 
     step <= '0';
-    wait for 50 ns;
+    wait for 1000 ns;
     step <= '1';
-    wait for 50 ns;
+    wait for 1000 ns;
     if simstop then
       wait;
     end if;
