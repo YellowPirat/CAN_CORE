@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 use work.can_core_intf.all;
 use work.axi_lite_intf.all;
+use work.peripheral_intf.all;
 
 --library olo;
 
@@ -17,6 +18,7 @@ entity axireg is
 
 
 		can_intf		  : inout can_core_comb_intf_t;
+		bus_active_i	  : in std_logic;
 		can_valid_i		  : in 	std_logic;
 		can_ready_o		  : out std_logic
 	);
@@ -26,7 +28,6 @@ architecture rtl of axireg is
 
 	signal axi_input_s			: axi_lite_input_intf_t;
 	signal axi_ouput_s			: axi_lite_output_intf_t;
-
 
 	signal can_vector_s			: can_core_vector_t;
 
@@ -55,6 +56,8 @@ architecture rtl of axireg is
 	signal fifo_out_ready_s		: std_logic;
 	signal buffer_usage_s		: std_logic_vector(4 downto 0);
 
+	-- STATUS
+	signal per_status_s			: per_intf_t;
 begin
 
 	axi_intf_o <= axi_input_s;
@@ -112,7 +115,7 @@ begin
 	-- FIFO
 	fifo_i0 : entity work.olo_base_fifo_sync
 		generic map(
-			Width_g		=> 224,
+			Width_g		=> 192,
 			Depth_g		=> 31
 		)
 
@@ -140,6 +143,8 @@ begin
 			load_new_i				=> load_new_s,
 			valid_i					=> fifo_out_valid_s,
 
+
+
 			ready_o					=> fifo_out_ready_s,
 			store_o					=> store_s,
 			store_err_o				=> store_err_s
@@ -159,11 +164,28 @@ begin
 			olo_axi_rb_rd_data_o	=> rb_rd_data,
 			olo_axi_rb_rd_valid_o	=> rb_rd_valid,
 
-			buffer_usage_i			=> buffer_usage_s,
+			per_intf_i				=> per_status_s,
 
 			can_frame_i				=> fifo_out_data_s,
 			load_new_o				=> load_new_s,
 			store_i					=> store_s
+		);
+
+	-- PER_STATUS
+	per_status_i0 : entity work.per_status
+		port map(
+			clk							=> clk,
+			rst_n						=> rst_n,
+
+			per_intf_o					=> per_status_s,
+
+			buffer_usage_i(4 downto 0) 	=> buffer_usage_s,
+			buffer_usage_i(9 downto 5)  => (others => '0'),
+			peripheral_error			=> (others => '0'),
+			per_active_i				=> '1',
+			can_valid_i					=> fifo_in_valid_s,
+			fifo_ready_i				=> fifo_in_ready_s,
+			bus_active_i				=> bus_active_i
 		);
 
 	

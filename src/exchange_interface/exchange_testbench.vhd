@@ -23,7 +23,7 @@ architecture rtl of exchange_testbench is
 
     signal en_s                         : std_logic;
 
-    signal count                        : unsigned(5 downto 0);
+    signal count                        : unsigned(32 downto 0);
 
     signal done_s                       : std_logic;
 
@@ -44,7 +44,7 @@ begin
     process(clk)
     begin 
         if rising_edge(clk) then 
-            for i in 0 to 6 loop
+            for i in 0 to 5 loop
                 can_core_vector_s(32 * i + 31 downto i * 32) <= random_vec_s;
             end loop;
         end if;
@@ -80,7 +80,7 @@ begin
             end if;
 
             if rst_n = '0' then
-                count <= to_unsigned(10, count'length);
+                count <= to_unsigned(50, count'length);
             end if;
         end if;
     end process count_p;
