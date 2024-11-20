@@ -44,12 +44,19 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
 	../cangen/t_cangen.vhd \
+    ../../src/sampling/sample_edge_detect.vhd \
+    ../../src/sampling/resync_cntr.vhd \
+    ../../src/sampling/sample_validator.vhd \
 	../../src/sampling/edge_detect.vhd \
+    ../../src/sampling/quantum_cnt.vhd \
 	../../src/sampling/sample_cnt.vhd \
     ../../src/sampling/idle_detect.vhd \
     ../../src/sampling/destuffing.vhd \
 	../../src/sampling/de1_sampling.vhd \
-    ../../src/core/ser_par.vhd \
+    ../../src/core/frame_detect.vhd \
+    ../../src/core/uni_dec_cnt.vhd \
+    ../../src/core/uni_reg.vhd \
+    ../../src/core/field_reg.vhd \
     ../../src/core/de1_core.vhd \
     t_core.vhd
 

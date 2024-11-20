@@ -11,11 +11,12 @@ architecture sim of core is
     signal clk, rst_n: std_logic := '0';
     signal simstop : boolean := false;
 
-    signal rxd_s          : std_logic;
-
-    signal rxd_sync_s     : std_logic;
-    signal sample_s       : std_logic;
-    signal stuff_bit_s    : std_logic;
+    signal rxd_async_s              : std_logic;
+    signal frame_finished_s         : std_logic;
+    signal rxd_sync_s               : std_logic;
+    signal sample_s                 : std_logic;
+    signal stuff_bit_s              : std_logic;
+    signal bus_active_detect_s      : std_logic;
 
 
 begin
@@ -51,30 +52,35 @@ begin
     cangen_i0 : entity work.cangen
         port map(
             rst_n => rst_n,
-            rxd_o => rxd_s,
+            rxd_o => rxd_async_s,
             simstop => simstop
         );
 
     sampling_i0 : entity work.de1_sampling
         port map(
-            clk           => clk,
-            rst_n         => rst_n,
+            clk                     => clk,
+            rst_n                   => rst_n,
 
-            rxd_i         => rxd_s,
+            rxd_i                   => rxd_async_s,
+            frame_finished_i        => frame_finished_s,
 
-            rxd_sync_o    => rxd_sync_s,
-            sample_o      => sample_s,
-            stuff_bit_o   => stuff_bit_s
+            rxd_sync_o              => rxd_sync_s,
+            sample_o                => sample_s,
+            stuff_bit_o             => stuff_bit_s,
+            bus_active_detect_o     => bus_active_detect_s
         );
 
     core_i0 : entity work.de1_core
     port map(
-        clk           => clk,
-        rst_n         => rst_n,
+        clk                         => clk,
+        rst_n                       => rst_n,
 
-        rxd_sync_i    => rxd_sync_s,
-        sample_i      => sample_s,
-        stuff_bit_i   => stuff_bit_s
+        rxd_sync_i                  => rxd_sync_s,
+        sample_i                    => sample_s,
+        stuff_bit_i                 => stuff_bit_s,
+        bus_active_detect_i         => bus_active_detect_s,
+
+        frame_finished_o            => frame_finished_s
     );
 
 end architecture;
