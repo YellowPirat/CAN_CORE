@@ -30,11 +30,39 @@ architecture rtl of de1_core is
     signal dlc_dec_s            : std_logic;
     signal dlc_cnt_done_s       : std_logic;
     signal dlc_sample_s         : std_logic;
+    signal dlc_data_s           : std_logic_vector(3 downto 0);
+    -- DATA
+    signal data_dec_s           : std_logic_vector(7 downto 0);
+    signal data_cnt_done_s      : std_logic_vector(7 downto 0);
+    signal data_sample_s        : std_logic_vector(7 downto 0);
+    signal data_s               : std_logic_vector(63 downto 0);
+    -- CRC
+    signal crc_dec_s            : std_logic;
+    signal crc_cnt_done_s       : std_logic;
+    signal crc_sample_s         : std_logic;
 
     
 begin
     frame_finished_o <= '0';
 
+    data_gen : for i in 0 to 7 generate
+        data_reg_i : entity work.field_reg
+            generic map(
+                startCnt_g      => 8
+            )
+            port map(
+                clk                 => clk,
+                rst_n               => rst_n,
+                
+                reload_i            => '0',
+                dec_i               => data_dec_s(i),
+                store_i             => data_sample_s(i),
+                data_i              => rxd_sync_i,
+
+                done_o              => data_cnt_done_s(i),
+                data_o              => data_s(7 + 8*i downto i*8)
+            );
+    end generate data_gen;
 
     id_reg_i0 : entity work.field_reg
         generic map(
@@ -81,7 +109,24 @@ begin
             store_i             => dlc_sample_s,
             data_i              => rxd_sync_i,
 
-            done_o              => dlc_cnt_done_s
+            done_o              => dlc_cnt_done_s,
+            data_o              => dlc_data_s
+        );
+
+    crc_reg_i0 : entity work.field_reg
+        generic map(
+            startCnt_g          => 15
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+            
+            reload_i            => '0',
+            dec_i               => crc_dec_s,
+            store_i             => crc_sample_s,
+            data_i              => rxd_sync_i,
+
+            done_o              => crc_cnt_done_s
         );
 
 
@@ -108,7 +153,18 @@ begin
             -- DLC
             dlc_dec_o           => dlc_dec_s,
             dlc_cnt_done_i      => dlc_cnt_done_s,
-            dlc_sample_o        => dlc_sample_s
+            dlc_sample_o        => dlc_sample_s,
+            dlc_data_i          => dlc_data_s,
+
+            -- DATA
+            data_dec_o          => data_dec_s,
+            data_cnt_done_i     => data_cnt_done_s,
+            data_sample_o       => data_sample_s,
+
+            -- CRC
+            crc_dec_o           => crc_dec_s,
+            crc_cnt_done_i      => crc_cnt_done_s,
+            crc_sample_o        => crc_sample_s
         );
 
 end rtl ;
