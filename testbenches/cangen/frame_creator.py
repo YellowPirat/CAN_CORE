@@ -58,8 +58,8 @@ class CANFrame:
         for byte in self.data:
             bits.extend([int(x) for x in format(byte, '08b')])
         # Pad with zeros if less than 8 bytes
-        while len(bits) < 83:  # 19 control bits + 64 data bits
-            bits.append(0)
+        #while len(bits) < ((self.dlc * 8) - 1):  # 19 control bits + 64 data bits
+        #    bits.append(0)
         
         # Calculate CRC for all bits up to this point
         crc_calc_bits = bits.copy()
@@ -91,16 +91,17 @@ def write_can_frame_to_file(filename: str, frame: CANFrame):
         for i in range(len(bits) - 10): # CRC delimiter, ACK, ACK delimiter, EOF -> all recessive
             current_bit = bits[i]
 
+            if bit_stuffing_counter == 4:
+                f.write(f"{1 if previous_bit == 0 else 0}\n")
+                bit_stuffing_counter = 0
+                
+            
+            f.write(f"{current_bit}\n")
+
             if current_bit == previous_bit:
                 bit_stuffing_counter += 1
             else:
                 bit_stuffing_counter = 0
-
-            if bit_stuffing_counter == 5:
-                f.write(f"{1 if current_bit == 0 else 0}\n")
-                bit_stuffing_counter = 0
-            else:
-                f.write(f"{current_bit}\n")
             
             previous_bit = current_bit
 
@@ -116,6 +117,6 @@ if __name__ == "__main__":
     frame.ide = 0                  # Standard frame
     frame.r0 = 0                  
     frame.dlc = 6                  # 8 bytes of data
-    frame.data = [0xDE, 0xAD, 0xBE, 0xBE, 0xAF, 0xFE]
+    frame.data = [0xDE, 0xAD, 0xBE, 0xEF, 0xAF, 0xFE]
     
     write_can_frame_to_file("standard_can_frame.csv", frame)

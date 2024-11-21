@@ -20,7 +20,11 @@ architecture sim of cangen is
 
     signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0) := (others => '1');
 
+    signal cnt_s  : unsigned(10 downto 0) := to_unsigned(0, 11);
+
 begin
+
+
 
 
   step_p : process
@@ -29,6 +33,7 @@ begin
     wait for 1000 ns;
     step <= '1';
     wait for 1000 ns;
+    cnt_s <= cnt_s + 1;
     if simstop then
       wait;
     end if;
