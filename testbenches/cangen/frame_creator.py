@@ -29,6 +29,7 @@ class CANFrame:
             if crc_msb:
                 crc ^= CRC15_POLY
 
+        print(crc)
         return crc
 
     def generate_frame_bits(self) -> List[int]:
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     frame.rtr = 0                  # Data frame
     frame.ide = 0                  # Standard frame
     frame.r0 = 0                  
-    frame.dlc = 6                  # 8 bytes of data
-    frame.data = [0xDE, 0xAD, 0xBE, 0xEF, 0xAF, 0xFE]
+    frame.dlc = 4                  # 8 bytes of data
+    frame.data = [0xDE, 0xAD, 0xBE, 0xEF]
     
     write_can_frame_to_file("standard_can_frame.csv", frame)

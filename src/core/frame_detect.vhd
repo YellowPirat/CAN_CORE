@@ -12,6 +12,7 @@ entity frame_detect is
         stuff_bit_i             : in    std_logic;
         bus_active_i            : in    std_logic;
         frame_done_o            : out   std_logic;
+        reload_o                : out   std_logic;
         
         -- ID
         id_dec_o                : out   std_logic;
@@ -110,6 +111,7 @@ architecture rtl of frame_detect is
 
     signal valid_sample_s       : std_logic;
     signal frame_finished_s     : std_logic;
+    signal reload_s         : std_logic;
 
     -- OUTPUT SIGNALS
     -- ID
@@ -170,6 +172,7 @@ begin
     old_reload_o            <= old_reload_s;
 
     frame_done_o            <= frame_finished_s;
+    reload_o                <= reload_s;
 
     -- GENERALIZATION OF VALID SAMPLE
     valid_sample_s <= '1' when sample_i = '1' and stuff_bit_i = '0' and bus_active_i = '1' else '0';
@@ -223,6 +226,8 @@ begin
         old_dec_s               <= '0';
         old_reload_s            <= '0';
 
+        reload_s                <= '0';
+
         case current_state is
             when idle_s =>
                 new_state <= sof_s;
@@ -230,6 +235,7 @@ begin
             when sof_s => 
                 if valid_sample_s = '1' then 
                     new_state       <= id_s;
+                    reload_s        <= '1';
                 end if;
 
             when id_s =>

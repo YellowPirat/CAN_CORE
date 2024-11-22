@@ -30,9 +30,9 @@ begin
   step_p : process
   begin 
     step <= '0';
-    wait for 1000 ns;
+    wait for 24800 ps;
     step <= '1';
-    wait for 1000 ns;
+    wait for 24800 ps;
     cnt_s <= cnt_s + 1;
     if simstop then
       wait;
@@ -43,7 +43,7 @@ begin
     --------------------------------------------------------------------------------------------------
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
-    file test_vector                : text open read_mode is "../cangen/standard_can_frame.csv";
+    file test_vector                : text open read_mode is "../cangen/deadbeef0.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;

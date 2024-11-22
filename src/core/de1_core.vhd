@@ -12,6 +12,11 @@ entity de1_core is
         stuff_bit_i             : in    std_logic;
         bus_active_detect_i     : in    std_logic;
 
+        id_o                    : out   std_logic_vector(28 downto 0);
+                           : out   std_logic_vector(63 downto 0);
+        crc_o                   : out   std_logic_vector(14 downto 0);
+
+
         frame_finished_o        : out   std_logic
     );
 end entity;
@@ -19,15 +24,18 @@ end entity;
 architecture rtl of de1_core is
 
     signal frame_finished_s     : std_logic;
+    signal reload_s             : std_logic;
 
     -- ID
     signal id_dec_s             : std_logic;
     signal id_cnt_done_s        : std_logic;
     signal id_sample_s          : std_logic;
+    signal id_data_s            : std_logic_vector(10 downto 0);
     -- EID
     signal eid_dec_s            : std_logic;
     signal eid_cnt_done_s       : std_logic;
     signal eid_sample_s         : std_logic;
+    signal eid_data_s           : std_logic_vector(17 downto 0);
     -- DLC
     signal dlc_dec_s            : std_logic;
     signal dlc_cnt_done_s       : std_logic;
@@ -58,6 +66,12 @@ architecture rtl of de1_core is
 begin
     frame_finished_o        <= frame_finished_s;
 
+    data_o                  <= data_s;
+    id_o(10 downto 0)       <= id_data_s;
+    id_o(28 downto 11)      <= eid_data_s;
+
+
+
     data_gen : for i in 0 to 7 generate
         data_reg_i : entity work.field_reg
             generic map(
@@ -67,7 +81,7 @@ begin
                 clk                 => clk,
                 rst_n               => rst_n,
                 
-                reload_i            => '0',
+                reload_i            => reload_s,
                 dec_i               => data_dec_s(i),
                 store_i             => data_sample_s(i),
                 data_i              => rxd_sync_i,
@@ -85,12 +99,13 @@ begin
             clk                 => clk,
             rst_n               => rst_n,
             
-            reload_i            => '0',
+            reload_i            => reload_s,
             dec_i               => id_dec_s,
             store_i             => id_sample_s,
             data_i              => rxd_sync_i,
 
-            done_o              => id_cnt_done_s
+            done_o              => id_cnt_done_s,
+            data_o              => id_data_s
         );
 
     eid_reg_i0 : entity work.field_reg
@@ -101,12 +116,13 @@ begin
             clk                 => clk,
             rst_n               => rst_n,
             
-            reload_i            => '0',
+            reload_i            => reload_s,
             dec_i               => eid_dec_s,
             store_i             => eid_sample_s,
             data_i              => rxd_sync_i,
 
-            done_o              => eid_cnt_done_s
+            done_o              => eid_cnt_done_s,
+            data_o              => eid_data_s
         );
 
     dlc_reg_i0 : entity work.field_reg
@@ -117,7 +133,7 @@ begin
             clk                 => clk,
             rst_n               => rst_n,
             
-            reload_i            => '0',
+            reload_i            => reload_s,
             dec_i               => dlc_dec_s,
             store_i             => dlc_sample_s,
             data_i              => rxd_sync_i,
@@ -134,7 +150,7 @@ begin
             clk                 => clk,
             rst_n               => rst_n,
             
-            reload_i            => '0',
+            reload_i            => reload_s,
             dec_i               => crc_dec_s,
             store_i             => crc_sample_s,
             data_i              => rxd_sync_i,
@@ -150,7 +166,7 @@ begin
             clk                 => clk,
             rst_n               => rst_n,
             
-            reload_i            => '0',
+            reload_i            => reload_s,
             dec_i               => err_del_dec_s,
             store_i             => '0',
             data_i              => rxd_sync_i,
@@ -201,6 +217,7 @@ begin
             stuff_bit_i         => stuff_bit_i,
             bus_active_i        => bus_active_detect_i,
             frame_done_o        => frame_finished_s,
+            reload_o            => reload_s,
 
             -- ID
             id_dec_o            => id_dec_s,
