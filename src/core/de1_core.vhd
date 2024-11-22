@@ -18,6 +18,8 @@ end entity;
 
 architecture rtl of de1_core is
 
+    signal frame_finished_s     : std_logic;
+
     -- ID
     signal id_dec_s             : std_logic;
     signal id_cnt_done_s        : std_logic;
@@ -40,10 +42,21 @@ architecture rtl of de1_core is
     signal crc_dec_s            : std_logic;
     signal crc_cnt_done_s       : std_logic;
     signal crc_sample_s         : std_logic;
+    -- ERR DEL
+    signal err_del_dec_s        : std_logic;
+    signal err_del_cnt_done_s   : std_logic;
+    --OLF
+    signal olf_dec_s            : std_logic;
+    signal olf_cnt_done_s       : std_logic;
+    signal olf_reload_s         : std_logic;
+    -- OLD
+    signal old_dec_s            : std_logic;
+    signal old_cnt_done_s       : std_logic;
+    signal old_reload_s         : std_logic;
 
     
 begin
-    frame_finished_o <= '0';
+    frame_finished_o        <= frame_finished_s;
 
     data_gen : for i in 0 to 7 generate
         data_reg_i : entity work.field_reg
@@ -129,6 +142,54 @@ begin
             done_o              => crc_cnt_done_s
         );
 
+    err_del_reg_i0 : entity work.field_reg
+        generic map(
+            startCnt_g          => 7
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+            
+            reload_i            => '0',
+            dec_i               => err_del_dec_s,
+            store_i             => '0',
+            data_i              => rxd_sync_i,
+
+            done_o              => err_del_cnt_done_s
+        );
+
+    olf_reg_i0 : entity work.field_reg
+        generic map(
+            startCnt_g          => 11
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+            
+            reload_i            => olf_reload_s,
+            dec_i               => olf_dec_s,
+            store_i             => '0',
+            data_i              => rxd_sync_i,
+
+            done_o              => olf_cnt_done_s
+        );
+
+    old_reg_i0 : entity work.field_reg
+        generic map(
+            startCnt_g          => 7
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+            
+            reload_i            => old_reload_s,
+            dec_i               => old_dec_s,
+            store_i             => '0',
+            data_i              => rxd_sync_i,
+
+            done_o              => old_cnt_done_s
+        );
+
 
     frame_detect_i0 : entity work.frame_detect
         port map(
@@ -139,6 +200,7 @@ begin
             sample_i            => sample_i,
             stuff_bit_i         => stuff_bit_i,
             bus_active_i        => bus_active_detect_i,
+            frame_done_o        => frame_finished_s,
 
             -- ID
             id_dec_o            => id_dec_s,
@@ -164,7 +226,21 @@ begin
             -- CRC
             crc_dec_o           => crc_dec_s,
             crc_cnt_done_i      => crc_cnt_done_s,
-            crc_sample_o        => crc_sample_s
+            crc_sample_o        => crc_sample_s,
+
+            -- ERR DEL
+            err_del_dec_o       => err_del_dec_s,
+            err_del_cnt_done_i  => err_del_cnt_done_s,
+
+            -- OLF
+            olf_dec_o           => olf_dec_s,
+            olf_cnt_done_i      => olf_cnt_done_s,
+            olf_reload_o        => olf_reload_s,
+
+            -- OLD
+            old_dec_o           => old_dec_s,
+            old_cnt_done_i      => old_cnt_done_s,
+            old_reload_o        => old_reload_s
         );
 
 end rtl ;
