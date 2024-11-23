@@ -13,7 +13,7 @@ entity de1_core is
         bus_active_detect_i     : in    std_logic;
 
         id_o                    : out   std_logic_vector(28 downto 0);
-                           : out   std_logic_vector(63 downto 0);
+        data_o                  : out   std_logic_vector(63 downto 0);
         crc_o                   : out   std_logic_vector(14 downto 0);
 
 
