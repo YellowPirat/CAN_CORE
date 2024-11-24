@@ -106,7 +106,11 @@ architecture rtl of de1_read is
 	signal rxd_sync_s					: std_logic;
 	
 	signal data_s						: std_logic_vector(63 downto 0);
+	
+	signal data_valid_s				: std_logic;
 
+	signal uart_rxd : std_logic;
+	signal uart_txd : std_logic;
 begin
 
 	stb_s <= "000000";
@@ -147,8 +151,30 @@ begin
 			
 			frame_finished_o			=> frame_finished_s,
 			
-			data_o						=> data_s
+			data_o						=> data_s,
+			valid_o						=> data_valid_s
 		);
+		
+    debug_i0 : entity work.de1_debug
+        generic map(
+            widght_g                => 64
+        )
+        port map(
+            clk                     => CLOCK_50,
+            rst_n                   => KEY_N(0),
+
+            data_i                  => data_s,
+            valid_i                 => data_valid_s,
+
+            rxd_i                   => uart_rxd,
+            txd_o                   => uart_txd,
+				GPIO_1						=> GPIO_1
+        );
+		  
+		  GPIO_1(0) <= uart_rxd;
+		  GPIO_1(1) <= uart_txd;
+		  
+
 		
 	bin2hex_i0 : entity work.bin2hex
 		port map(

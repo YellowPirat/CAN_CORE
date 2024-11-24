@@ -41,6 +41,7 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_s
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd
+set_global_assignment -name VHDL_FILE ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/sampling/sample_edge_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/resync_cntr.vhd
@@ -55,10 +56,18 @@ set_global_assignment -name VHDL_FILE ../../src/core/frame_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_dec_cnt.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/field_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/valid_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/bin2hex.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/debug/splice_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/uart_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
 
 set_global_assignment -name VHDL_FILE de1_read.vhd
 

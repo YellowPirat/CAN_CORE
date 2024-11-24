@@ -43,6 +43,7 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
+    ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
 	../cangen/t_cangen.vhd \
     ../../src/sampling/sample_edge_detect.vhd \
     ../../src/sampling/resync_cntr.vhd \
@@ -57,6 +58,12 @@ SRC_FILES = \
     ../../src/core/uni_dec_cnt.vhd \
     ../../src/core/uni_reg.vhd \
     ../../src/core/field_reg.vhd \
+    ../../src/core/valid_cntr.vhd \
+    ../../src/debug/splice_cnt.vhd \
+    ../../src/debug/uart_cntr.vhd \
+    ../../src/debug/splicer.vhd \
+    ../../src/debug/asci_mapper.vhd \
+    ../../src/debug/de1_debug.vhd \
     ../../src/core/de1_core.vhd \
     t_core.vhd
 

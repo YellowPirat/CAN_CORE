@@ -15,6 +15,7 @@ entity de1_core is
         id_o                    : out   std_logic_vector(28 downto 0);
         data_o                  : out   std_logic_vector(63 downto 0);
         crc_o                   : out   std_logic_vector(14 downto 0);
+        valid_o                 : out   std_logic;
 
 
         frame_finished_o        : out   std_logic
@@ -70,7 +71,16 @@ begin
     id_o(10 downto 0)       <= id_data_s;
     id_o(28 downto 11)      <= eid_data_s;
 
+    valid_cntr_i0 : entity work.valid_cntr
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
 
+            frame_finished_i    => frame_finished_s,
+            bus_active_i        => bus_active_detect_i,
+
+            valid_o             => valid_o
+        );
 
     data_gen : for i in 0 to 7 generate
         data_reg_i : entity work.field_reg
