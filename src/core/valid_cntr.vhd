@@ -16,28 +16,41 @@ end entity;
 
 architecture rtl of valid_cntr is
 
-    type state_t is( idle_s, bus_was_active_s);
+    type state_t is( idle_s, bus_active_s, frame_finished_s, valid_s);
     signal current_state, new_state : state_t;
 
-    signal valid_s          : std_logic;
+    signal frame_valid_s          : std_logic;
 begin
 
-    valid_o                 <= valid_s;
+    valid_o                 <= frame_valid_s;
 
     valid_p : process(current_state, bus_active_i, frame_finished_i)
     begin
-        valid_s             <= '0';
+			new_state               <= current_state;
+        frame_valid_s             <= '0';
 
         case current_state is
             when idle_s =>
-                if frame_finished_i = '1'then
-                    new_state   <= bus_was_active_s;
+                if bus_active_i = '1' and frame_finished_i = '0'then
+                    new_state <= bus_active_s;
                 end if;
 
-            when bus_was_active_s =>
-                if bus_active_i = '0'then
-                    valid_s     <= '1';
+            when bus_active_s =>
+                if bus_active_i = '1' and frame_finished_i = '1' then
+                    new_state <= frame_finished_s;
                 end if;
+
+            when frame_finished_s =>
+                if bus_active_i = '0' and frame_finished_i = '0' then 
+                    new_state <= valid_s;
+                end if;
+
+            when valid_s => 
+                if bus_active_i = '1' and frame_finished_i = '0' then
+                    new_state <= bus_active_s;
+                end if;
+					 frame_valid_s <= '1';
+
             
             when others =>
                 new_state       <= idle_s;

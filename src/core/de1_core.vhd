@@ -16,6 +16,8 @@ entity de1_core is
         data_o                  : out   std_logic_vector(63 downto 0);
         crc_o                   : out   std_logic_vector(14 downto 0);
         valid_o                 : out   std_logic;
+		  
+		  
 
 
         frame_finished_o        : out   std_logic

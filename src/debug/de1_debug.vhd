@@ -41,22 +41,26 @@ architecture rtl of de1_debug is
 
     signal data_splice_s        : std_logic_vector(3 downto 0);
 
-
+    signal lf_s                 : std_logic;
+    signal rl_s                 : std_logic;
 
 begin
 
 	GPIO_1(2) <= tx_ready_s;
 	GPIO_1(3) <= tx_valid_s;
-	GPIO_1(4) <= valid_i;
+	
 
     rst_h                       <= not rst_n;
 
 
 
+	
     asci_mapper_i0 : entity work.asci_mapper
         port map(
             data_i              => data_splice_s,
-            data_o              => tx_data_s
+            data_o              => tx_data_s,
+            lf_i                => lf_s,
+            rl_i                => rl_s
         );
 
 
@@ -113,7 +117,9 @@ begin
 
             uart_valid_o        => tx_valid_s,
             cnt_en_o            => en_s,
-            reload_o            => reload_s
+            reload_o            => reload_s,
+            lf_o                => lf_s,
+            rl_o                => rl_s
         );
 
 end rtl ; -- rtl

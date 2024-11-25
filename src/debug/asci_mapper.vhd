@@ -8,18 +8,26 @@ library work;
 entity asci_mapper is
     port(
         data_i          : in    std_logic_vector(3 downto 0);
-        data_o          : out   std_logic_vector(7 downto 0)
+        data_o          : out   std_logic_vector(7 downto 0);
+        lf_i            : in    std_logic;
+        rl_i            : in    std_logic
     );
 end entity;
 
 architecture rtl of asci_mapper is
 
+    signal tmp          : std_logic_vector(7 downto 0);
 
+    signal eol_s        : std_logic_vector(7 downto 0);
 
 begin
 
+    eol_s       <= "00001010" when lf_i = '1' else "00001101";
+
+    data_o      <= eol_s when lf_i = '1' or rl_i = '1' else tmp;
+
     with data_i select
-    data_o  <=  "01000000"  when "0000",
+    tmp         <=  "00100000"  when "0000",
                     "00110001"  when "0001",
                     "00110010"  when "0010",
                     "00110011"  when "0011",

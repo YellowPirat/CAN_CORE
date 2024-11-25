@@ -111,9 +111,23 @@ architecture rtl of de1_read is
 
 	signal uart_rxd : std_logic;
 	signal uart_txd : std_logic;
+	
+	signal rst_s						: std_logic;
+	
+	signal valid_s	: std_logic;
 begin
 
 	stb_s <= "000000";
+	
+	rst_sync_i0 : entity work.olo_base_cc_reset
+		port map(
+			A_Clk					=> CLOCK_50,
+			A_RstIn				=> KEY_N(0),
+			A_RstOut				=> rst_s,
+			
+			B_Clk					=> CLOCK_50,
+			B_RstIn				=> KEY_N(0)
+		);
 
 
 	shield_adapter_i0 : entity work.shield_adapter
@@ -128,7 +142,7 @@ begin
 	sampling_i0 : entity work.de1_sampling
 		port map(
 			clk							=> CLOCK_50,
-			rst_n							=> KEY_N(0),
+			rst_n							=> rst_s,
 			
 			rxd_i							=> rxd_s(0),
 			frame_finished_i			=> frame_finished_s,
@@ -142,7 +156,7 @@ begin
 	read_i0 : entity work.de1_core
 		port map(
 			clk							=> CLOCK_50,
-			rst_n							=> KEY_N(0),
+			rst_n							=> rst_s,
 			
 			rxd_sync_i					=> rxd_sync_s,
 			sample_i						=> sample_s,
@@ -155,20 +169,22 @@ begin
 			valid_o						=> data_valid_s
 		);
 		
+
+		
     debug_i0 : entity work.de1_debug
         generic map(
             widght_g                => 64
         )
         port map(
             clk                     => CLOCK_50,
-            rst_n                   => KEY_N(0),
+            rst_n                   => rst_s,
 
             data_i                  => data_s,
             valid_i                 => data_valid_s,
 
             rxd_i                   => uart_rxd,
             txd_o                   => uart_txd,
-				GPIO_1						=> GPIO_1
+			GPIO_1					=> GPIO_1
         );
 		  
 		  GPIO_1(0) <= uart_rxd;
