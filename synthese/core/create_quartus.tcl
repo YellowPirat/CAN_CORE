@@ -47,11 +47,14 @@ set_global_assignment -name VHDL_FILE ../../src/sampling/sample_edge_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/resync_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/sample_validator.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/edge_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/quantum_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/sample_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/quantum_prescaler.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/seq_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/idle_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/de1_sampling.vhd
+
 set_global_assignment -name VHDL_FILE ../../src/core/frame_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_dec_cnt.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_reg.vhd

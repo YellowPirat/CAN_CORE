@@ -114,7 +114,7 @@ begin
                     if data_i = '0' then
                         new_state <= z0_s;
                     else
-                        new_state <= e1_s;
+                        new_state <= e0_s;
                     end if;
                     
                 end if;

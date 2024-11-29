@@ -43,7 +43,7 @@ begin
     --------------------------------------------------------------------------------------------------
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
-    file test_vector                : text open read_mode is "../cangen/deadbeef0.csv";
+    file test_vector                : text open read_mode is "../cangen/deadaffe5000000.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;

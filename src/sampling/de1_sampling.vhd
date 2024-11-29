@@ -59,12 +59,19 @@ begin
             edge_detect_o   => edge_s
         );
 
-    sample_cnt_i0 : entity work.sample_cnt
+    sample_cnt_i0 : entity work.sample
+        generic map(
+            prescaler_g     => 4,
+            sync_seg_g      => 1,
+            prob_seg_g      => 5,
+            phase_seg1_g    => 7,
+            phase_seg2_g    => 7
+        )
         port map(
-            clk             => clk,
+            clk             => clk, 
             rst_n           => rst_n,
 
-            reload_i        => edge_s,
+            edge_i        => edge_s,
             hard_reload_i   => hard_reload_s,
             sync_enable_i   => sync_enable_s,
 
