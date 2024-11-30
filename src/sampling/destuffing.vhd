@@ -40,15 +40,29 @@ architecture rtl of destuffing is
 
 begin
 
+    last_bit_p : process(clk)
+    begin
+        if rising_edge(clk) then
+            last_bit_s  <= last_bit_s;
+
+            if sample_i = '1' then 
+                last_bit_s <= data_i;
+            end if;
+
+            if rst_n = '0' then
+                last_bit_s      <= '1';
+            end if;
+        end if;
+    end process;
+
     error_o <= error_s;
     stuff_bit_o <= stuff_bit_s;
 
-    bit_destuff_p : process(current_state, data_i, sample_i, bus_active_i)
+    bit_destuff_p : process(current_state, data_i, sample_i, bus_active_i, last_bit_s)
     begin
         new_state <= current_state;
         stuff_bit_s <= '0';
         error_s <= '0';
-        last_bit_s <= '0';
 
         case current_state is
             when idle_s =>
@@ -103,7 +117,6 @@ begin
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
-                        last_bit_s <= '0';
                     end if;
                 end if;
 
@@ -117,15 +130,15 @@ begin
                 if bus_active_i = '1' and sample_i = '1' then
                     if data_i = '0' then
                         if last_bit_s = '0' then
-                            new_state <= z0_s;
-                        else 
                             new_state <= z1_s;
+                        else 
+                            new_state <= z0_s;
                         end if;
                     else
                         if last_bit_s = '1' then
-                            new_state <= e0_s;
-                        else
                             new_state <= e1_s;
+                        else
+                            new_state <= e0_s;
                         end if;
                     end if;
                     
@@ -174,7 +187,6 @@ begin
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
-                        last_bit_s <= '1';
                     end if;
                 end if;
 
