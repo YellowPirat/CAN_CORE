@@ -143,7 +143,7 @@ if __name__ == "__main__":
     frame.ide = 1                           # Extended frame
     frame.r1 = 0                            # Reserved
     frame.r0 = 0                            # Reserved
-    frame.dlc = 4                           # 4 bytes of data
-    frame.data = [0xDE, 0xAD, 0xBE, 0xEF]   # Data
+    frame.dlc = 3                           # 4 bytes of data
+    frame.data = [0xE7, 0x83, 0xFB]   # Data
     
     write_can_frame_to_file("extended_can_frame.csv", frame)

@@ -36,6 +36,8 @@ architecture rtl of destuffing is
 
     signal stuff_bit_s, error_s : std_logic;
 
+    signal last_bit_s           : std_logic;
+
 begin
 
     error_o <= error_s;
@@ -46,6 +48,7 @@ begin
         new_state <= current_state;
         stuff_bit_s <= '0';
         error_s <= '0';
+        last_bit_s <= '0';
 
         case current_state is
             when idle_s =>
@@ -100,6 +103,7 @@ begin
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
+                        last_bit_s <= '0';
                     end if;
                 end if;
 
@@ -112,9 +116,17 @@ begin
             when bs_s =>
                 if bus_active_i = '1' and sample_i = '1' then
                     if data_i = '0' then
-                        new_state <= z0_s;
+                        if last_bit_s = '0' then
+                            new_state <= z0_s;
+                        else 
+                            new_state <= z1_s;
+                        end if;
                     else
-                        new_state <= e0_s;
+                        if last_bit_s = '1' then
+                            new_state <= e0_s;
+                        else
+                            new_state <= e1_s;
+                        end if;
                     end if;
                     
                 end if;
@@ -162,6 +174,7 @@ begin
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
+                        last_bit_s <= '1';
                     end if;
                 end if;
 

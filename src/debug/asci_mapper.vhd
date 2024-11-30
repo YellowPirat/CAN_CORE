@@ -27,7 +27,7 @@ begin
     data_o      <= eol_s when lf_i = '1' or rl_i = '1' else tmp;
 
     with data_i select
-    tmp         <=  "00100000"  when "0000",
+    tmp         <=  "00110000"  when "0000",
                     "00110001"  when "0001",
                     "00110010"  when "0010",
                     "00110011"  when "0011",

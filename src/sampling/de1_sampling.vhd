@@ -59,7 +59,7 @@ begin
             edge_detect_o   => edge_s
         );
 
-    sample_cnt_i0 : entity work.sample
+    sample_i0 : entity work.sample
         generic map(
             prescaler_g     => 4,
             sync_seg_g      => 1,
