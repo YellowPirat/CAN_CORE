@@ -13,13 +13,15 @@ entity de1_core is
         bus_active_detect_i     : in    std_logic;
 
         id_o                    : out   std_logic_vector(28 downto 0);
+        rtr_o                   : out   std_logic;
+        eff_o                   : out   std_logic;
+        err_o                   : out   std_logic;
+        dlc_o                   : out   std_logic_vector(3 downto 0);
         data_o                  : out   std_logic_vector(63 downto 0);
         crc_o                   : out   std_logic_vector(14 downto 0);
+
         valid_o                 : out   std_logic;
 		  
-		  
-
-
         frame_finished_o        : out   std_logic
     );
 end entity;
@@ -65,6 +67,11 @@ architecture rtl of de1_core is
     signal old_cnt_done_s       : std_logic;
     signal old_reload_s         : std_logic;
 
+    -- Stuff
+    signal rtr_sample_s         : std_logic;
+    signal eff_sample_s         : std_logic;
+    signal err_Sample_s         : std_logic;
+
     
 begin
     frame_finished_o        <= frame_finished_s;
@@ -72,6 +79,7 @@ begin
     data_o                  <= data_s;
     id_o(10 downto 0)       <= id_data_s;
     id_o(28 downto 11)      <= eid_data_s;
+
 
     valid_cntr_i0 : entity work.valid_cntr
         port map(
@@ -216,6 +224,19 @@ begin
             data_i              => rxd_sync_i,
 
             done_o              => old_cnt_done_s
+        );
+
+
+    rtr_reg_i0 : entity work.bit_reg
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            data_i              => rxd_sync_i,
+            sample_i            => rtr_sample_s,
+            reload_i            => reload_s,
+
+            data_o              => rtr_o
         );
 
 

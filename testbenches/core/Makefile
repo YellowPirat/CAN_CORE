@@ -61,6 +61,7 @@ SRC_FILES = \
     ../../src/core/uni_reg.vhd \
     ../../src/core/field_reg.vhd \
     ../../src/core/valid_cntr.vhd \
+    ../../src/core/bit_reg.vhd \
     ../../src/debug/splice_cnt.vhd \
     ../../src/debug/uart_cntr.vhd \
     ../../src/debug/splicer.vhd \

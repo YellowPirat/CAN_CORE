@@ -31,12 +31,12 @@ begin
   begin 
     step <= '0';
     --wait for 49278 ps;
-    wait for 24800 ps;
-    --wait for 1 us;
+    --wait for 24800 ps;
+    wait for 1 us;
     step <= '1';
     --wait for 49278 ps;
-    wait for 24800 ps;
-    --wait for 1 us;
+    --wait for 24800 ps;
+    wait for 1 us;
     cnt_s <= cnt_s + 1;
     if simstop then
       wait;
@@ -48,7 +48,7 @@ begin
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
     --file test_vector                : text open read_mode is "../cangen/extended_can_frame.csv";
-    file test_vector                : text open read_mode is "../cangen/c2d093...0.csv";
+    file test_vector                : text open read_mode is "../cangen/extended_can_frame.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;

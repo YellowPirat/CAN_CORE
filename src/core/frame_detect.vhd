@@ -52,7 +52,12 @@ entity frame_detect is
         -- OLD
         old_dec_o               : out   std_logic;
         old_cnt_done_i          : in    std_logic;
-        old_reload_o            : out   std_logic
+        old_reload_o            : out   std_logic;
+
+        -- Stuff
+        rtr_sample_o            : out   std_logic;
+        eff_sample_o            : out   std_logic;
+        err_sample_o            : out   std_logic
     );
 
 end entity;
@@ -117,8 +122,10 @@ architecture rtl of frame_detect is
     -- ID
     signal id_dec_s             : std_logic;
     signal id_sample_s          : std_logic;
-    -- RTR
-    signal rtr_store_s          : std_logic;
+    -- STUFF
+    signal rtr_sample_s         : std_logic;
+    signal eff_sample_s          : std_logic;
+    signal err_sample_s          : std_logic;
     -- EID
     signal eid_dec_s            : std_logic;
     signal eid_sample_s         : std_logic;
@@ -170,6 +177,11 @@ begin
     -- OLD
     old_dec_o               <= old_dec_s;
     old_reload_o            <= old_reload_s;
+    -- Stuff
+    rtr_sample_o            <= rtr_sample_s;
+    eff_sample_o            <= eff_sample_s;
+    err_sample_o            <= err_sample_s;
+    
 
     frame_done_o            <= frame_finished_s;
     reload_o                <= reload_s;
@@ -198,7 +210,7 @@ begin
         id_dec_s                <= '0';
         id_sample_s             <= '0';
         -- RTR
-        rtr_store_s             <= '0';
+        rtr_sample_s             <= '0';
         -- EID
         eid_dec_s               <= '0';
         eid_sample_s            <= '0';
@@ -250,7 +262,7 @@ begin
             when rtr_s =>
                 if valid_sample_s = '1' then
                     new_state       <= ide_s;
-                    rtr_store_s     <= '1';
+                    rtr_sample_s     <= '1';
                 end if;
 
             when ide_s => 
@@ -272,7 +284,7 @@ begin
             when ertr_s => 
                 if valid_sample_s = '1' then
                     new_state <= r1_s;
-                    rtr_store_s     <= '1';
+                    rtr_sample_s     <= '1';
                 end if;
 
             when r1_s =>
