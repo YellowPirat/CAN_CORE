@@ -17,21 +17,31 @@ def calculate_crc(frame):
 
 def apply_bit_stuffing(frame):
     stuffed_frame = []
-    same_bit_count = 1
-    bits_stuffed = 0
+    prev_bit = frame[0]
+    curr_bit = '0'
+    bit_stuff_count = 0
+    for i in range(len(frame)):
+        curr_bit = frame[i]
 
-    for i in range(1, len(frame)):
-        stuffed_frame.append(frame[i - 1])
-        if frame[i] == frame[i - 1]:
-            same_bit_count += 1
-            if same_bit_count == 6:
-                stuffed_frame.append("1" if frame[i] == "0" else "0")
-                bits_stuffed += 1
-                same_bit_count = 1
+        stuffed_frame.append(curr_bit)
+        print(curr_bit)
+
+        if prev_bit == curr_bit:
+            bit_stuff_count += 1
         else:
-            same_bit_count = 1
-    stuffed_frame.append(frame[-1])
-    print(f"Number of bits stuffed: {bits_stuffed}")
+            bit_stuff_count = 1
+
+        if bit_stuff_count == 5:
+            stuffed_frame.append('1' if curr_bit == '0' else '0')
+            print(f"S{('1' if curr_bit == '0' else '0')}")
+            bit_stuff_count = 0
+
+        
+
+        prev_bit = curr_bit
+
+    print(stuffed_frame)
+
     return "".join(stuffed_frame)
 
 def generate_can_frame(frame_id, dlc, data_bytes, is_last_frame=False):
@@ -93,7 +103,8 @@ def main():
         else:
             data_bytes = [random.randint(0, 255) for _ in range(dlc)]
 
-        frame_id = random.randint(0, (1 << 29) - 1)
+        #frame_id = random.randint(0, (1 << 29) - 1)
+        frame_id = 999
         is_last_frame = i == (num_frames - 1)
         frame = generate_can_frame(frame_id, dlc, data_bytes, is_last_frame)
         frames.append(frame)
