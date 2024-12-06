@@ -237,6 +237,9 @@ begin
         --OLD
         old_dec_s               <= '0';
         old_reload_s            <= '0';
+        -- FLAGS
+        eff_sample_s            <= '0';
+
 
         reload_s                <= '0';
 
@@ -270,6 +273,7 @@ begin
                     new_state       <= r0_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state       <= eid_s;
+                    eff_sample_s    <= '1';
                 end if;
 
             when eid_s =>

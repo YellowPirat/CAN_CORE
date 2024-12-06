@@ -60,6 +60,8 @@ set_global_assignment -name VHDL_FILE ../../src/core/uni_dec_cnt.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/field_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/valid_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/bit_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/id_mapping.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd

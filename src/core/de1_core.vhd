@@ -55,6 +55,7 @@ architecture rtl of de1_core is
     signal crc_dec_s            : std_logic;
     signal crc_cnt_done_s       : std_logic;
     signal crc_sample_s         : std_logic;
+    signal crc_data_s           : std_logic_vector(14 downto 0);
     -- ERR DEL
     signal err_del_dec_s        : std_logic;
     signal err_del_cnt_done_s   : std_logic;
@@ -67,19 +68,28 @@ architecture rtl of de1_core is
     signal old_cnt_done_s       : std_logic;
     signal old_reload_s         : std_logic;
 
-    -- Stuff
+    -- FLAGS
     signal rtr_sample_s         : std_logic;
     signal eff_sample_s         : std_logic;
-    signal err_Sample_s         : std_logic;
+    signal err_sample_s         : std_logic;
+    signal eff_s                : std_logic;
 
     
 begin
+    -- OUTPUT MAPPING
     frame_finished_o        <= frame_finished_s;
-
+    eff_o                   <= eff_s;
     data_o                  <= data_s;
-    id_o(10 downto 0)       <= id_data_s;
-    id_o(28 downto 11)      <= eid_data_s;
+    dlc_o                   <= dlc_data_s;
+    crc_o                   <= crc_data_s;
 
+    id_mapping_i0 : entity work.id_mapping
+        port map(
+            eff_i               => eff_s,
+            eid_i               => eid_data_s,
+            id_i                => id_data_s,
+            id_o                => id_o
+        );
 
     valid_cntr_i0 : entity work.valid_cntr
         port map(
@@ -175,7 +185,8 @@ begin
             store_i             => crc_sample_s,
             data_i              => rxd_sync_i,
 
-            done_o              => crc_cnt_done_s
+            done_o              => crc_cnt_done_s,
+            data_o              => crc_data_s
         );
 
     err_del_reg_i0 : entity work.field_reg
@@ -239,6 +250,30 @@ begin
             data_o              => rtr_o
         );
 
+    eff_reg_i0 : entity work.bit_reg
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            data_i              => rxd_sync_i,
+            sample_i            => eff_sample_s,
+            reload_i            => reload_s,
+
+            data_o              => eff_s
+        );
+
+    err_reg_i0 : entity work.bit_reg
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            data_i              => rxd_sync_i,
+            sample_i            => err_sample_s,
+            reload_i            => reload_s,
+
+            data_o              => err_o
+        );
+
 
     frame_detect_i0 : entity work.frame_detect
         port map(
@@ -290,7 +325,13 @@ begin
             -- OLD
             old_dec_o           => old_dec_s,
             old_cnt_done_i      => old_cnt_done_s,
-            old_reload_o        => old_reload_s
+            old_reload_o        => old_reload_s,
+
+            -- STUFF
+            rtr_sample_o        => rtr_sample_s,
+            eff_sample_o        => eff_sample_s,
+            err_sample_o        => err_sample_s
+
         );
 
 end rtl ;
