@@ -109,7 +109,8 @@ architecture rtl of frame_detect is
         err_del_s,
         olf_s,
         old_s,
-        inter_s
+        inter_s,
+        error_s
     );
 
     signal current_state, new_state : state_t;
@@ -209,8 +210,7 @@ begin
         -- ID
         id_dec_s                <= '0';
         id_sample_s             <= '0';
-        -- RTR
-        rtr_sample_s             <= '0';
+
         -- EID
         eid_dec_s               <= '0';
         eid_sample_s            <= '0';
@@ -239,8 +239,9 @@ begin
         old_reload_s            <= '0';
         -- FLAGS
         eff_sample_s            <= '0';
-
-
+        rtr_sample_s            <= '0';
+        err_sample_s            <= '0';
+        -- CNTR
         reload_s                <= '0';
 
         case current_state is
@@ -418,6 +419,7 @@ begin
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= ack_slot_s;
                 end if;
+
 
             when ack_slot_s =>
                 if valid_sample_s = '1' then
