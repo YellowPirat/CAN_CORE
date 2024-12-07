@@ -22,7 +22,10 @@ entity de1_core is
 
         valid_o                 : out   std_logic;
 		  
-        frame_finished_o        : out   std_logic
+        frame_finished_o        : out   std_logic;
+
+        bitstuffing_disable_o   : out   std_logic;
+        bit_stuff_error_i       : in    std_logic
     );
 end entity;
 
@@ -74,8 +77,11 @@ architecture rtl of de1_core is
     signal err_sample_s         : std_logic;
     signal eff_s                : std_logic;
 
+
+
     
 begin
+
     -- OUTPUT MAPPING
     frame_finished_o        <= frame_finished_s;
     eff_o                   <= eff_s;
@@ -330,7 +336,11 @@ begin
             -- STUFF
             rtr_sample_o        => rtr_sample_s,
             eff_sample_o        => eff_sample_s,
-            err_sample_o        => err_sample_s
+            err_sample_o        => err_sample_s,
+
+            -- ERROR
+            extern_error_i          => bit_stuff_error_i,
+            bitstuffing_disable_o   => bitstuffing_disable_o
 
         );
 

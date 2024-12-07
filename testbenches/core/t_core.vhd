@@ -32,6 +32,9 @@ architecture sim of core is
     signal uart_tx_s                : std_logic;
     signal uart_data_s              : std_logic_vector(127 downto 0);
 
+    signal disable_destuffing_s     : std_logic;
+    signal bitstuff_error_s         : std_logic;
+
 begin
 
   -- Clock generation
@@ -69,6 +72,7 @@ begin
             simstop => simstop
         );
 
+
     sampling_i0 : entity work.de1_sampling
         port map(
             clk                     => clk,
@@ -76,11 +80,13 @@ begin
 
             rxd_i                   => rxd_async_s,
             frame_finished_i        => frame_finished_s,
+            disable_destuffing_i    => disable_destuffing_s,
 
             rxd_sync_o              => rxd_sync_s,
             sample_o                => sample_s,
             stuff_bit_o             => stuff_bit_s,
-            bus_active_detect_o     => bus_active_detect_s
+            bus_active_detect_o     => bus_active_detect_s,
+            bit_stuff_error_o       => bitstuff_error_s
         );
 
     core_i0 : entity work.de1_core
@@ -103,7 +109,10 @@ begin
 
         valid_o                     => data_valid_s,
 
-        frame_finished_o            => frame_finished_s
+        frame_finished_o            => frame_finished_s,
+
+        bitstuffing_disable_o       => disable_destuffing_s,
+        bit_stuff_error_i           => bitstuff_error_s
     );
 
     -- ID

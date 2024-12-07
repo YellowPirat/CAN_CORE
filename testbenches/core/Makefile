@@ -50,6 +50,9 @@ SRC_FILES = \
     ../../src/sampling/sample_validator.vhd \
 	../../src/sampling/edge_detect.vhd \
     ../../src/sampling/idle_detect.vhd \
+    ../../src/sampling/destuffing_logic.vhd \
+    ../../src/sampling/last_bit.vhd \
+    ../../src/sampling/destuffing_cntr.vhd \
     ../../src/sampling/destuffing.vhd \
     ../../src/sampling/quantum_prescaler.vhd \
     ../../src/sampling/seq_cnt.vhd \

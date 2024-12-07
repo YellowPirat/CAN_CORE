@@ -57,7 +57,11 @@ entity frame_detect is
         -- Stuff
         rtr_sample_o            : out   std_logic;
         eff_sample_o            : out   std_logic;
-        err_sample_o            : out   std_logic
+        err_sample_o            : out   std_logic;
+
+        -- ERROR
+        bitstuffing_disable_o   : out   std_logic;
+        extern_error_i          : in    std_logic
     );
 
 end entity;
@@ -142,7 +146,7 @@ architecture rtl of frame_detect is
     -- ERROR-FRAME
     signal error_frame_error_s  : std_logic;
     -- BITDESTUFFING
-    signal bitstuffing_en_s     : std_logic;
+    signal bitstuffing_disable_s     : std_logic;
     -- ERROR_DEL
     signal error_del_dec_s      : std_logic;
     -- OLF
@@ -182,6 +186,8 @@ begin
     rtr_sample_o            <= rtr_sample_s;
     eff_sample_o            <= eff_sample_s;
     err_sample_o            <= err_sample_s;
+    -- ERROR
+    bitstuffing_disable_o   <= bitstuffing_disable_s;
     
 
     frame_done_o            <= frame_finished_s;
@@ -203,7 +209,8 @@ begin
         crc_cnt_done_i,
         err_del_cnt_done_i,
         olf_cnt_done_i,
-        old_cnt_done_i
+        old_cnt_done_i,
+        extern_error_i
     )
     begin
         new_state               <= current_state;
@@ -226,7 +233,7 @@ begin
         -- ERROR FRAME
         error_frame_error_s     <= '0';
         -- BITDESTUFFING
-        bitstuffing_en_s        <= '1';
+        bitstuffing_disable_s   <= '0';
         -- ERROR DEL
         error_del_dec_s         <= '0';
         -- Frame done
@@ -253,6 +260,10 @@ begin
                     new_state       <= id_s;
                     reload_s        <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when id_s =>
                 if valid_sample_s = '1' and id_cnt_done_i = '0' then
@@ -262,11 +273,19 @@ begin
                     new_state       <= rtr_s;
                     id_sample_s     <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when rtr_s =>
                 if valid_sample_s = '1' then
                     new_state       <= ide_s;
                     rtr_sample_s     <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when ide_s => 
@@ -275,6 +294,10 @@ begin
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state       <= eid_s;
                     eff_sample_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when eid_s =>
@@ -285,21 +308,37 @@ begin
                     new_state       <= ertr_s;
                     eid_sample_s    <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when ertr_s => 
                 if valid_sample_s = '1' then
                     new_state <= r1_s;
                     rtr_sample_s     <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when r1_s =>
                 if valid_sample_s = '1' then
                     new_state       <= r0_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
             
             when r0_s =>
                 if valid_sample_s = '1' then
                     new_state       <= dlc_s;
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when dlc_s =>
@@ -309,7 +348,11 @@ begin
                 elsif valid_sample_s = '1' and dlc_cnt_done_i = '1' then
                     new_state       <= wait_dlc_s;
                     dlc_sample_s    <= '1';
-                end if; 
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
                 
             when wait_dlc_s =>
                 if dlc_data_i = "0000" then 
@@ -342,6 +385,10 @@ begin
                     new_state           <= data7_s;
                     data_sample_s(7)    <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when data7_s =>
                 if valid_sample_s = '1' and data_cnt_done_i(6) = '0' then
@@ -350,6 +397,10 @@ begin
                 elsif valid_sample_s = '1' and data_cnt_done_i(6) = '1' then
                     new_state           <= data6_s;
                     data_sample_s(6)    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when data6_s =>
@@ -360,6 +411,10 @@ begin
                     new_state           <= data5_s;
                     data_sample_s(5)    <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when data5_s =>
                 if valid_sample_s = '1' and data_cnt_done_i(4) = '0' then
@@ -368,6 +423,10 @@ begin
                 elsif valid_sample_s = '1' and data_cnt_done_i(4) = '1' then
                     new_state           <= data4_s;
                     data_sample_s(4)    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when data4_s =>
@@ -378,6 +437,10 @@ begin
                     new_state           <= data3_s;
                     data_sample_s(3)    <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when data3_s =>
                 if valid_sample_s = '1' and data_cnt_done_i(2) = '0' then
@@ -386,6 +449,10 @@ begin
                 elsif valid_sample_s = '1' and data_cnt_done_i(2) = '1' then
                     new_state           <= data2_s;
                     data_sample_s(2)    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when data2_s =>
@@ -396,6 +463,10 @@ begin
                     new_state           <= data1_s;
                     data_sample_s(1)    <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when data1_s =>
                 if valid_sample_s = '1' and data_cnt_done_i(0) = '0' then
@@ -404,6 +475,10 @@ begin
                 elsif valid_sample_s = '1' and data_cnt_done_i(0) = '1' then
                     new_state           <= crc_s;
                     data_sample_s(0)    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when crc_s =>
@@ -414,10 +489,21 @@ begin
                     new_state           <= crc_del_s;
                     crc_sample_s        <= '1';
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when crc_del_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= ack_slot_s;
+                elsif valid_sample_s = '1' and rxd_i = '0' then
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
 
@@ -425,12 +511,22 @@ begin
                 if valid_sample_s = '1' then
                     new_state           <= ack_del_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when ack_del_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= per0_s;
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer0_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when per0_s =>
@@ -439,12 +535,20 @@ begin
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer1_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when per1_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= per2_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer2_s;
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when per2_s =>
@@ -453,12 +557,20 @@ begin
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer3_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when per3_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= per4_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer4_s;
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
     
             when per4_s =>
@@ -467,6 +579,10 @@ begin
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer5_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when per5_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
@@ -474,123 +590,183 @@ begin
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer6_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when aer0_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer1_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer1_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer2_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer2_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer3_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer3_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer4_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer4_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer5_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer5_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer6_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer6_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer7_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
 
             when aer7_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer8_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer8_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer9_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer9_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer10_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer10_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer11_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when aer11_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
                     new_state           <= aer11_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' then
                     new_state           <= err_del_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when err_del_s =>
                 if valid_sample_s = '1' and rxd_i = '1' and err_del_cnt_done_i = '0' then
                     error_del_dec_s     <= '1';
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' and err_del_cnt_done_i = '1' then
                     new_state           <= inter_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '0' and err_del_cnt_done_i = '1' then
                     new_state           <= olf_s;
-                    bitstuffing_en_s    <= '0';
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when inter_s =>
                 new_state               <= sof_s;
-                bitstuffing_en_s        <= '0';
+                bitstuffing_disable_s        <= '0';
                 frame_finished_s        <= '1';
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
 
             when olf_s =>
                 if valid_sample_s = '1' and olf_cnt_done_i = '0' then
                     olf_dec_s           <= '1';
                 elsif valid_sample_s = '1' and olf_cnt_done_i = '1' then
                     new_state           <= old_s;
+                end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
                 end if;
 
             when old_s =>
@@ -603,11 +779,24 @@ begin
                 elsif valid_sample_s = '1' and old_cnt_done_i = '1' then
                     new_state           <= inter_s;
                 end if;
+                if extern_error_i = '1' then 
+                    new_state           <= error_s;
+                    bitstuffing_disable_s    <= '1';
+                end if;
+
+            when error_s =>
+                if extern_error_i = '1' then
+                    bitstuffing_disable_s        <= '0';
+                elsif extern_error_i = '0' then
+                    bitstuffing_disable_s        <= '0';
+                    new_state               <= sof_s;
+                end if;
 
                     
 
             when others =>
                 new_state <= idle_s;
+
         end case;
     end process frame_detect_p;
 

@@ -9,11 +9,13 @@ entity de1_sampling is
 
         rxd_i                   : in    std_logic;
         frame_finished_i        : in    std_logic;
+        disable_destuffing_i    : in    std_logic;
 
         rxd_sync_o              : out   std_logic;
         sample_o                : out   std_logic;
         stuff_bit_o             : out   std_logic;
-        bus_active_detect_o     : out   std_logic
+        bus_active_detect_o     : out   std_logic;
+        bit_stuff_error_o       : out   std_logic
     );
 end entity;
 
@@ -25,7 +27,7 @@ architecture rtl of de1_sampling is
     signal sample_s         : std_logic;
     signal bus_active_s     : std_logic;
     signal stuff_bit_s      : std_logic;
-    signal bit_stuff_error  : std_logic;
+
     signal hard_reload_s    : std_logic;
     signal sync_enable_s    : std_logic;
 
@@ -97,10 +99,11 @@ begin
 
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
-            bus_active_i    => bus_active_s,
+            enable_i        => bus_active_s,
+            disable_i       => disable_destuffing_i,
             
             stuff_bit_o     => stuff_bit_s,
-            error_o          => bit_stuff_error
+            error_o          => bit_stuff_error_o
         );
 
     resync_validator_i0 : entity work.sample_validator
