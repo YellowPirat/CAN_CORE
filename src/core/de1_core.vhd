@@ -25,7 +25,9 @@ entity de1_core is
         frame_finished_o        : out   std_logic;
 
         bitstuffing_disable_o   : out   std_logic;
-        bit_stuff_error_i       : in    std_logic
+        bit_stuff_error_i       : in    std_logic;
+        eof_detect_i            : in    std_logic;
+        decode_error_o          : out   std_logic
     );
 end entity;
 
@@ -339,9 +341,10 @@ begin
             err_sample_o        => err_sample_s,
 
             -- ERROR
-            extern_error_i          => bit_stuff_error_i,
-            bitstuffing_disable_o   => bitstuffing_disable_o
-
+            bitstuffing_error_i     => bit_stuff_error_i,
+            bitstuffing_disable_o   => bitstuffing_disable_o,
+            eof_detect_i            => eof_detect_i,
+            decode_error_o          => decode_error_o
         );
 
 end rtl ;

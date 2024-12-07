@@ -34,6 +34,8 @@ architecture sim of core is
 
     signal disable_destuffing_s     : std_logic;
     signal bitstuff_error_s         : std_logic;
+    signal eof_detect_s             : std_logic;
+    signal decode_error_s           : std_logic;
 
 begin
 
@@ -89,6 +91,8 @@ begin
             bit_stuff_error_o       => bitstuff_error_s
         );
 
+    eof_detect_s    <= '0';
+
     core_i0 : entity work.de1_core
     port map(
         clk                         => clk,
@@ -112,7 +116,9 @@ begin
         frame_finished_o            => frame_finished_s,
 
         bitstuffing_disable_o       => disable_destuffing_s,
-        bit_stuff_error_i           => bitstuff_error_s
+        bit_stuff_error_i           => bitstuff_error_s,
+        eof_detect_i                => eof_detect_s,
+        decode_error_o              => decode_error_s
     );
 
     -- ID
