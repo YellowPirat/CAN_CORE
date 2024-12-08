@@ -20,7 +20,7 @@ architecture sim of cangen is
 
     signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0) := (others => '1');
 
-    signal cnt_s  : unsigned(10 downto 0) := to_unsigned(0, 11);
+    signal cnt_s  : unsigned(20 downto 0) := to_unsigned(0, 21);
 
 begin
 
@@ -45,8 +45,7 @@ begin
     --------------------------------------------------------------------------------------------------
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
-    --file test_vector                : text open read_mode is "../cangen/extended_can_frame.csv";
-    file test_vector                : text open read_mode is "../cangen/with_bit_stuffing.csv";
+    file test_vector                : text open read_mode is "../cangen/1us/super.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;

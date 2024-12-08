@@ -10,11 +10,13 @@ entity destuffing_logic is
         data_i              : in    std_logic;
         sample_i            : in    std_logic;
         enable_i            : in    std_logic;
-        reload_i            : in    std_logic;
+        disable_destuffing_i : in   std_logic;
+        eof_detect_i        : in    std_logic;
+
         last_bit_i          : in    std_logic;
 
         stuff_bit_o         : out   std_logic;
-        error_o             : out    std_logic     
+        stuff_error_o       : out    std_logic     
     );
 end entity;
 
@@ -44,10 +46,10 @@ begin
 
 
 
-    error_o <= error_s;
+    stuff_error_o <= error_s;
     stuff_bit_o <= stuff_bit_s;
 
-    bit_destuff_p : process(current_state, data_i, sample_i, enable_i, last_bit_i, reload_i)
+    bit_destuff_p : process(current_state, data_i, sample_i, enable_i, last_bit_i, disable_destuffing_i, eof_detect_i)
     begin
         new_state <= current_state;
         stuff_bit_s <= '0';
@@ -55,7 +57,7 @@ begin
 
         case current_state is
             when idle_s =>
-                if enable_i = '1' and sample_i = '1' and reload_i = '0' then
+                if enable_i = '1' and sample_i = '1' then
                     if data_i = '0' then
                         new_state <= z0_s;
                     else
@@ -72,7 +74,7 @@ begin
                         new_state <= e0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -84,7 +86,7 @@ begin
                         new_state <= e0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -96,7 +98,7 @@ begin
                         new_state <= e0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
                 
@@ -108,7 +110,7 @@ begin
                         new_state <= e0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -116,21 +118,18 @@ begin
                 if enable_i = '1' and sample_i = '1' then
                     if data_i = '0' then
                         new_state <= err_s;
+                        error_s <= '1';
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
             when err_s =>
-                if enable_i = '0' then 
-                    new_state <= idle_s;
-                    error_s <= '1';
-                end if;
-                if reload_i = '1' then 
+                if enable_i = '1' and disable_destuffing_i = '0' and eof_detect_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -150,7 +149,7 @@ begin
                         end if;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -162,7 +161,7 @@ begin
                         new_state <= z0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -174,7 +173,7 @@ begin
                         new_state <= z0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -186,7 +185,7 @@ begin
                         new_state <= z0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -198,7 +197,7 @@ begin
                         new_state <= z0_s;
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 
@@ -206,12 +205,13 @@ begin
                 if enable_i = '1' and sample_i = '1' then
                     if data_i = '1' then
                         new_state <= err_s;
+                        error_s <= '1';
                     else
                         new_state <= bs_s;
                         stuff_bit_s <= '1';
                     end if;
                 end if;
-                if reload_i = '1' then 
+                if enable_i = '0' and disable_destuffing_i = '1' then 
                     new_state       <= idle_s;
                 end if;
 

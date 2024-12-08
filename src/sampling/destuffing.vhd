@@ -10,10 +10,12 @@ entity destuffing is
         data_i              : in    std_logic;
         sample_i            : in    std_logic;
         enable_i            : in    std_logic;
-        disable_i             : in    std_logic;
+        disable_destuffing_i : in   std_logic;
+        eof_detect_i        : in    std_logic;
+
 
         stuff_bit_o         : out   std_logic;
-        error_o             : out    std_logic     
+        stuff_error_o       : out    std_logic     
     );
 end entity;
 
@@ -22,8 +24,11 @@ architecture rtl of destuffing is
     signal last_bit_s           : std_logic;
     signal enable_destuffing_s  : std_logic;
     signal reload_destuffing_s  : std_logic;
+    signal stuff_error_s        : std_logic;
 
 begin
+
+    stuff_error_o           <= stuff_error_s;
 
     last_bit_i0 : entity work.last_bit
         port map(
@@ -43,25 +48,17 @@ begin
 
             data_i          => data_i,
             sample_i        => sample_i,
-            enable_i        => enable_destuffing_s,
-            reload_i        => reload_destuffing_s,
+            enable_i        => enable_i,
+            disable_destuffing_i => disable_destuffing_i,
+            eof_detect_i    => eof_detect_i,
+
             last_bit_i      => last_bit_s,
 
             stuff_bit_o     => stuff_bit_o,
-            error_o         => error_o
+            stuff_error_o   => stuff_error_s
         );
 
-    destuffing_cntr_i0 : entity work.destuffing_cntr
-        port map(
-            clk                     => clk,
-            rst_n                   => rst_n,
 
-            enable_i                => enable_i,
-            disable_i                 => disable_i,
-
-            enable_destuffing_o     => enable_destuffing_s,
-            reload_destuffing_o     => reload_destuffing_s
-        );
 
 
 

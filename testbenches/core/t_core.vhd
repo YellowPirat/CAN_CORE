@@ -62,7 +62,7 @@ begin
 
     simstop_p : process
     begin
-        wait for 2000 us;
+        wait for 4000 us;
         simstop <= true;
         wait;
     end process simstop_p;
@@ -83,15 +83,30 @@ begin
             rxd_i                   => rxd_async_s,
             frame_finished_i        => frame_finished_s,
             disable_destuffing_i    => disable_destuffing_s,
+            eof_detect_i            => eof_detect_s,
 
             rxd_sync_o              => rxd_sync_s,
             sample_o                => sample_s,
             stuff_bit_o             => stuff_bit_s,
             bus_active_detect_o     => bus_active_detect_s,
-            bit_stuff_error_o       => bitstuff_error_s
+            stuff_error_o           => bitstuff_error_s
         );
 
-    eof_detect_s    <= '0';
+    error_handling_i0 : entity work.de1_error_handling
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            rxd_i                   => rxd_sync_s,
+            sample_i                => sample_s,
+
+            stuff_error_i           => bitstuff_error_s,
+            decode_error_i          => decode_error_s,
+            sample_error_i          => '0',
+
+            eof_detect_o            => eof_detect_s
+        );
+
 
     core_i0 : entity work.de1_core
     port map(
