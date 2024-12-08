@@ -1,0 +1,7 @@
+frames: 1
+frame_1:
+  id: 0x777
+  dlc: 2
+  data:
+  - 0xe7
+  - 0x83
