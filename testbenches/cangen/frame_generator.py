@@ -24,7 +24,6 @@ def apply_bit_stuffing(frame):
 
     for i in range(len(frame)):
         curr_bit = frame[i]
-
         stuffed_frame.append(curr_bit)
         print(curr_bit)
 
@@ -34,12 +33,15 @@ def apply_bit_stuffing(frame):
             bit_stuff_count = 1
 
         if bit_stuff_count == 5:
-            stuffed_frame.append('1' if curr_bit == '0' else '0')
-            print(f"S{('1' if curr_bit == '0' else '0')}")
+            stuff_bit = '1' if curr_bit == '0' else '0'
+            stuffed_frame.append(stuff_bit)
+            print(f"S{stuff_bit}")
             stuff_cnt += 1
-            bit_stuff_count = 0
+            bit_stuff_count = 1 if stuff_bit == frame[min(i + 1, len(frame) - 1)] else 0 # Check the next bit to ensure the counter is correct
+            prev_bit = stuff_bit
+        else:
+            prev_bit = curr_bit
 
-        prev_bit = curr_bit
 
     print(stuffed_frame)
     print(f"Number of stuffed bits: {stuff_cnt}")
