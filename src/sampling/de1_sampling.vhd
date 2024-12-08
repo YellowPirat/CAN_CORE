@@ -10,12 +10,13 @@ entity de1_sampling is
         rxd_i                   : in    std_logic;
         frame_finished_i        : in    std_logic;
         disable_destuffing_i    : in    std_logic;
+        eof_detect_i            : in    std_logic;
 
         rxd_sync_o              : out   std_logic;
         sample_o                : out   std_logic;
         stuff_bit_o             : out   std_logic;
         bus_active_detect_o     : out   std_logic;
-        bit_stuff_error_o       : out   std_logic
+        stuff_error_o           : out   std_logic
     );
 end entity;
 
@@ -87,6 +88,7 @@ begin
 
             frame_end_i     => frame_finished_i,
             edge_i          => edge_s,
+            eof_detect_i    => eof_detect_i,
 
             hard_reload_o   => hard_reload_s, 
             bus_active_o    => bus_active_s
@@ -100,10 +102,11 @@ begin
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
             enable_i        => bus_active_s,
-            disable_i       => disable_destuffing_i,
+            disable_destuffing_i    => disable_destuffing_i,
+            eof_detect_i    => eof_detect_i,
             
             stuff_bit_o     => stuff_bit_s,
-            error_o          => bit_stuff_error_o
+            stuff_error_o   => stuff_error_o
         );
 
     resync_validator_i0 : entity work.sample_validator

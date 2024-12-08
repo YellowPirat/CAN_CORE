@@ -72,6 +72,8 @@ SRC_FILES = \
     ../../src/debug/asci_mapper.vhd \
     ../../src/debug/de1_debug.vhd \
     ../../src/core/de1_core.vhd \
+    ../../src/error_handling/eof_detect.vhd \
+    ../../src/error_handling/de1_error_handling.vhd \
     t_core.vhd
 
 
