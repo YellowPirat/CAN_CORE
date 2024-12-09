@@ -78,6 +78,7 @@ begin
         );
 
 
+
     sampling_i0 : entity work.de1_sampling
         port map(
             clk                     => clk,

@@ -120,16 +120,24 @@ architecture rtl of de1_read is
     signal uart_tx_s                : std_logic;
     signal uart_data_s              : std_logic_vector(127 downto 0);
 
-    signal disable_destuffing_s     : std_logic;
-    signal bitstuff_error_s         : std_logic;
-    signal eof_detect_s             : std_logic;
+    signal reset_core_s             : std_logic;
+    signal reset_destuffing_s       : std_logic;
+
     signal decode_error_s           : std_logic;
+    signal stuff_error_s            : std_logic;
+
+    signal enable_destuffing_s      : std_logic;
 	
 	signal rst_n					: std_logic;
     signal clk                      : std_logic;
+	 
+	 
+	 
+	 
+	 
+	 signal reload_s : std_logic;
+	 signal edge_s : std_logic;
 
-	
-	signal valid_s	: std_logic;
 begin
 
     clk <= CLOCK_50;
@@ -155,23 +163,26 @@ begin
 			rxd_o							=> rxd_s,
 			txd_i							=> txd_s
 		);
+
+        rxd_async_s <= rxd_s(0);
+
 		
-    sampling_i0 : entity work.de1_sampling
-        port map(
-            clk                     => clk,
-            rst_n                   => rst_n,
+	  sampling_i0 : entity work.de1_sampling
+	  port map(
+			clk                     => clk,
+			rst_n                   => rst_n,
 
-            rxd_i                   => rxd_async_s,
-            frame_finished_i        => frame_finished_s,
-            disable_destuffing_i    => disable_destuffing_s,
-            eof_detect_i            => eof_detect_s,
+			rxd_i                   => rxd_async_s,
+			frame_finished_i        => frame_finished_s,
+			enable_destuffing_i     => enable_destuffing_s,
+			reset_destuffing_i      => reset_destuffing_s,
 
-            rxd_sync_o              => rxd_sync_s,
-            sample_o                => sample_s,
-            stuff_bit_o             => stuff_bit_s,
-            bus_active_detect_o     => bus_active_detect_s,
-            stuff_error_o           => bitstuff_error_s
-        );
+			rxd_sync_o              => rxd_sync_s,
+			sample_o                => sample_s,
+			stuff_bit_o             => stuff_bit_s,
+			bus_active_detect_o     => bus_active_detect_s,
+			stuff_error_o           => stuff_error_s
+	 );
 
     error_handling_i0 : entity work.de1_error_handling
         port map(
@@ -181,41 +192,60 @@ begin
             rxd_i                   => rxd_sync_s,
             sample_i                => sample_s,
 
-            stuff_error_i           => bitstuff_error_s,
+            stuff_error_i           => stuff_error_s,
             decode_error_i          => decode_error_s,
             sample_error_i          => '0',
 
-            eof_detect_o            => eof_detect_s
+            reset_core_o            => reset_core_s,
+            reset_destuffing_o      => reset_destuffing_s
         );
-		
+
+
+
     core_i0 : entity work.de1_core
-        port map(
-            clk                         => clk,
-            rst_n                       => rst_n,
-    
-            rxd_sync_i                  => rxd_sync_s,
-            sample_i                    => sample_s,
-            stuff_bit_i                 => stuff_bit_s,
-            bus_active_detect_i         => bus_active_detect_s,
-    
-            id_o                        => id_s,
-            rtr_o                       => rtr_s,
-            eff_o                       => eff_s,
-            err_o                       => err_s,
-            dlc_o                       => dlc_s,
-            data_o                      => data_s,
-            crc_o                       => crc_s,
-    
-            valid_o                     => data_valid_s,
-    
-            frame_finished_o            => frame_finished_s,
-    
-            bitstuffing_disable_o       => disable_destuffing_s,
-            bit_stuff_error_i           => bitstuff_error_s,
-            eof_detect_i                => eof_detect_s,
-            decode_error_o              => decode_error_s
-        );
-		
+    port map(
+        clk                         => clk,
+        rst_n                       => rst_n,
+
+        rxd_sync_i                  => rxd_sync_s,
+        sample_i                    => sample_s,
+        stuff_bit_i                 => stuff_bit_s,
+        bus_active_detect_i         => bus_active_detect_s,
+
+        id_o                        => id_s,
+        rtr_o                       => rtr_s,
+        eff_o                       => eff_s,
+        err_o                       => err_s,
+        dlc_o                       => dlc_s,
+        data_o                      => data_s,
+        crc_o                       => crc_s,
+
+        valid_o                     => data_valid_s,
+
+        frame_finished_o            => frame_finished_s,
+
+        reset_i                     => reset_core_s,
+        decode_error_o              => decode_error_s,
+        enable_destuffing_o         => enable_destuffing_s
+    );
+		 
+
+
+
+
+
+	 
+
+	 LEDR(0) <= reset_core_s;
+	 LEDR(1) <= reset_destuffing_s;
+	 
+	 GPIO_1(2) <= rxd_sync_s;
+	 GPIO_1(3) <= sample_s;
+	 GPIO_1(4) <= stuff_bit_s;
+	 GPIO_1(5) <= bus_active_detect_s;
+	 GPIO_1(6) <= rst_n;
+	 GPIO_1(7) <= edge_s;
+	 
     -- ID
     uart_data_s(28 downto 0)        <= id_s;
     uart_data_s(31 downto 29)       <= (others => '0');
@@ -233,7 +263,7 @@ begin
     uart_data_s(126 downto 112)     <= crc_s;
     uart_data_s(127)                <= '0';
 
-		
+
     debug_i0 : entity work.de1_debug
         generic map(
             widght_g                => 128
@@ -248,6 +278,7 @@ begin
             rxd_i                   => uart_rx_s,
             txd_o                   => uart_tx_s
         );
+
 		  
 		GPIO_1(0) <= uart_rx_s;
 		GPIO_1(1) <= uart_tx_s;
