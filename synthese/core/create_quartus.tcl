@@ -47,13 +47,17 @@ set_global_assignment -name VHDL_FILE ../../src/sampling/sample_edge_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/resync_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/sample_validator.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/edge_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/idle_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_logic.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/last_bit.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/quantum_prescaler.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/seq_cnt.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/sample_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/sample.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/idle_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing.vhd
 set_global_assignment -name VHDL_FILE ../../src/sampling/de1_sampling.vhd
+
 
 set_global_assignment -name VHDL_FILE ../../src/core/frame_detect.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/uni_dec_cnt.vhd
@@ -72,7 +76,9 @@ set_global_assignment -name VHDL_FILE ../../src/debug/uart_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
 set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
 set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
-set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/error_handling/eof_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/error_handling/de1_error_handling.vhd
 
 set_global_assignment -name VHDL_FILE de1_read.vhd
 

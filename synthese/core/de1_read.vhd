@@ -99,12 +99,13 @@ architecture rtl of de1_read is
 	signal rxd_s						: std_logic_vector(5 downto 0);
 	signal txd_s						: std_logic_vector(5 downto 0);
 	
-	signal frame_finished_s			: std_logic;
-	signal sample_s					: std_logic;
-	signal stuff_bit_s				: std_logic;
-	signal bus_active_detect_s		: std_logic;
-	signal rxd_sync_s					: std_logic;
-	
+    signal rxd_async_s              : std_logic;
+    signal frame_finished_s         : std_logic;
+    signal rxd_sync_s               : std_logic;
+    signal sample_s                 : std_logic;
+    signal stuff_bit_s              : std_logic;
+    signal bus_active_detect_s      : std_logic;
+
     signal id_s                     : std_logic_vector(28 downto 0);
     signal rtr_s                    : std_logic;
     signal eff_s                    : std_logic;
@@ -114,14 +115,24 @@ architecture rtl of de1_read is
     signal data_s                   : std_logic_vector(63 downto 0);
     signal data_valid_s             : std_logic;
 
-	signal uart_rxd : std_logic;
-	signal uart_txd : std_logic;
-	signal uart_data_s : std_logic_vector(127 downto 0);
+
+    signal uart_rx_s                : std_logic;
+    signal uart_tx_s                : std_logic;
+    signal uart_data_s              : std_logic_vector(127 downto 0);
+
+    signal disable_destuffing_s     : std_logic;
+    signal bitstuff_error_s         : std_logic;
+    signal eof_detect_s             : std_logic;
+    signal decode_error_s           : std_logic;
 	
-	signal rst_s						: std_logic;
+	signal rst_n					: std_logic;
+    signal clk                      : std_logic;
+
 	
 	signal valid_s	: std_logic;
 begin
+
+    clk <= CLOCK_50;
 
 	stb_s <= "000000";
 	
@@ -129,7 +140,7 @@ begin
 		port map(
 			A_Clk					=> CLOCK_50,
 			A_RstIn				=> KEY_N(0),
-			A_RstOut				=> rst_s,
+			A_RstOut				=> rst_n,
 			
 			B_Clk					=> CLOCK_50,
 			B_RstIn				=> KEY_N(0)
@@ -145,41 +156,65 @@ begin
 			txd_i							=> txd_s
 		);
 		
-	sampling_i0 : entity work.de1_sampling
-		port map(
-			clk							=> CLOCK_50,
-			rst_n							=> rst_s,
-			
-			rxd_i							=> rxd_s(0),
-			frame_finished_i			=> frame_finished_s,
-			
-			rxd_sync_o					=> rxd_sync_s,
-			sample_o						=> sample_s,
-			stuff_bit_o					=> stuff_bit_s,
-			bus_active_detect_o		=> bus_active_detect_s 
-		);
+    sampling_i0 : entity work.de1_sampling
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            rxd_i                   => rxd_async_s,
+            frame_finished_i        => frame_finished_s,
+            disable_destuffing_i    => disable_destuffing_s,
+            eof_detect_i            => eof_detect_s,
+
+            rxd_sync_o              => rxd_sync_s,
+            sample_o                => sample_s,
+            stuff_bit_o             => stuff_bit_s,
+            bus_active_detect_o     => bus_active_detect_s,
+            stuff_error_o           => bitstuff_error_s
+        );
+
+    error_handling_i0 : entity work.de1_error_handling
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            rxd_i                   => rxd_sync_s,
+            sample_i                => sample_s,
+
+            stuff_error_i           => bitstuff_error_s,
+            decode_error_i          => decode_error_s,
+            sample_error_i          => '0',
+
+            eof_detect_o            => eof_detect_s
+        );
 		
-	read_i0 : entity work.de1_core
-		port map(
-			clk							=> CLOCK_50,
-			rst_n							=> rst_s,
-			
-			rxd_sync_i					=> rxd_sync_s,
-			sample_i						=> sample_s,
-			stuff_bit_i					=> stuff_bit_s,
-			bus_active_detect_i		=> bus_active_detect_s,
-			
-			frame_finished_o			=> frame_finished_s,
-			
-         id_o                    => id_s,
-         rtr_o                   => rtr_s,
-         eff_o                   => eff_s,
-         err_o                   => err_s,
-         dlc_o                   => dlc_s,
-         data_o                  => data_s,
-         crc_o                   => crc_s,
-			valid_o						=> data_valid_s
-		);
+    core_i0 : entity work.de1_core
+        port map(
+            clk                         => clk,
+            rst_n                       => rst_n,
+    
+            rxd_sync_i                  => rxd_sync_s,
+            sample_i                    => sample_s,
+            stuff_bit_i                 => stuff_bit_s,
+            bus_active_detect_i         => bus_active_detect_s,
+    
+            id_o                        => id_s,
+            rtr_o                       => rtr_s,
+            eff_o                       => eff_s,
+            err_o                       => err_s,
+            dlc_o                       => dlc_s,
+            data_o                      => data_s,
+            crc_o                       => crc_s,
+    
+            valid_o                     => data_valid_s,
+    
+            frame_finished_o            => frame_finished_s,
+    
+            bitstuffing_disable_o       => disable_destuffing_s,
+            bit_stuff_error_i           => bitstuff_error_s,
+            eof_detect_i                => eof_detect_s,
+            decode_error_o              => decode_error_s
+        );
 		
     -- ID
     uart_data_s(28 downto 0)        <= id_s;
@@ -204,19 +239,18 @@ begin
             widght_g                => 128
         )
         port map(
-            clk                     => CLOCK_50,
-            rst_n                   => rst_s,
+            clk                     => clk,
+            rst_n                   => rst_n,
 
             data_i                  => uart_data_s,
             valid_i                 => data_valid_s,
 
-            rxd_i                   => uart_rxd,
-            txd_o                   => uart_txd,
-			GPIO_1					=> GPIO_1
+            rxd_i                   => uart_rx_s,
+            txd_o                   => uart_tx_s
         );
 		  
-		  GPIO_1(0) <= uart_rxd;
-		  GPIO_1(1) <= uart_txd;
+		GPIO_1(0) <= uart_rx_s;
+		GPIO_1(1) <= uart_tx_s;
 		  
 
 		

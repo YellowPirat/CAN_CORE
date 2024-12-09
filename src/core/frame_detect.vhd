@@ -59,11 +59,11 @@ entity frame_detect is
         eff_sample_o            : out   std_logic;
         err_sample_o            : out   std_logic;
 
-        -- ERROR
-        bitstuffing_disable_o   : out   std_logic;
-        bitstuffing_error_i     : in    std_logic;
-        eof_detect_i            : in    std_logic;
-        decode_error_o          : out   std_logic
+        -- HANDLING
+        reset_i                 : in    std_logic;
+        decode_error_o          : out   std_logic;
+        enable_destuffing_o     : out   std_logic;
+        data_valid_o            : out   std_logic
     );
 
 end entity;
@@ -72,7 +72,8 @@ architecture rtl of frame_detect is
 
     type state_t is(
         idle_s,
-        sof_s,
+        valid_sof_s,
+        invalid_sof_s,
         id_s,
         rtr_s,
         ide_s,
@@ -115,8 +116,7 @@ architecture rtl of frame_detect is
         err_del_s,
         olf_s,
         old_s,
-        inter_s,
-        error_s
+        inter_s
     );
 
     signal current_state, new_state : state_t;
@@ -147,8 +147,6 @@ architecture rtl of frame_detect is
     signal crc_sample_s         : std_logic;
     -- ERROR-FRAME
     signal error_frame_error_s  : std_logic;
-    -- BITDESTUFFING
-    signal bitstuffing_disable_s     : std_logic;
     -- ERROR_DEL
     signal error_del_dec_s      : std_logic;
     -- OLF
@@ -157,9 +155,10 @@ architecture rtl of frame_detect is
     -- OLD
     signal old_dec_s            : std_logic;
     signal old_reload_s         : std_logic;
-
+    -- HANDLING
     signal decode_error_s       : std_logic;
-    signal extern_error_s       : std_logic;
+    signal enable_destuffing_s  : std_logic;
+    signal data_valid_s         : std_logic;
     
 
 begin
@@ -191,18 +190,17 @@ begin
     rtr_sample_o            <= rtr_sample_s;
     eff_sample_o            <= eff_sample_s;
     err_sample_o            <= err_sample_s;
-    -- ERROR
-    bitstuffing_disable_o   <= bitstuffing_disable_s;
+    -- HANDLING
     decode_error_o          <= decode_error_s;
-    
+    enable_destuffing_o     <= enable_destuffing_s;
+    data_valid_o            <= data_valid_s;
 
     frame_done_o            <= frame_finished_s;
     reload_o                <= reload_s;
 
     -- GENERALIZATION OF VALID SAMPLE
     valid_sample_s <= '1' when sample_i = '1' and stuff_bit_i = '0' and bus_active_i = '1' else '0';
-    -- ERROR CASES
-    extern_error_s <= bitstuffing_error_i;
+
 
     -- Detection Automat
     frame_detect_p : process(
@@ -218,8 +216,7 @@ begin
         err_del_cnt_done_i,
         olf_cnt_done_i,
         old_cnt_done_i,
-        extern_error_s,
-        eof_detect_i
+        reset_i
     )
     begin
         new_state               <= current_state;
@@ -241,8 +238,6 @@ begin
         crc_sample_s            <= '0';
         -- ERROR FRAME
         error_frame_error_s     <= '0';
-        -- BITDESTUFFING
-        bitstuffing_disable_s   <= '0';
         -- ERROR DEL
         error_del_dec_s         <= '0';
         -- Frame done
@@ -259,552 +254,536 @@ begin
         err_sample_s            <= '0';
         -- CNTR
         reload_s                <= '0';
+        -- HANDLING
         decode_error_s          <= '0';
+        enable_destuffing_s     <= '0';
+        data_valid_s            <= '0';
 
         case current_state is
             when idle_s =>
-                new_state <= sof_s;
+                new_state <= invalid_sof_s;
 
-            when sof_s => 
-                if valid_sample_s = '1' and rxd_i = '0' then 
-                    new_state       <= id_s;
-                    reload_s        <= '1';
+            when invalid_sof_s => 
+                if valid_sample_s = '1' and rxd_i = '0' and reset_i = '0' then 
+                    new_state                       <= id_s;
+                    reload_s                        <= '1';
+                    enable_destuffing_s             <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+            when valid_sof_s => 
+                data_valid_s                    <= '1';
+                if valid_sample_s = '1' and rxd_i = '0' and reset_i = '0' then 
+                    new_state                       <= id_s;
+                    reload_s                        <= '1';
+                    enable_destuffing_s             <= '1';
                 end if;
 
             when id_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and id_cnt_done_i = '0' then
-                    id_dec_s        <= '1';
-                    id_sample_s     <= '1';
+                    id_dec_s                        <= '1';
+                    id_sample_s                     <= '1';
                 elsif valid_sample_s = '1' and id_cnt_done_i = '1' then
-                    new_state       <= rtr_s;
-                    id_sample_s     <= '1';
+                    new_state                       <= rtr_s;
+                    id_sample_s                     <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when rtr_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' then
-                    new_state       <= ide_s;
-                    rtr_sample_s     <= '1';
+                    new_state                       <= ide_s;
+                    rtr_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when ide_s => 
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state       <= r0_s;
+                    new_state                       <= r0_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state       <= eid_s;
-                    eff_sample_s    <= '1';
+                    new_state                       <= eid_s;
+                    eff_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when eid_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and eid_cnt_done_i = '0' then
-                    eid_dec_s       <= '1';
-                    eid_sample_s    <= '1';
+                    eid_dec_s                       <= '1';
+                    eid_sample_s                    <= '1';
                 elsif valid_sample_s = '1' and eid_cnt_done_i = '1' then
-                    new_state       <= ertr_s;
-                    eid_sample_s    <= '1';
+                    new_state                       <= ertr_s;
+                    eid_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when ertr_s => 
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' then
-                    new_state <= r1_s;
-                    rtr_sample_s     <= '1';
+                    new_state                       <= r1_s;
+                    rtr_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when r1_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' then
-                    new_state       <= r0_s;
+                    new_state                       <= r0_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
             
             when r0_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' then
-                    new_state       <= dlc_s;
+                    new_state                       <= dlc_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when dlc_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and dlc_cnt_done_i = '0' then
-                    dlc_dec_s       <= '1';
-                    dlc_sample_s    <= '1';
+                    dlc_dec_s                       <= '1';
+                    dlc_sample_s                    <= '1';
                 elsif valid_sample_s = '1' and dlc_cnt_done_i = '1' then
-                    new_state       <= wait_dlc_s;
-                    dlc_sample_s    <= '1';
+                    new_state                       <= wait_dlc_s;
+                    dlc_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
                 
             when wait_dlc_s =>
+                enable_destuffing_s                 <= '1';
+
                 if dlc_data_i = "0000" then 
-                    new_state <= crc_s;
+                    new_state                       <= crc_s;
                 elsif dlc_data_i = "0001" then
-                    new_state <= data1_s;
+                    new_state                       <= data1_s;
                 elsif dlc_data_i = "0010" then
-                    new_state <= data2_s;
+                    new_state                       <= data2_s;
                 elsif dlc_data_i = "0011" then
-                    new_state <= data3_s;
+                    new_state                       <= data3_s;
                 elsif dlc_data_i = "0100" then
-                    new_state <= data4_s; 
+                    new_state                       <= data4_s; 
                 elsif dlc_data_i = "0101" then
-                    new_state <= data5_s; 
+                    new_state                       <= data5_s; 
                 elsif dlc_data_i = "0110" then
-                    new_state <= data6_s;  
+                    new_state                       <= data6_s;  
                 elsif dlc_data_i = "0111" then
-                    new_state <= data7_s;
+                    new_state                       <= data7_s;
                 elsif dlc_data_i = "1000" then
-                    new_state <= data8_s;
+                    new_state                       <= data8_s;
                 else
-                    new_state <= idle_s;
+                    new_state                       <= idle_s;
+                end if;
+
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data8_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(7) = '0' then
-                    data_dec_s(7)       <= '1';
-                    data_sample_s(7)    <= '1';          
+                    data_dec_s(7)                   <= '1';
+                    data_sample_s(7)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(7) = '1' then
-                    new_state           <= data7_s;
-                    data_sample_s(7)    <= '1';
+                    new_state                       <= data7_s;
+                    data_sample_s(7)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data7_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(6) = '0' then
-                    data_dec_s(6)       <= '1';
-                    data_sample_s(6)    <= '1';          
+                    data_dec_s(6)                   <= '1';
+                    data_sample_s(6)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(6) = '1' then
-                    new_state           <= data6_s;
-                    data_sample_s(6)    <= '1';
+                    new_state                       <= data6_s;
+                    data_sample_s(6)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data6_s =>
-                if extern_error_s = '1' then 
-                    new_state               <= error_s;
-                elsif valid_sample_s = '1' and data_cnt_done_i(5) = '0' then
-                    data_dec_s(5)           <= '1';
-                    data_sample_s(5)        <= '1';          
+                enable_destuffing_s                 <= '1';
+
+                if valid_sample_s = '1' and data_cnt_done_i(5) = '0' then
+                    data_dec_s(5)                   <= '1';
+                    data_sample_s(5)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(5) = '1' then
-                    new_state               <= data5_s;
-                    data_sample_s(5)        <= '1';
+                    new_state                       <= data5_s;
+                    data_sample_s(5)                <= '1';
+                end if;
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
 
             when data5_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(4) = '0' then
-                    data_dec_s(4)       <= '1';
-                    data_sample_s(4)    <= '1';          
+                    data_dec_s(4)                   <= '1';
+                    data_sample_s(4)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(4) = '1' then
-                    new_state           <= data4_s;
-                    data_sample_s(4)    <= '1';
+                    new_state                       <= data4_s;
+                    data_sample_s(4)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data4_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(3) = '0' then
-                    data_dec_s(3)       <= '1';
-                    data_sample_s(3)    <= '1';          
+                    data_dec_s(3)                   <= '1';
+                    data_sample_s(3)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(3) = '1' then
-                    new_state           <= data3_s;
-                    data_sample_s(3)    <= '1';
+                    new_state                       <= data3_s;
+                    data_sample_s(3)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data3_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(2) = '0' then
-                    data_dec_s(2)       <= '1';
-                    data_sample_s(2)    <= '1';          
+                    data_dec_s(2)                   <= '1';
+                    data_sample_s(2)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(2) = '1' then
-                    new_state           <= data2_s;
-                    data_sample_s(2)    <= '1';
+                    new_state                       <= data2_s;
+                    data_sample_s(2)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data2_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(1) = '0' then
-                    data_dec_s(1)       <= '1';
-                    data_sample_s(1)    <= '1';          
+                    data_dec_s(1)                   <= '1';
+                    data_sample_s(1)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(1) = '1' then
-                    new_state           <= data1_s;
-                    data_sample_s(1)    <= '1';
+                    new_state                       <= data1_s;
+                    data_sample_s(1)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when data1_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and data_cnt_done_i(0) = '0' then
-                    data_dec_s(0)       <= '1';
-                    data_sample_s(0)    <= '1';          
+                    data_dec_s(0)                   <= '1';
+                    data_sample_s(0)                <= '1';          
                 elsif valid_sample_s = '1' and data_cnt_done_i(0) = '1' then
-                    new_state           <= crc_s;
-                    data_sample_s(0)    <= '1';
+                    new_state                       <= crc_s;
+                    data_sample_s(0)                <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when crc_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and crc_cnt_done_i = '0' then
-                    crc_dec_s           <= '1';
-                    crc_sample_s        <= '1';
+                    crc_dec_s                       <= '1';
+                    crc_sample_s                    <= '1';
                 elsif valid_sample_s = '1' and crc_cnt_done_i = '1' then
-                    new_state           <= crc_del_s;
-                    crc_sample_s        <= '1';
+                    new_state                       <= crc_del_s;
+                    crc_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when crc_del_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state               <= ack_slot_s;
+                    new_state                       <= ack_slot_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state               <= error_s;
-                    bitstuffing_disable_s   <= '1';
-                    decode_error_s          <= '1';
+                    new_state                       <= invalid_sof_s;
+                    decode_error_s                  <= '1';
                 end if;
-                --if extern_error_s = '1' then 
-                --    new_state           <= error_s;
-               --     
-                --end if;
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
+                end if;
 
 
             when ack_slot_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' then
-                    new_state           <= ack_del_s;
+                    new_state                       <= ack_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when ack_del_s =>
+                enable_destuffing_s                 <= '1';
+
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per0_s;
-                    
+                    new_state                       <= per0_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer0_s;
-                    
-                    decode_error_s          <= '1';
+                    new_state                       <= aer0_s;
+                    decode_error_s                  <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when per0_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per1_s;
+                    new_state                       <= per1_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer1_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer1_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when per1_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per2_s;
+                    new_state                       <= per2_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer2_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer2_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when per2_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per3_s;
+                    new_state                       <= per3_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer3_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer3_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
+
 
             when per3_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per4_s;
+                    new_state                       <= per4_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer4_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer4_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
     
             when per4_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= per5_s;
+                    new_state                       <= per5_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer5_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer5_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when per5_s =>
                 if valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
+                    new_state                       <= err_del_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer6_s;
-                    err_sample_s        <= '1';
+                    new_state                       <= aer6_s;
+                    err_sample_s                    <= '1';
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer0_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer1_s;
-                    
+                    new_state                       <= aer1_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer1_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer2_s;
-                    
+                    new_state                       <= aer2_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer2_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer3_s;
-                    
+                    new_state                       <= aer3_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
+
 
             when aer3_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer4_s;
-                    
+                    new_state                       <= aer4_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer4_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer5_s;
-                    
+                    new_state                       <= aer5_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer5_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer6_s;
-                    
+                    new_state                       <= aer6_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer6_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer7_s;
-                    
+                    new_state                       <= aer7_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
-
 
             when aer7_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer8_s;
-                    
+                    new_state                       <= aer8_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer8_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer9_s;
-                    
+                    new_state                       <= aer9_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer9_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer10_s;
-                    
+                    new_state                       <= aer10_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer10_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer11_s;
-                    
+                    new_state                       <= aer11_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when aer11_s =>
                 if valid_sample_s = '1' and rxd_i = '0' then
-                    new_state           <= aer11_s;
-                    
+                    new_state                       <= aer11_s;
                 elsif valid_sample_s = '1' and rxd_i = '1' then
-                    new_state           <= err_del_s;
-                    
+                    new_state                       <= err_del_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
+
 
             when err_del_s =>
                 if valid_sample_s = '1' and rxd_i = '1' and err_del_cnt_done_i = '0' then
-                    error_del_dec_s     <= '1';
-                    
+                    error_del_dec_s                 <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '1' and err_del_cnt_done_i = '1' then
-                    new_state           <= inter_s;
-                    
+                    new_state                       <= inter_s;
                 elsif valid_sample_s = '1' and rxd_i = '0' and err_del_cnt_done_i = '1' then
-                    new_state           <= olf_s;
-                    
+                    new_state                       <= olf_s;
+                end if;
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when inter_s =>
-                new_state               <= sof_s;
-                
-                frame_finished_s        <= '1';
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
-                end if;
+                new_state                           <= valid_sof_s;
+                frame_finished_s                    <= '1';
 
             when olf_s =>
                 if valid_sample_s = '1' and olf_cnt_done_i = '0' then
-                    olf_dec_s           <= '1';
+                    olf_dec_s                       <= '1';
                 elsif valid_sample_s = '1' and olf_cnt_done_i = '1' then
-                    new_state           <= old_s;
+                    new_state                       <= old_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
             when old_s =>
                 if valid_sample_s = '1' and old_cnt_done_i = '0' and rxd_i = '1' then
-                    old_dec_s           <= '1';
+                    old_dec_s                       <= '1';
                 elsif valid_sample_s = '1' and old_cnt_done_i = '0' and rxd_i = '0' then
-                    new_state           <= olf_s;
-                    olf_reload_s        <= '1';
-                    old_reload_s        <= '1';
+                    new_state                       <= olf_s;
+                    olf_reload_s                    <= '1';
+                    old_reload_s                    <= '1';
                 elsif valid_sample_s = '1' and old_cnt_done_i = '1' then
-                    new_state           <= inter_s;
+                    new_state                       <= inter_s;
                 end if;
-                if extern_error_s = '1' then 
-                    new_state           <= error_s;
-                    
-                end if;
-
-            when error_s =>
-                    
-                if eof_detect_i = '1' then
-                    new_state               <= sof_s;
+                if reset_i = '1' then
+                    new_state                       <= invalid_sof_s;
                 end if;
 
                     

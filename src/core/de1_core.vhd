@@ -24,10 +24,9 @@ entity de1_core is
 		  
         frame_finished_o        : out   std_logic;
 
-        bitstuffing_disable_o   : out   std_logic;
-        bit_stuff_error_i       : in    std_logic;
-        eof_detect_i            : in    std_logic;
-        decode_error_o          : out   std_logic
+        reset_i                 : in    std_logic;
+        decode_error_o          : out   std_logic;
+        enable_destuffing_o     : out   std_logic
     );
 end entity;
 
@@ -99,16 +98,7 @@ begin
             id_o                => id_o
         );
 
-    valid_cntr_i0 : entity work.valid_cntr
-        port map(
-            clk                 => clk,
-            rst_n               => rst_n,
 
-            frame_finished_i    => frame_finished_s,
-            bus_active_i        => bus_active_detect_i,
-
-            valid_o             => valid_o
-        );
 
     data_gen : for i in 0 to 7 generate
         data_reg_i : entity work.field_reg
@@ -340,11 +330,11 @@ begin
             eff_sample_o        => eff_sample_s,
             err_sample_o        => err_sample_s,
 
-            -- ERROR
-            bitstuffing_error_i     => bit_stuff_error_i,
-            bitstuffing_disable_o   => bitstuffing_disable_o,
-            eof_detect_i            => eof_detect_i,
-            decode_error_o          => decode_error_o
+            --HANDLING
+            reset_i             => reset_i,
+            decode_error_o      => decode_error_o,
+            enable_destuffing_o => enable_destuffing_o,
+            data_valid_o        => valid_o
         );
 
 end rtl ;

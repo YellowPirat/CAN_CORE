@@ -9,7 +9,7 @@ entity eof_detect is
 
         rxd_i                   : in    std_logic;
         sample_i                : in    std_logic;
-        extern_error_i          : in    std_logic;
+        enable_i                : in    std_logic;
 
         eof_detect_o            : out    std_logic
     );
@@ -37,14 +37,14 @@ begin
 
     eof_detect_o                <= eof_detect_s;
 
-    eof_detect_p : process(current_state, rxd_i, sample_i, extern_error_i)
+    eof_detect_p : process(current_state, rxd_i, sample_i, enable_i)
     begin
         new_state               <= current_state;
         eof_detect_s            <= '0';
 
         case current_state is
             when idle_s =>
-                if rxd_i = '1' and sample_i = '1' then
+                if rxd_i = '1' and sample_i = '1' and enable_i = '1' then
                     new_state   <= r0;
                 end if;
 
@@ -54,9 +54,11 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
+
 
             when r1 =>
                 if rxd_i = '1' and sample_i = '1' then
@@ -64,7 +66,8 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
 
@@ -74,7 +77,8 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
 
@@ -84,7 +88,8 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
 
@@ -94,7 +99,8 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
 
@@ -104,19 +110,22 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
-    
+
             when r6 =>
                 if rxd_i = '1' and sample_i = '1' then
                     new_state   <= r7;
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state   <= idle_s;
                 end if;
-                if extern_error_i = '1' then
+
+                if enable_i = '0' then
                     new_state   <= idle_s;
                 end if;
+
 
             when r7 =>
                 if rxd_i = '1' and sample_i = '1' then
@@ -125,9 +134,11 @@ begin
                 elsif rxd_i = '0' and sample_i = '1' then
                     new_state       <= idle_s;
                 end if;
-                if extern_error_i = '1' then
-                    new_state       <= idle_s;
+
+                if enable_i = '0' then
+                    new_state   <= idle_s;
                 end if;
+
 
             when others =>
                     new_state       <= idle_s;
