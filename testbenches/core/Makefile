@@ -66,13 +66,14 @@ SRC_FILES = \
     ../../src/core/valid_cntr.vhd \
     ../../src/core/bit_reg.vhd \
     ../../src/core/id_mapping.vhd \
+    ../../src/core/de1_core.vhd \
     ../../src/debug/splice_cnt.vhd \
     ../../src/debug/uart_cntr.vhd \
     ../../src/debug/splicer.vhd \
     ../../src/debug/asci_mapper.vhd \
     ../../src/debug/de1_debug.vhd \
-    ../../src/core/de1_core.vhd \
     ../../src/error_handling/eof_detect.vhd \
+    ../../src/error_handling/error_handling_cntr.vhd \
     ../../src/error_handling/de1_error_handling.vhd \
     t_core.vhd
 

@@ -32,10 +32,13 @@ architecture sim of core is
     signal uart_tx_s                : std_logic;
     signal uart_data_s              : std_logic_vector(127 downto 0);
 
-    signal disable_destuffing_s     : std_logic;
-    signal bitstuff_error_s         : std_logic;
-    signal eof_detect_s             : std_logic;
+    signal reset_core_s             : std_logic;
+    signal reset_destuffing_s       : std_logic;
+
     signal decode_error_s           : std_logic;
+    signal stuff_error_s            : std_logic;
+
+    signal enable_destuffing_s      : std_logic;
 
 begin
 
@@ -82,15 +85,15 @@ begin
 
             rxd_i                   => rxd_async_s,
             frame_finished_i        => frame_finished_s,
-            disable_destuffing_i    => disable_destuffing_s,
-            eof_detect_i            => eof_detect_s,
+            enable_destuffing_i     => enable_destuffing_s,
+            reset_destuffing_i      => '0',
 
             rxd_sync_o              => rxd_sync_s,
             sample_o                => sample_s,
             stuff_bit_o             => stuff_bit_s,
             bus_active_detect_o     => bus_active_detect_s,
-            stuff_error_o           => bitstuff_error_s
-        );
+            stuff_error_o           => stuff_error_s
+       );
 
     error_handling_i0 : entity work.de1_error_handling
         port map(
@@ -100,12 +103,14 @@ begin
             rxd_i                   => rxd_sync_s,
             sample_i                => sample_s,
 
-            stuff_error_i           => bitstuff_error_s,
+            stuff_error_i           => stuff_error_s,
             decode_error_i          => decode_error_s,
             sample_error_i          => '0',
 
-            eof_detect_o            => eof_detect_s
+            reset_core_o            => reset_core_s,
+            reset_destuffing_o      => reset_destuffing_s
         );
+
 
 
     core_i0 : entity work.de1_core
@@ -130,10 +135,9 @@ begin
 
         frame_finished_o            => frame_finished_s,
 
-        bitstuffing_disable_o       => disable_destuffing_s,
-        bit_stuff_error_i           => bitstuff_error_s,
-        eof_detect_i                => eof_detect_s,
-        decode_error_o              => decode_error_s
+        reset_i                     => reset_core_s,
+        decode_error_o              => decode_error_s,
+        enable_destuffing_o         => enable_destuffing_s
     );
 
     -- ID

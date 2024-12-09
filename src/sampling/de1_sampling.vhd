@@ -9,8 +9,8 @@ entity de1_sampling is
 
         rxd_i                   : in    std_logic;
         frame_finished_i        : in    std_logic;
-        disable_destuffing_i    : in    std_logic;
-        eof_detect_i            : in    std_logic;
+        enable_destuffing_i     : in    std_logic;
+        reset_destuffing_i      : in    std_logic;
 
         rxd_sync_o              : out   std_logic;
         sample_o                : out   std_logic;
@@ -34,12 +34,12 @@ architecture rtl of de1_sampling is
 
     signal rst_h            : std_logic;
 begin
-    rxd_async_s(0) <= rxd_i;
-    rst_h  <= not rst_n;
-    rxd_sync_o <= rxd_sync_s(0);
-    sample_o <= sample_s;
-    stuff_bit_o <= stuff_bit_s;
-    bus_active_detect_o <= bus_active_s;
+    rxd_async_s(0)          <= rxd_i;
+    rst_h                   <= not rst_n;
+    rxd_sync_o              <= rxd_sync_s(0);
+    sample_o                <= sample_s;
+    stuff_bit_o             <= stuff_bit_s;
+    bus_active_detect_o     <= bus_active_s;
 
     sync_stage_i0 : entity work.olo_intf_sync
         generic map(
@@ -88,7 +88,6 @@ begin
 
             frame_end_i     => frame_finished_i,
             edge_i          => edge_s,
-            eof_detect_i    => eof_detect_i,
 
             hard_reload_o   => hard_reload_s, 
             bus_active_o    => bus_active_s
@@ -101,9 +100,8 @@ begin
 
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
-            enable_i        => bus_active_s,
-            disable_destuffing_i    => disable_destuffing_i,
-            eof_detect_i    => eof_detect_i,
+            enable_i        => enable_destuffing_i,
+            reset_i         => reset_destuffing_i,
             
             stuff_bit_o     => stuff_bit_s,
             stuff_error_o   => stuff_error_o

@@ -9,8 +9,7 @@ entity idle_detect is
         frame_end_i         : in    std_logic;
         edge_i              : in    std_logic;
         hard_reload_o       : out   std_logic;
-        bus_active_o        : out   std_logic;
-        eof_detect_i        : in    std_logic
+        bus_active_o        : out   std_logic
     );
 end entity;
 
@@ -27,7 +26,7 @@ begin
     bus_active_o <= bus_active_s;
     hard_reload_o <= reload_s;
 
-    idle_detect_p : process(current_state, edge_i, frame_end_i, eof_detect_i)
+    idle_detect_p : process(current_state, edge_i, frame_end_i)
     begin 
         new_state <= current_state;
         reload_s <= '0';
@@ -41,7 +40,7 @@ begin
                 end if;
             when active_s =>
                 bus_active_s <= '1';
-                if frame_end_i = '1' or eof_detect_i = '1' then
+                if frame_end_i = '1'then
                     new_state <= idle_s;
                 end if;
 
