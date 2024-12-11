@@ -22,8 +22,8 @@ entity axi_addr_cntr is
         olo_axi_rb_rd_valid_o   : out   std_logic;
 
         per_intf_i              : in    per_intf_t;
-        can_frame_i             : in    can_core_out_intf_t;
-        
+
+        can_frame_i             : in    can_core_vector_t;
         load_new_o              : out   std_logic;
         store_i                 : in    std_logic
     );
@@ -55,7 +55,7 @@ begin
                 can_frame_s <= (others => '0');
             else
                 if store_i = '1' then
-                    can_frame_s <= to_can_core_vector(can_frame_i);
+                    can_frame_s <= can_frame_i;
                 end if;
             end if;
         end if;
