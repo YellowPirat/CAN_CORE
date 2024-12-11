@@ -2,14 +2,23 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.can_core_intf.all;
 
-entity core is
+entity de1_can_core is
+    port (
+        clk                     : in    std_logic;
+        rst_n                   : in    std_logic;
+
+        rxd_async_i             : in    std_logic;
+
+        can_frame_o             : out   can_core_out_intf_t;
+        can_frame_valid_o       : out   std_logic;
+
+        uart_debug_tx_o         : out   std_logic
+    );
 end entity;
 
-architecture sim of core is
-
-    signal clk, rst_n: std_logic := '0';
-    signal simstop : boolean := false;
+architecture rtl of de1_can_core is
 
     signal rxd_async_s              : std_logic;
     signal frame_finished_s         : std_logic;
@@ -27,6 +36,8 @@ architecture sim of core is
     signal data_s                   : std_logic_vector(63 downto 0);
     signal data_valid_s             : std_logic;
 
+    signal can_frame_s              : can_core_out_intf_t;
+
 
     signal uart_rx_s                : std_logic;
     signal uart_tx_s                : std_logic;
@@ -38,53 +49,22 @@ architecture sim of core is
     signal decode_error_s           : std_logic;
     signal stuff_error_s            : std_logic;
 
-    signal enable_destuffing_s      : std_logic;
+    signal enable_destuffing_s      : std_logic; 
+
+    signal enable_crc_s             : std_logic;
+    signal reset_crc_s              : std_logic;
+    signal error_crc_s              : std_logic;
 
 begin
 
-  -- Clock generation
-    clk_p : process
-    begin
-        clk <= '0';
-        wait for 10 ns; 
-        clk <= '1'; 
-        wait for 10 ns;
-        if simstop then
-            wait;
-        end if;
-    end process clk_p;
-
-  -- Reset generation
-    rst_p : process
-    begin
-        rst_n <= '0';
-        wait for 100 ns;
-        rst_n <= '1';
-        wait;
-    end process rst_p;
-
-    simstop_p : process
-    begin
-        wait for 4000 us;
-        simstop <= true;
-        wait;
-    end process simstop_p;
-
-    cangen_i0 : entity work.cangen
-        port map(
-            rst_n => rst_n,
-            rxd_o => rxd_async_s,
-            simstop => simstop
-        );
-
-
+    can_frame_valid_o               <= data_valid_s;
 
     sampling_i0 : entity work.de1_sampling
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_i                   => rxd_async_s,
+            rxd_i                   => rxd_async_i,
             frame_finished_i        => frame_finished_s,
             enable_destuffing_i     => enable_destuffing_s,
             reset_destuffing_i      => '0',
@@ -112,35 +92,64 @@ begin
             reset_destuffing_o      => reset_destuffing_s
         );
 
+    crc_i0 : entity work.de1_crc 
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
 
+            sample_i                => sample_s,
+            stuff_bit_i             => stuff_bit_s,
+            rxd_sync_i              => rxd_sync_s,
 
-    core_i0 : entity work.de1_core
-    port map(
-        clk                         => clk,
-        rst_n                       => rst_n,
+            crc_i                   => crc_s,
+            crc_valid_i             => '0',
 
-        rxd_sync_i                  => rxd_sync_s,
-        sample_i                    => sample_s,
-        stuff_bit_i                 => stuff_bit_s,
-        bus_active_detect_i         => bus_active_detect_s,
+            enable_i                => enable_crc_s,
+            reset_i                 => reset_crc_s,
 
-        id_o                        => id_s,
-        rtr_o                       => rtr_s,
-        eff_o                       => eff_s,
-        err_o                       => err_s,
-        dlc_o                       => dlc_s,
-        data_o                      => data_s,
-        crc_o                       => crc_s,
+            crc_error_o             => error_crc_s
+        );
 
-        valid_o                     => data_valid_s,
+    core_i0 : entity work.de1_input_stream
+        port map(
+            clk                         => clk,
+            rst_n                       => rst_n,
 
-        frame_finished_o            => frame_finished_s,
+            rxd_sync_i                  => rxd_sync_s,
+            sample_i                    => sample_s,
+            stuff_bit_i                 => stuff_bit_s,
+            bus_active_detect_i         => bus_active_detect_s,
 
-        reset_i                     => reset_core_s,
-        decode_error_o              => decode_error_s,
-        enable_destuffing_o         => enable_destuffing_s
-    );
+            id_o                        => id_s,
+            rtr_o                       => rtr_s,
+            eff_o                       => eff_s,
+            err_o                       => err_s,
+            dlc_o                       => dlc_s,
+            data_o                      => data_s,
+            crc_o                       => crc_s,
 
+            valid_o                     => data_valid_s,
+
+            frame_finished_o            => frame_finished_s,
+
+            reset_i                     => reset_core_s,
+            decode_error_o              => decode_error_s,
+            enable_destuffing_o         => enable_destuffing_s
+        );
+
+    can_frame_s.error_codes         <= (others => '0');
+    can_frame_s.frame_type          <= "00";
+    can_frame_s.timestamp           <= (others => '0');
+    can_frame_s.crc                 <= crc_s;
+    can_frame_s.can_dlc             <= dlc_s;
+    can_frame_s.can_id              <= id_s;
+    can_frame_s.rtr                 <= rtr_s;
+    can_frame_s.eff                 <= eff_s;
+    can_frame_s.err                 <= err_s;
+    can_frame_s.data                <= data_s;
+    can_frame_o                     <= can_frame_s;
+
+    -- DEBUG MAPPING
     -- ID
     uart_data_s(28 downto 0)        <= id_s;
     uart_data_s(31 downto 29)       <= (others => '0');
@@ -171,7 +180,7 @@ begin
             valid_i                 => data_valid_s,
 
             rxd_i                   => uart_rx_s,
-            txd_o                   => uart_tx_s
+            txd_o                   => uart_debug_tx_o
         );
 
-end architecture;
+end rtl ; -- rtl

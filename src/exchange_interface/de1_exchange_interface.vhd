@@ -68,7 +68,7 @@ begin
             bus_active_i    => '1',
 
             can_intf        => can_intf_s,
-            can_valid_i     => can_valid_s,
+            can_valid_i     => can_vald_s,
             can_ready_o     => can_ready_s
         );
 

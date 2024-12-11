@@ -45,6 +45,7 @@ SRC_FILES = \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
     ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
 	../cangen/t_cangen.vhd \
+    ../../src/interfaces/can_core_intf.vhd \
     ../../src/sampling/sample_edge_detect.vhd \
     ../../src/sampling/resync_cntr.vhd \
     ../../src/sampling/sample_validator.vhd \
@@ -59,14 +60,14 @@ SRC_FILES = \
     ../../src/sampling/sample_cntr.vhd \
     ../../src/sampling/sample.vhd \
 	../../src/sampling/de1_sampling.vhd \
-    ../../src/core/frame_detect.vhd \
-    ../../src/core/uni_dec_cnt.vhd \
-    ../../src/core/uni_reg.vhd \
-    ../../src/core/field_reg.vhd \
-    ../../src/core/valid_cntr.vhd \
-    ../../src/core/bit_reg.vhd \
-    ../../src/core/id_mapping.vhd \
-    ../../src/core/de1_core.vhd \
+    ../../src/input_stream/frame_detect.vhd \
+    ../../src/input_stream/uni_dec_cnt.vhd \
+    ../../src/input_stream/uni_reg.vhd \
+    ../../src/input_stream/field_reg.vhd \
+    ../../src/input_stream/valid_cntr.vhd \
+    ../../src/input_stream/bit_reg.vhd \
+    ../../src/input_stream/id_mapping.vhd \
+    ../../src/input_stream/de1_input_stream.vhd \
     ../../src/debug/splice_cnt.vhd \
     ../../src/debug/uart_cntr.vhd \
     ../../src/debug/splicer.vhd \
@@ -75,7 +76,9 @@ SRC_FILES = \
     ../../src/error_handling/eof_detect.vhd \
     ../../src/error_handling/error_handling_cntr.vhd \
     ../../src/error_handling/de1_error_handling.vhd \
-    t_core.vhd
+    ../../src/crc/de1_crc.vhd \
+    ../../src/can_core/de1_can_core.vhd \
+    t_can_core.vhd
 
 
 

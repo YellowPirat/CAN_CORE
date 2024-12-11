@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity de1_core is
+entity de1_input_stream is
     port(
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
@@ -30,7 +30,7 @@ entity de1_core is
     );
 end entity;
 
-architecture rtl of de1_core is
+architecture rtl of de1_input_stream is
 
     signal frame_finished_s     : std_logic;
     signal reload_s             : std_logic;
