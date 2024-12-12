@@ -34,7 +34,6 @@ begin
     frame1.frame_type       <= (others => '0');
     frame1.timestamp        <= (others => '0');
     frame1.crc              <= "101010101010101";
-    frame1.crc_delimiter    <= '1';
     frame1.can_dlc          <= "1000";
     frame1.can_id           <= "10101001111010100111101010011";
     frame1.rtr              <= '0';
@@ -46,7 +45,6 @@ begin
     frame2.frame_type       <= (others => '0');
     frame2.timestamp        <= (others => '0');
     frame2.crc              <= "101011101010111";
-    frame2.crc_delimiter    <= '1';
     frame2.can_dlc          <= "1000";
     frame2.can_id           <= "10101111111010100111101010011";
     frame2.rtr              <= '0';

@@ -28,7 +28,7 @@ begin
     frame_valid_o           <= frame_valid_s;
     frame_missed_o          <= frame_missed_s;
 
-    fifo_input_cntr_p : process(frame_valid_i, fifo_ready_i)
+    fifo_input_cntr_p : process(current_state, frame_valid_i, fifo_ready_i)
     begin 
         new_state           <= current_state;
         frame_valid_s       <= '0';
@@ -52,6 +52,7 @@ begin
                 end if;
 
             when wait_new_can_frame_s =>
+
                 if frame_valid_i = '0' then
                     new_state           <= idle_s;
                 end if;

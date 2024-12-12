@@ -76,7 +76,8 @@ begin
 
             glob_en_i           => glob_en_s,
 
-            en_o                => en_s
+            en_o                => en_s,
+            valid_o             => can_frame_valid_o
         );
 
 end rtl;

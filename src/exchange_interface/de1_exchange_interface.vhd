@@ -30,7 +30,9 @@ architecture rtl of de1_exchange_interface is
     signal fifo_in_valid_s      : std_logic;
     signal fifo_in_ready_s      : std_logic;
     signal fifo_out_valid_s     : std_logic;
-    signal fifo_out_data_s     : std_logic_vector(191 downto 0);
+    signal fifo_out_data_s      : std_logic_vector(255 downto 0);
+
+    signal can_frame_vec_s      : can_core_vector_t;
 
 begin
 
@@ -52,8 +54,8 @@ begin
 	-- FIFO
 	fifo_i0 : entity work.olo_base_fifo_sync
 		generic map(
-			Width_g		        => 192,
-			Depth_g		        => 31
+			Width_g		        => 256,
+			Depth_g		        => 5
 		)
 
 		port map(
@@ -69,6 +71,8 @@ begin
 			Out_Ready	        => fifo_out_ready_s
 		);
 
+    can_frame_vec_s <= can_core_vector_t(fifo_out_data_s);
+
     axi_reg_i0 : entity work.axi_reg
         port map(
             clk                     => clk,
@@ -77,11 +81,11 @@ begin
             axi_intf_i              => axi_intf_i,
             axi_intf_o              => axi_intf_o,
 
-            can_frame_i             => to_can_core_intf(fifo_out_data_s),
+            can_frame_i             => to_can_core_intf(can_frame_vec_s),
             peripheral_status_i     => peripheral_status_i,
 
-            ready_o                 => fifo_out_valid_s,
-            valid_i                 => fifo_out_ready_s
+            ready_o                 => fifo_out_ready_s,
+            valid_i                 => fifo_out_valid_s
         );
 
 end rtl;

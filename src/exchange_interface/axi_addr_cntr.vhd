@@ -69,20 +69,29 @@ begin
             load_new_s              <= '0';
 
 			if olo_axi_rb_rd_i = '1' then
-				if unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) then 
-                    olo_axi_rb_rd_data_s <= per_intf_vector_s;
+				if unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 0 then 
+                    olo_axi_rb_rd_data_s <= get_word_from_per_intf_vector(per_intf_vector_s, 0);
 				elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 4 then 
-                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 0);
+                    olo_axi_rb_rd_data_s <= get_word_from_per_intf_vector(per_intf_vector_s, 1);
 				elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 8 then
-					olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 1);
+					olo_axi_rb_rd_data_s <= get_word_from_per_intf_vector(per_intf_vector_s, 2);
+                    
 				elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 12 then 
-                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 2);
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 0);
 				elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 16 then
-					olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 3);
+					olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 1);
                 elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 20 then
-                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 4);
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 2);
                 elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 24 then
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 3);
+                elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 28 then
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 4);
+                elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 32 then
                     olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 5);
+                elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 36 then
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 6);
+                elsif unsigned(olo_axi_rb_addr_i) = unsigned(AddrSpaceStartPos_g) + 40 then
+                    olo_axi_rb_rd_data_s <= get_word_from_can_core_vector(can_frame_s, 7);
                     load_new_s <= '1';
  				else
                     olo_axi_rb_rd_data_s(31 downto 0) <= (others => '0');
