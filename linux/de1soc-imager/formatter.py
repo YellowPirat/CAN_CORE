@@ -9,7 +9,7 @@ class DeviceFormatter:
     SFDISK_TEMPLATE = """label: dos
 {device}3 : start=2048, size=2048, type=a2
 {device}1 : start=4096, size=65536, type=b
-{device}2 : start=69632, size=, type=83
+{device}2 : start=69632, type=83
 """
 
     def __init__(self, device_path: str):
