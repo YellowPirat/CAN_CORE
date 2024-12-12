@@ -15,12 +15,6 @@ cd CAN_CORE
 # source activate script
 source activate.sh
 
-# checkout to linux6.1 branch
-cd extern/linux
-git checkout socfpga-6.1
-cd ../../
-
-
 # Create Quartus project and hps core (Can be skipped if already done)
 cd project_files
 make qip
@@ -33,20 +27,11 @@ make rbf
 
 # Enable stuff
 sudo update-binfmts --enable qemu-arm
-
-# Create Linux (Can be skipped if already done)
-cd ../../linux
-make kernel
-make rootfs
-make u-boot
+```
 
 # Create bootable device (Instert SD-Card)
-cd ../extern
-./format_sdcard.sh /dev/sdX
-cd ../linux
-make sdcard
 
-```
+Refer to [de1soc-imager](./linux/de1soc-imager/README.md)
 
 # Usage
 Connection via UART
