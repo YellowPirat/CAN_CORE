@@ -51,7 +51,7 @@ begin
 
   hps_engine: process
   begin
-    wait for 150 ns;
+    wait for 20 us;
 
     -- Write operation
     
@@ -88,8 +88,9 @@ begin
             wait until clk = '1' and clk'event;
             axi_rready <= '0';        -- Deassert ready
 
-            --wait for 50 ns;
+            
         end loop;
+        wait for 50 ns;
     end loop;
 
     wait;

@@ -5,8 +5,12 @@ library ieee;
 use work.axi_lite_intf.all;
 use work.can_core_intf.all;
 use work.peripheral_intf.all;
+use work.olo_base_pkg_math.all;
 
 entity de1_exchange_interface is
+    generic (
+        memory_depth_g          : positive := 10
+    );
     port (
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
@@ -33,6 +37,9 @@ architecture rtl of de1_exchange_interface is
     signal fifo_out_data_s      : std_logic_vector(255 downto 0);
 
     signal can_frame_vec_s      : can_core_vector_t;
+    signal peripheral_status_s  : per_intf_t;
+
+    signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
 
 begin
 
@@ -55,7 +62,7 @@ begin
 	fifo_i0 : entity work.olo_base_fifo_sync
 		generic map(
 			Width_g		        => 256,
-			Depth_g		        => 5
+			Depth_g		        => memory_depth_g
 		)
 
 		port map(
@@ -68,10 +75,27 @@ begin
 
 			Out_Data            => fifo_out_data_s,
 			Out_Valid       	=> fifo_out_valid_s,
-			Out_Ready	        => fifo_out_ready_s
+			Out_Ready	        => fifo_out_ready_s,
+
+            Out_Level           => buffer_usage_s
 		);
 
     can_frame_vec_s <= can_core_vector_t(fifo_out_data_s);
+
+    per_status_cntr_i0 : entity work.per_status_cntr 
+        generic map(
+            memory_depth_g      => memory_depth_g
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            per_status_i        => peripheral_status_i,
+            per_status_o        => peripheral_status_s,
+
+            buffer_usage_i      => buffer_usage_s,
+            frame_missed_i      => frame_missed_s
+        );
 
     axi_reg_i0 : entity work.axi_reg
         port map(
@@ -82,7 +106,7 @@ begin
             axi_intf_o              => axi_intf_o,
 
             can_frame_i             => to_can_core_intf(can_frame_vec_s),
-            peripheral_status_i     => peripheral_status_i,
+            peripheral_status_i     => peripheral_status_s,
 
             ready_o                 => fifo_out_ready_s,
             valid_i                 => fifo_out_valid_s

@@ -41,24 +41,30 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_mast
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
+
 set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_intf.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/cntr_missed_frame.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/cnt_missed_frame.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/can_core_intf.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_lite_intf.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_addr_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axireg.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/exchange_testbench.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_interconnect.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_shit_cntr.vhd
 
-set_global_assignment -name VHDL_FILE de1_exchange_interface_base.vhd
+set_global_assignment -name VHDL_FILE ../../src/interfaces/per_intf.vhd
+set_global_assignment -name VHDL_FILE ../../src/interfaces/can_core_intf.vhd
+set_global_assignment -name VHDL_FILE ../../src/interfaces/axi_lite_intf.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/frame_generator/frame_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/frame_generator/en_gen.vhd
+set_global_assignment -name VHDL_FILE ../../src/frame_generator/frames.vhd
+set_global_assignment -name VHDL_FILE ../../src/frame_generator/bench_finisher.vhd
+set_global_assignment -name VHDL_FILE ../../src/frame_generator/de1_frame_gen.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_addr_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/fifo_input_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/yellowPirat/yellowPirat.vhd
 
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name EDA_SIMULATION_TOOL "<None>"

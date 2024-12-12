@@ -49,6 +49,7 @@ begin
                     new_state           <= wait_new_can_frame_s;
                 elsif frame_valid_i = '0' and fifo_ready_i = '0' then
                     new_state           <= idle_s;
+                    frame_missed_s      <= '1';
                 end if;
 
             when wait_new_can_frame_s =>

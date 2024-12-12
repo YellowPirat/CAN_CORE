@@ -54,6 +54,7 @@ SRC_FILES = \
     ../../src/exchange_interface/axi_fifo_cntr.vhd \
     ../../src/exchange_interface/axi_reg.vhd \
     ../../src/exchange_interface/fifo_input_cntr.vhd \
+    ../../src/exchange_interface/per_status_cntr.vhd \
     ../../src/exchange_interface/de1_exchange_interface.vhd \
     ../../src/core/de1_core.vhd \
     t_hps_engine.vhd \

@@ -40,7 +40,7 @@ begin
 
   simstop_p : process
   begin
-    wait for 10 us;
+    wait for 100 us;
     simstop <= true;
     wait;
   end process simstop_p;
@@ -84,10 +84,7 @@ begin
         rxd_async_i         => "0",
 
         axi_intf_i          => axi_intf_o,
-        axi_intf_o          => axi_intf_i,
-
-        S_AXI_AWID          => (others => '0'),
-        S_AXI_ARID          => (others => '0')
+        axi_intf_o          => axi_intf_i
     );
 
 

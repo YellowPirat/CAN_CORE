@@ -19,13 +19,8 @@ entity de1_core is
         uart_debug_o        : out   std_logic_vector(can_core_count_g - 1 downto 0);
 
         axi_intf_i          : in    axi_lite_output_intf_t;
-        axi_intf_o          : out   axi_lite_input_intf_t;
+        axi_intf_o          : out   axi_lite_input_intf_t
 
-        S_AXI_AWID          : in    std_logic_vector(11 downto 0);
-        S_AXI_BID           : out   std_logic_vector(11 downto 0);
-        S_AXI_RID           : out   std_logic_vector(11 downto 0);
-        S_AXI_ARID          : in    std_logic_vector(11 downto 0);
-        S_AXI_RLAST         : out   std_logic
     );
 end entity;
 

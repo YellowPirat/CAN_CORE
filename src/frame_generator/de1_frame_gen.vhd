@@ -29,7 +29,15 @@ architecture rtl of de1_frame_gen is
     signal glob_en_s            : std_logic;
     signal done_s               : std_logic;
 
+
+
 begin
+
+    peripheral_status_o.buffer_usage            <= (others => '0');
+    peripheral_status_o.peripheral_error        <= (others => '0');
+    peripheral_status_o.missed_frames           <= to_unsigned(0, peripheral_status_o.missed_frames'length);
+    peripheral_status_o.missed_frames_overflow  <= '0';
+
     frames_i0 : entity work.frames
         generic map(
             count_g             => count_g
