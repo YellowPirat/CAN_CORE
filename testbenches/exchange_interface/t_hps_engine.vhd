@@ -51,7 +51,7 @@ begin
 
   hps_engine: process
   begin
-    wait for 20 us;
+    wait for 500 us;
 
     -- Write operation
     

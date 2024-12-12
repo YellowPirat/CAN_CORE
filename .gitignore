@@ -110,3 +110,6 @@ synthese/exchange_interface/hps_sdram_p0_summary.csv
 synthese/exchange_interface/hps_isw_handoff/de1_soc_hps_0/alt_types.h
 synthese/exchange_interface/hps_isw_handoff/de1_soc_hps_0/de1_soc_hps_0.hiof
 extern/u-boot-socfpga
+
+*.pyc
+*.tar

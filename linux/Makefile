@@ -1,4 +1,4 @@
-HPS_PATH = ../synthese/exchange_interface/hps_isw_handoff/de1_soc_hps_0
+HPS_PATH = ../synthese/core/hps_isw_handoff/de1_soc_hps_0
 
 #########################################################
 #														#

@@ -1,6 +1,6 @@
-PROJECT_NAME = exchange_interface
+PROJECT_NAME = sampling
 # SET TO NOHPS if no HPS Core in the project
-QSIS_LOCATION = ../../project_files
+QSIS_LOCATION = NOHPS
 
 
 .PHONY: qpf

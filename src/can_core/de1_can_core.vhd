@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.can_core_intf.all;
+use work.peripheral_intf.all;
 
 entity de1_can_core is
     port (
@@ -14,7 +15,9 @@ entity de1_can_core is
         can_frame_o             : out   can_core_out_intf_t;
         can_frame_valid_o       : out   std_logic;
 
-        uart_debug_tx_o         : out   std_logic
+        uart_debug_tx_o         : out   std_logic;
+
+        peripheral_status_o     : out   per_intf_t
     );
 end entity;
 
@@ -55,9 +58,15 @@ architecture rtl of de1_can_core is
     signal reset_crc_s              : std_logic;
     signal error_crc_s              : std_logic;
 
+
 begin
 
     can_frame_valid_o               <= data_valid_s;
+
+    peripheral_status_o.buffer_usage            <= (others => '0');
+    peripheral_status_o.peripheral_error        <= (others => '0');
+    peripheral_status_o.missed_frames           <= to_unsigned(0, peripheral_status_o.missed_frames'length);
+    peripheral_status_o.missed_frames_overflow  <= '0';
 
     sampling_i0 : entity work.de1_sampling
         port map(
@@ -138,7 +147,7 @@ begin
         );
 
     can_frame_s.error_codes         <= (others => '0');
-    can_frame_s.frame_type          <= "00";
+    can_frame_s.frame_type          <= (others => '0');
     can_frame_s.timestamp           <= (others => '0');
     can_frame_s.crc                 <= crc_s;
     can_frame_s.can_dlc             <= dlc_s;

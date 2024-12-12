@@ -47,13 +47,28 @@ begin
             peripheral_status_i     => peripheral_status_s
         );
 
-    frame_gen_i0 : entity work.de1_frame_gen
+    --frame_gen_i0 : entity work.de1_frame_gen
+    --    port map(
+    --        clk                     => clk,
+    --        rst_n                   => rst_n,
+
+    --        can_frame_o             => can_frame_s,
+    --        can_frame_valid_o       => can_frame_valid_s,
+
+    --        peripheral_status_o     => peripheral_status_s
+    --    );
+
+    de1_can_core_i0 : entity work.de1_can_core 
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
+            rxd_async_i             => rxd_async_i(0),
+
             can_frame_o             => can_frame_s,
             can_frame_valid_o       => can_frame_valid_s,
+
+            uart_debug_tx_o         => uart_debug_o(0),
 
             peripheral_status_o     => peripheral_status_s
         );
