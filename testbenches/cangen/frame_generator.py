@@ -19,6 +19,7 @@ def calculate_crc(frame):
 
 def apply_bit_stuffing(frame):
     stuffed_frame = []
+    stuffed_positions = []
     prev_bit = frame[0]
     curr_bit = '0'
     bit_stuff_count = 0
@@ -35,17 +36,17 @@ def apply_bit_stuffing(frame):
             bit_stuff_count = 1
 
         if bit_stuff_count == 5:
-            stuffed_frame.append('1' if curr_bit == '0' else '0')
-            print(f"S{('1' if curr_bit == '0' else '0')}")
+            stuff_bit = '1' if curr_bit == '0' else '0'
+            stuffed_frame.append(stuff_bit)
+            stuffed_positions.append(len(stuffed_frame) - 1) # Get the stuffed bit position for implementation of bit stuff error
+            #print(f"S{stuff_bit}")
             stuff_cnt += 1
-            bit_stuff_count = 0
+            bit_stuff_count = 1 if stuff_bit == frame[min(i + 1, len(frame) - 1)] else 0 # Check the next bit to ensure the counter is correct
+            prev_bit = stuff_bit
+        else:
+            prev_bit = curr_bit
 
-        prev_bit = curr_bit
-
-    print(stuffed_frame)
-    print(f"Number of stuffed bits: {stuff_cnt}")
-
-    return "".join(stuffed_frame)
+    return "".join(stuffed_frame), stuff_cnt, stuffed_positions
 
 def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=False):
     if frame_type == "standard":
@@ -57,7 +58,7 @@ def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=Fals
 
         dlc_bin = bin(dlc)[2:].zfill(4)
 
-        data_field = "".join(bin(byte)[2:].zfill(8) for byte in data_bytes)
+        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
 
         frame = f"{sof}{identifier}{rtr}{ide}{reserved_bit}{dlc_bin}{data_field}"
 
@@ -70,17 +71,18 @@ def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=Fals
         else:
             trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
 
-        stuffed_frame = apply_bit_stuffing(frame_with_crc)
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
         return {
+            "stuffed_bits_count": stuffed_bits_count,
             "id_hex": hex(frame_id),
-            "id_bin": f"{frame_id}",
+            "id_bin": f"{identifier}",
             "dlc": dlc,
-            "data": [hex(byte) for byte in data_bytes],
+            "data": data_bytes,
             "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
-            "unstuffed_frame": frame_with_crc + trailing_bits,
             "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
         }
     
     elif frame_type == "extended":
@@ -94,7 +96,7 @@ def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=Fals
 
         dlc_bin = bin(dlc)[2:].zfill(4)
 
-        data_field = "".join(bin(byte)[2:].zfill(8) for byte in data_bytes)
+        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
 
         frame = f"{sof}{identifier_a}{srr}{ide}{identifier_b}{rtr}{reserved_bits}{dlc_bin}{data_field}"
 
@@ -107,41 +109,110 @@ def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=Fals
         else:
             trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
 
-        stuffed_frame = apply_bit_stuffing(frame_with_crc)
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
         return {
+            "stuffed_bits_count": stuffed_bits_count,
             "id_hex": hex(frame_id),
             "id_bin": f"{identifier_a}_{identifier_b}",
             "dlc": dlc,
-            "data": [hex(byte) for byte in data_bytes],
+            "data": data_bytes,
             "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
-            "unstuffed_frame": frame_with_crc + trailing_bits,
             "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
         }
+    
+def implement_error(frame, error_type, stuffed_positions):
+    frame_bits = frame["stuffed_frame"]
+    error_location = 0
+    modified_frame = frame.copy()
+    
+    if error_type == "stuff":
+        if not stuffed_positions:
+            return frame  # No stuff bits to modify
+    
+        error_location = random.choice(stuffed_positions)
+        modified_bits = list(frame_bits)
+        modified_bits.pop(error_location)
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+
+    elif error_type == "form":
+        possible_locations = [
+            #0,                    # SOF
+            len(frame_bits) - 13,  # CRC delimiter
+            len(frame_bits) - 11,  # ACK delimiter
+            len(frame_bits) - 10   # Start of EOF (7 bits)
+        ]
+        """
+        SOF in possible_locations is commented out because it creates a problem with the CRC calucation.
+        Meaning if the form error occurs in SOF position, then CRC will also be wrong, since SOF is a part of the CRC calucation. 
+        """
+        error_location = possible_locations[1] + random.randint(0, 8)
+            
+        modified_bits = list(frame_bits)
+        modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+
+    
+    elif error_type == "crc":
+        crc_start = len(frame_bits) - 28
+        error_location = crc_start + random.randint(0, 14)
+        modified_bits = list(frame_bits)
+        modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+    
+    modified_frame["error_type"] = error_type
+    modified_frame["error_location"] = error_location
+    return modified_frame
+
+def print_error(error_type, error_frame, frame, i):
+    if error_type:
+        print(f"Frame {i} with error:    {error_frame['stuffed_frame']}")
+        print(f"Error:                 {' ' * error_frame['error_location']}^")
+        print(f"Frame {i} without error: {frame['stuffed_frame']}\n")
+
+def save_to_csv(frames, filename_with):
+    with open(filename_with, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        
+        for frame in frames:
+            for bit in frame["stuffed_frame"]:
+                writer.writerow([bit])
 
 def main():
-    num_frames = int(input("How many CAN frames would you like to generate? "))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--path", help="Path to the yaml config file")
+    args = parser.parse_args()
 
+    if not args.path:
+        print("Wrong or no path specified. Please specifiy a path to the yaml config file using '-p' or '--path'. For more information refer to '--help'")
+        return
+
+    with open(args.path) as stream:
+        yaml_data = yaml.safe_load(stream)
+    
+    num_frames = yaml_data['frames']
     frames = []
-    for i in range(num_frames):
-        print(f"\nFrame {i + 1}:")
 
-        manual_id = input("Do you want to set the ID manually? (y/n)").strip().lower()
-        if manual_id == "y":
-            frame_id = int(input(f"Enter ID (in hex, e.g., 0x999): "), 16)
-        else: 
-            frame_id = random.randint(0, (1 << 29) - 1)
+    for i in range(1, num_frames + 1):
+        frame_key = f'frame_{i}'
+        frame_id = yaml_data[frame_key]['id']
+        dlc = yaml_data[frame_key]['dlc']
+        data = yaml_data[frame_key]['data']
+        error_type = yaml_data[frame_key]['error']
 
-        if frame_id < 2047: # 2^11
+        if frame_id < 2047:  # 2^11
             frame_type = "standard"
-        elif frame_id > 2047 and frame_id < 536870911: # 2^29
+        elif frame_id > 2047 and frame_id < 536870911:  # 2^29
             frame_type = "extended"
         else:
             print("ID is outside of range")
             return
 
-        dlc = int(input(f"Enter DLC (0-8) for Frame {i + 1}: "))
+        data_bytes = []
+        for byte in data:
+            data_bytes.append(f"{byte:02x}")
 
         manual_data = input("Do you want to input data manually? (y/n): ").strip().lower()
         if manual_data == "y":
@@ -154,7 +225,6 @@ def main():
 
         is_last_frame = i == (num_frames - 1)
         frame = generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame)
-        frames.append(frame)
 
 def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=False):
     if frame_type == "standard":
@@ -227,10 +297,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-"""
-TODOs:
-- Create frames with a yaml config
-- Implement intentional errors
-- Create different types of frames
-"""
