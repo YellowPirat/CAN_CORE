@@ -1,6 +1,8 @@
+# type: "data", "remote_request", "overload"
 # error: "stuff", "form", "crc"
 frames: 3
 frame_1:
+  type: "data"
   id: 0x777 #standard frame
   dlc: 2
   error: "stuff"
@@ -8,12 +10,14 @@ frame_1:
   - 0xe7
   - 0x83
 frame_2:
+  type: "data"
   id: 0x999 #extended frame
   dlc: 1
   error: 
   data:
   - 0xfb
 frame_3:
+  type: "data"
   id: 0x111 #standard frame
   dlc: 5
   error: 

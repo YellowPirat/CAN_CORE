@@ -48,81 +48,6 @@ def apply_bit_stuffing(frame):
 
     return "".join(stuffed_frame), stuff_cnt, stuffed_positions
 
-def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=False):
-    if frame_type == "standard":
-        identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
-        sof = "0"                                # Start-of-frame (SOF): Dominant
-        rtr = "0"                                # Remote transmission request (RTR): Dominant for data frames
-        ide = "0"                                # Identifier extension bit (IDE): Dominant for standard frames
-        reserved_bit = "0"                       # Reserved bit (r0): Set to dominant
-
-        dlc_bin = bin(dlc)[2:].zfill(4)
-
-        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
-
-        frame = f"{sof}{identifier}{rtr}{ide}{reserved_bit}{dlc_bin}{data_field}"
-
-        crc = calculate_crc(frame)
-
-        frame_with_crc = frame + crc
-
-        if is_last_frame:
-            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
-        else:
-            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
-
-        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
-
-        return {
-            "stuffed_bits_count": stuffed_bits_count,
-            "id_hex": hex(frame_id),
-            "id_bin": f"{identifier}",
-            "dlc": dlc,
-            "data": data_bytes,
-            "crc_bin": crc,
-            "crc_hex": hex(int(crc, 2)),
-            "stuffed_frame": stuffed_frame + trailing_bits,
-            "stuffed_positions": stuffed_positions
-        }
-    
-    elif frame_type == "extended":
-        identifier_a = bin((frame_id >> 18) & 0x7FF)[2:].zfill(11)  # Identifier A (11 bits)
-        identifier_b = bin(frame_id & 0x3FFFF)[2:].zfill(18)        # Identifier B (18 bits)
-        sof = "0"                                                   # Start-of-frame (SOF): Dominant
-        srr = "1"                                                   # Substitute remote request (SRR): Recessive for extended frames
-        ide = "1"                                                   # Identifier extension bit (IDE): Recessive for extended frames
-        rtr = "0"                                                   # Remote transmission request (RTR): Dominant for data frames
-        reserved_bits = "00"                                        # Reserved bits (r1, r0): Set to dominant
-
-        dlc_bin = bin(dlc)[2:].zfill(4)
-
-        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
-
-        frame = f"{sof}{identifier_a}{srr}{ide}{identifier_b}{rtr}{reserved_bits}{dlc_bin}{data_field}"
-
-        crc = calculate_crc(frame)
-
-        frame_with_crc = frame + crc
-
-        if is_last_frame:
-            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
-        else:
-            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
-
-        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
-
-        return {
-            "stuffed_bits_count": stuffed_bits_count,
-            "id_hex": hex(frame_id),
-            "id_bin": f"{identifier_a}_{identifier_b}",
-            "dlc": dlc,
-            "data": data_bytes,
-            "crc_bin": crc,
-            "crc_hex": hex(int(crc, 2)),
-            "stuffed_frame": stuffed_frame + trailing_bits,
-            "stuffed_positions": stuffed_positions
-        }
-    
 def implement_error(frame, error_type, stuffed_positions):
     frame_bits = frame["stuffed_frame"]
     error_location = 0
@@ -166,11 +91,146 @@ def implement_error(frame, error_type, stuffed_positions):
     modified_frame["error_location"] = error_location
     return modified_frame
 
-def print_error(error_type, error_frame, frame, i):
-    if error_type:
-        print(f"Frame {i} with error:    {error_frame['stuffed_frame']}")
-        print(f"Error:                 {' ' * error_frame['error_location']}^")
-        print(f"Frame {i} without error: {frame['stuffed_frame']}\n")
+def generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame=False):
+    if id_type == "standard":
+        identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
+        sof = "0"                                # Start-of-frame (SOF): Dominant
+        rtr = "0"                                # Remote transmission request (RTR): Dominant for data frames
+        ide = "0"                                # Identifier extension bit (IDE): Dominant for standard frames
+        reserved_bit = "0"                       # Reserved bit (r0): Set to dominant
+
+        dlc_bin = bin(dlc)[2:].zfill(4)
+
+        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
+
+        frame = f"{sof}{identifier}{rtr}{ide}{reserved_bit}{dlc_bin}{data_field}"
+
+        crc = calculate_crc(frame)
+
+        frame_with_crc = frame + crc
+
+        if is_last_frame:
+            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
+        else:
+            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
+
+        return {
+            "stuffed_bits_count": stuffed_bits_count,
+            "id_hex": hex(frame_id),
+            "id_bin": f"{identifier}",
+            "dlc": dlc,
+            "data": data_bytes,
+            "crc_bin": crc,
+            "crc_hex": hex(int(crc, 2)),
+            "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
+        }
+    
+    elif id_type == "extended":
+        identifier_a = bin((frame_id >> 18) & 0x7FF)[2:].zfill(11)  # Identifier A (11 bits)
+        identifier_b = bin(frame_id & 0x3FFFF)[2:].zfill(18)        # Identifier B (18 bits)
+        sof = "0"                                                   # Start-of-frame (SOF): Dominant
+        srr = "1"                                                   # Substitute remote request (SRR): Recessive
+        ide = "1"                                                   # Identifier extension bit (IDE): Recessive for extended frames
+        rtr = "0"                                                   # Remote transmission request (RTR): Recessive for data frames
+        reserved_bits = "00"                                        # Reserved bits (r1, r0): Set to dominant
+
+        dlc_bin = bin(dlc)[2:].zfill(4)
+
+        data_field = "".join(bin(int(byte, 16))[2:].zfill(8) for byte in data_bytes)
+
+        frame = f"{sof}{identifier_a}{srr}{ide}{identifier_b}{rtr}{reserved_bits}{dlc_bin}{data_field}"
+
+        crc = calculate_crc(frame)
+
+        frame_with_crc = frame + crc
+
+        if is_last_frame:
+            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
+        else:
+            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
+
+        return {
+            "stuffed_bits_count": stuffed_bits_count,
+            "id_hex": hex(frame_id),
+            "id_bin": f"{identifier_a}_{identifier_b}",
+            "dlc": dlc,
+            "data": data_bytes,
+            "crc_bin": crc,
+            "crc_hex": hex(int(crc, 2)),
+            "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
+        }
+
+def generate_remote_frame(frame_id, id_type, dlc):
+    if id_type == "standard":
+        identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
+        sof = "0"                                # Start-of-frame (SOF): Dominant
+        rtr = "1"                                # Remote transmission request (RTR): Recessive for remote frames
+        ide = "0"                                # Identifier extension bit (IDE): Dominant for standard id frames
+        reserved_bit = "0"                       # Reserved bit (r0): Set to dominant
+
+        dlc_bin = bin(dlc)[2:].zfill(4)          # DLC of the requested message, not the transmitted one
+
+        frame = f"{sof}{identifier}{rtr}{ide}{reserved_bit}{dlc_bin}"
+
+        crc = calculate_crc(frame)
+
+        frame_with_crc = frame + crc
+
+        trailing_bits = "1" * 13 # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
+
+        return {
+            "stuffed_bits_count": stuffed_bits_count,
+            "id_hex": hex(frame_id),
+            "id_bin": f"{identifier}",
+            "dlc": dlc,
+            "crc_bin": crc,
+            "crc_hex": hex(int(crc, 2)),
+            "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
+        }
+    
+    elif id_type == "extended":
+        identifier_a = bin((frame_id >> 18) & 0x7FF)[2:].zfill(11)  # Identifier A (11 bits)
+        identifier_b = bin(frame_id & 0x3FFFF)[2:].zfill(18)        # Identifier B (18 bits)
+        sof = "0"                                                   # Start-of-frame (SOF): Dominant
+        srr = "1"                                                   # Substitute remote request (SRR): Recessive
+        ide = "1"                                                   # Identifier extension bit (IDE): Recessive for extended frames
+        rtr = "1"                                                   # Remote transmission request (RTR): Recessive for remote frames
+        reserved_bits = "00"                                        # Reserved bits (r1, r0): Set to dominant
+
+        dlc_bin = bin(dlc)[2:].zfill(4)                             # DLC of the requested message, not the transmitted one
+
+        frame = f"{sof}{identifier_a}{srr}{ide}{identifier_b}{rtr}{reserved_bits}{dlc_bin}"
+
+        crc = calculate_crc(frame)
+
+        frame_with_crc = frame + crc
+
+        """
+        After Remote Request frame there is always IFS
+        """
+        trailing_bits = "1" * 13 # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+
+        stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
+
+        return {
+            "stuffed_bits_count": stuffed_bits_count,
+            "id_hex": hex(frame_id),
+            "id_bin": f"{identifier_a}_{identifier_b}",
+            "dlc": dlc,
+            "crc_bin": crc,
+            "crc_hex": hex(int(crc, 2)),
+            "stuffed_frame": stuffed_frame + trailing_bits,
+            "stuffed_positions": stuffed_positions
+        }
 
 def save_to_csv(frames, filename_with):
     with open(filename_with, mode="w", newline="") as file:
@@ -197,25 +257,30 @@ def main():
 
     for i in range(1, num_frames + 1):
         frame_key = f'frame_{i}'
+        frame_type = yaml_data[frame_key]['type']
         frame_id = yaml_data[frame_key]['id']
         dlc = yaml_data[frame_key]['dlc']
         data = yaml_data[frame_key]['data']
         error_type = yaml_data[frame_key]['error']
 
         if frame_id < 2047:  # 2^11
-            frame_type = "standard"
+            id_type = "standard"
         elif frame_id > 2047 and frame_id < 536870911:  # 2^29
-            frame_type = "extended"
+            id_type = "extended"
         else:
             print("ID is outside of range")
             return
 
-        data_bytes = []
-        for byte in data:
-            data_bytes.append(f"{byte:02x}")
+        if frame_type == "data":
+            data_bytes = []
+            for byte in data:
+                data_bytes.append(f"{byte:02x}")
 
-        is_last_frame = i == num_frames
-        frame = generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame)
+            is_last_frame = i == num_frames
+            frame = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
+
+        elif frame_type == "remote":
+            frame = generate_remote_frame(frame_id, id_type, dlc)
 
         if error_type:
             error_frame = implement_error(frame.copy(), error_type, frame["stuffed_positions"])
@@ -224,18 +289,28 @@ def main():
         else:
             frames.append(frame)
 
-        print(f"\nFrame {i}:")
-        print(f"Number of stuffed bits: {frame['stuffed_bits_count']}")
-        print(f"ID (hex): {frame['id_hex']}")
-        print(f"ID (bin): {frame['id_bin']}")
-        print(f"DLC: {frame['dlc']}")
-        print(f"Data: {frame['data']}")
-        print(f"CRC (bin): {frame['crc_bin']}")
-        print(f"CRC (hex): {frame['crc_hex']}")
-        print(f"Error type: {error_type}")
-        print_error(error_type, error_frame, frame, i)
+        if frame_type == "data" or frame_type == "remote":
+            print(f"\nFrame {i}:")
+            print(f"Number of stuffed bits: {frame['stuffed_bits_count']}")
+            print(f"ID (hex): {frame['id_hex']}")
+            print(f"ID (bin): {frame['id_bin']}")
+            print(f"DLC: {frame['dlc']}")
+            if frame_type == "data":
+                print(f"Data: {frame['data']}")
+            print(f"CRC (bin): {frame['crc_bin']}")
+            print(f"CRC (hex): {frame['crc_hex']}")
+            print(f"Error type: {error_type}")
+            if error_type:
+                print(f"Frame {i} with error:    {error_frame['stuffed_frame']}")
+                print(f"Error:                 {' ' * error_frame['error_location']}^")
+                print(f"Frame {i} without error: {frame['stuffed_frame']}\n")
 
-    save_to_csv(frames, f"can_message.csv")
+    if frame_type == "data" and not error_type:
+        save_to_csv(frames, f"can_message_data.csv")
+    elif frame_type == "data" and error_type:
+        save_to_csv(frames, f"can_message_data_with_error.csv")
+    elif frame_type == "remote":
+        save_to_csv(frames, f"can_message_remote.csv")
 
 if __name__ == "__main__":
     main()
