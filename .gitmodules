@@ -1,9 +1,3 @@
 [submodule "extern/olo"]
 	path = extern/olo
 	url = https://github.com/open-logic/open-logic.git
-[submodule "extern/u-boot-socfpga"]
-	path = extern/u-boot-socfpga
-	url = https://github.com/altera-opensource/u-boot-socfpga.git
-[submodule "extern/linux"]
-	path = extern/linux
-	url = https://github.com/altera-opensource/linux-socfpga.git
