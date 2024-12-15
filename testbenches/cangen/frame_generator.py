@@ -1,6 +1,6 @@
-import os
 import csv
 import yaml
+import random
 import argparse
 
 def calculate_crc(frame):
@@ -214,73 +214,15 @@ def main():
         for byte in data:
             data_bytes.append(f"{byte:02x}")
 
-        manual_data = input("Do you want to input data manually? (y/n): ").strip().lower()
-        if manual_data == "y":
-            data_bytes = []
-            for j in range(dlc):
-                data_byte = int(input(f"Enter byte {j + 1} (in hex, e.g., 0x12): "), 16)
-                data_bytes.append(data_byte)
-        else:
-            prev_bit = curr_bit
-
-        is_last_frame = i == (num_frames - 1)
-        frame = generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame)
-
-def generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame=False):
-    if frame_type == "standard":
-        identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
-        sof = "0"                                # Start-of-frame (SOF): Dominant
-        rtr = "0"                                # Remote transmission request (RTR): Dominant for data frames
-        ide = "0"                                # Identifier extension bit (IDE): Dominant for standard frames
-        reserved_bit = "0"                       # Reserved bit (r0): Set to dominant
-
-        data_name = '_'.join(x[2:] for x in frame['data'])
-
-    save_to_csv(frames, f"{data_name}_with_bit_stuffing.csv", f"{data_name}_without_bit_stuffing.csv")
-
-def save_to_csv(frames, filename_with, filename_without):
-    with open(filename_with, mode="w", newline="") as file_with, open(filename_without, mode="w", newline="") as file_without:
-        writer_with = csv.writer(file_with)
-        
-        for frame in frames:
-            for bit in frame["stuffed_frame"]:
-                writer_with.writerow([bit])
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", help="Path to the yaml config file")
-    args = parser.parse_args()
-
-    if not args.path:
-        print("Wrong or no path specified. Please specifiy a path to the yaml config file using '-p' or '--path'. For more information refer to '--help'")
-        return
-
-    with open(args.path) as stream:
-        yaml_data = yaml.safe_load(stream)
-    
-    num_frames = yaml_data['frames']
-    frames = []
-
-    for i in range(1, num_frames + 1):
-        frame_key = f'frame_{i}'
-        frame_id = yaml_data[frame_key]['id']
-        dlc = yaml_data[frame_key]['dlc']
-        data = yaml_data[frame_key]['data']
-
-        if frame_id < 2047:  # 2^11
-            frame_type = "standard"
-        elif frame_id > 2047 and frame_id < 536870911:  # 2^29
-            frame_type = "extended"
-        else:
-            print("ID is outside of range")
-            return
-
-        data_bytes = []
-        for byte in data:
-            data_bytes.append(f"{byte:02x}")
-
         is_last_frame = i == num_frames
         frame = generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame)
+
+        if error_type:
+            error_frame = implement_error(frame.copy(), error_type, frame["stuffed_positions"])
+            frames.append(error_frame) #Frame with error
+            frames.append(frame) #Same frame without error
+        else:
+            frames.append(frame)
 
         print(f"\nFrame {i}:")
         print(f"Number of stuffed bits: {frame['stuffed_bits_count']}")
@@ -289,10 +231,11 @@ def main():
         print(f"DLC: {frame['dlc']}")
         print(f"Data: {frame['data']}")
         print(f"CRC (bin): {frame['crc_bin']}")
-        print(f"CRC (hex): {frame['crc_hex']}\n")
+        print(f"CRC (hex): {frame['crc_hex']}")
+        print(f"Error type: {error_type}")
+        print_error(error_type, error_frame, frame, i)
 
-    base_name = os.path.splitext(os.path.basename(args.path))[0]
-    save_to_csv(frames, f"{base_name}.csv")
+    save_to_csv(frames, f"can_message.csv")
 
 if __name__ == "__main__":
     main()
