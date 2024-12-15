@@ -40,18 +40,15 @@ begin
 
         case current_state is
             when start_s =>
-                if valid_i = '1' and load_new_i = '0' then 
+                if valid_i = '0' then 
                     new_state       <= idle_s;
                     store_s         <= '1';
                     store_error_s   <= '1';
-                elsif valid_i = '1' and load_new_i = '1' then  
+                else 
                     new_state       <= transfer_s;
                     store_s         <= '1';
                     ready_s         <= '1';
                 end if;
-
-            
-            
 
             when idle_s =>
                 if valid_i = '1' and load_new_i = '1' then

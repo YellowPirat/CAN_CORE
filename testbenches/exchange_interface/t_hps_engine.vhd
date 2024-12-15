@@ -31,64 +31,53 @@ entity t_hps_engine is
 end entity;
 
 architecture tbench of t_hps_engine is
-    type can_frame_addresses_t is array (0 to 6) of std_logic_vector(20 downto 0);
+    type can_frame_addresses_t is array (0 to 10) of std_logic_vector(20 downto 0);
 
     signal can_frame_addresses : can_frame_addresses_t := (
-        0 => "000000000000000000000", 
-        1 => "000000000000000000100",
-        2 => "000000000000000001000",
-        3 => "000000000000000001100",
-        4 => "000000000000000010000",
-        5 => "000000000000000010100",
-        6 => "000000000000000011000"
+        0  => "000000000000000000000", 
+        1  => "000000000000000000100",
+        2  => "000000000000000001000",
+        3  => "000000000000000001100",
+        4  => "000000000000000010000",
+        5  => "000000000000000010100",
+        6  => "000000000000000011000",
+        7  => "000000000000000011100",
+        8  => "000000000000000100000",
+        9  => "000000000000000100100",
+        10 => "000000000000000101000"
     );
+
+    signal fifo_empty_s         : boolean := false;
+
 begin
+
 
 
   hps_engine: process
   begin
-    wait for 150 ns;
 
-    -- Write operation
-    
-    --axi_awaddr <= s1_base_addr(20 downto 0);  -- Address
-    --axi_awvalid <= '1';       -- Valid write address
-    --wait until clk = '1' and clk'event;
-    --wait until axi_awready = '1';  -- Wait for ready signal
-    --axi_awvalid <= '0';       -- Deassert valid
+    if fifo_empty_s = true then
+        wait for 500 us;
+    end if;
 
-    --axi_wdata <= x"DEADBEEF"; -- Data to write
-    --axi_wvalid <= '1';        -- Valid write data
-    --wait until clk = '1' and clk'event;
-    --wait until axi_wready = '1';   -- Wait for ready signal
+    for i in 0 to 10 loop
+        axi_araddr <= can_frame_addresses(i);
+        axi_arvalid <= '1';
+        wait until clk = '1' and clk'event;
+        wait until axi_arready = '1';
+        axi_arvalid <= '0';
 
+        axi_rready <= '1';
+        wait until axi_rvalid = '1';
+        wait until clk = '1' and clk'event;
+        axi_rready <= '0';
 
-    --axi_bready <= '1';        -- Ready for response
-    --wait until axi_bvalid = '1';
-    --wait until clk = '1' and clk'event;
-    --axi_bready <= '0';        -- Deassert ready
-    --axi_wvalid <= '0';        -- Deassert valid
-    
-
-    -- Read operation
-    for k in 0 to 19 loop
-        for i in 0 to 6 loop
-            axi_araddr <= can_frame_addresses(i);
-            axi_arvalid <= '1';       -- Valid read address
-            wait until clk = '1' and clk'event;
-            wait until axi_arready = '1';  -- Wait for ready signal
-            axi_arvalid <= '0';       -- Deassert valid
-
-            axi_rready <= '1';        -- Ready to accept read data
-            wait until axi_rvalid = '1';
-            wait until clk = '1' and clk'event;
-            axi_rready <= '0';        -- Deassert ready
-
-            --wait for 50 ns;
-        end loop;
+        if i = 0 and unsigned(axi_rdata) = to_unsigned(0, axi_rdata'length) then
+            fifo_empty_s    <= true;
+        end if;
+        
     end loop;
 
-    wait;
   end process hps_engine;
 
 end tbench ; -- tbench

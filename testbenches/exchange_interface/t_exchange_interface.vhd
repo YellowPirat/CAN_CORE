@@ -40,7 +40,7 @@ begin
 
   simstop_p : process
   begin
-    wait for 10 us;
+    wait for 100 us;
     simstop <= true;
     wait;
   end process simstop_p;
@@ -75,10 +75,13 @@ begin
 
 
   -- DUT instantiation
-  exchange_interface_i0 : entity work.de1_exchange_interface
+  core_i0 : entity work.de1_core
+  
     port map (
         clk                 => clk,
         rst_n               => rst_n,
+
+        rxd_async_i         => "0",
 
         axi_intf_i          => axi_intf_o,
         axi_intf_o          => axi_intf_i

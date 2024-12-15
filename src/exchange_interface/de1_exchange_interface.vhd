@@ -4,85 +4,113 @@ library ieee;
 
 use work.axi_lite_intf.all;
 use work.can_core_intf.all;
+use work.peripheral_intf.all;
+use work.olo_base_pkg_math.all;
 
 entity de1_exchange_interface is
+    generic (
+        memory_depth_g          : positive := 10
+    );
     port (
-        -- Global clock and reset
-        clk           : in std_logic;
-        rst_n         : in std_logic;
+        clk                     : in    std_logic;
+        rst_n                   : in    std_logic;
         
+        axi_intf_o              : out   axi_lite_input_intf_t;
+        axi_intf_i              : in    axi_lite_output_intf_t;
 
-        axi_intf_o    : out axi_lite_input_intf_t;
-        axi_intf_i    : in  axi_lite_output_intf_t;
+        can_frame_i             : in    can_core_out_intf_t;
+        can_frame_valid_i       : in    std_logic;
 
-        -- SHIT SIGNALS
-
-        axi_awid    : in  std_logic_vector(11 downto 0) := (others => '0');
-        axi_bid     : out std_logic_vector(11 downto 0) := (others => '0');
-        axi_rid     : out std_logic_vector(11 downto 0) := (others => '0');
-        axi_arid    : in  std_logic_vector(11 downto 0) := (others => '0');
-        axi_rlast   : out std_logic := '0'
+        peripheral_status_i     : in    per_intf_t
     );
 end de1_exchange_interface;
 
 architecture rtl of de1_exchange_interface is
-    signal can_intf_s           : can_core_comb_intf_t;
-    signal can_valid_s          : std_logic;
-    signal can_ready_s          : std_logic;
-    
 
-    signal s1_axi_s               : axi_lite_comb_intf_t;
-    signal s2_axi_s               : axi_lite_comb_intf_t;
-    signal m_axi_intf_s           : axi_lite_comb_intf_t;
+    signal rst_h                : std_logic;
+
+    signal frame_missed_s       : std_logic;
+    signal fifo_out_ready_s     : std_logic;
+    signal fifo_in_valid_s      : std_logic;
+    signal fifo_in_ready_s      : std_logic;
+    signal fifo_out_valid_s     : std_logic;
+    signal fifo_out_data_s      : std_logic_vector(255 downto 0);
+
+    signal can_frame_vec_s      : can_core_vector_t;
+    signal peripheral_status_s  : per_intf_t;
+
+    signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
 
 begin
 
+    rst_h           <= not rst_n;
 
-
-    intercon_i0 : entity work.axi_interconnect
+    -- FIFO INPUT CNTR
+    fifo_input_cntr_i0 : entity work.fifo_input_cntr 
         port map(
-            -- MASTER -> SLAVE
-            m_axi_intf                              => m_axi_intf_s,
+            clk                 => clk,
+            rst_n               => rst_n,
 
-            -- SLAVE -> MASTER
-            s1_axi_intf                             => s1_axi_s,
-            s2_axi_intf                             => s2_axi_s,
+            frame_valid_i       => can_frame_valid_i,
+            fifo_ready_i        => fifo_in_ready_s,
+            frame_valid_o       => fifo_in_valid_s,
 
-            -- Shit
-            S_AXI_AWID                              => axi_awid,
-            S_AXI_BID                               => axi_bid,
-            S_AXI_RID                               => axi_rid,
-            S_AXI_ARID                              => axi_arid,
-            S_AXI_RLAST                             => axi_rlast
+            frame_missed_o      => frame_missed_s
         );
 
+	-- FIFO
+	fifo_i0 : entity work.olo_base_fifo_sync
+		generic map(
+			Width_g		        => 256,
+			Depth_g		        => memory_depth_g
+		)
 
-    axiret_i0 : entity work.axireg
+		port map(
+			Clk 		        => clk,
+			Rst			        => rst_h,
+
+			In_Data		        => to_can_core_vector(can_frame_i),
+			In_Valid	        => fifo_in_valid_s,
+			In_Ready            => fifo_in_ready_s,
+
+			Out_Data            => fifo_out_data_s,
+			Out_Valid       	=> fifo_out_valid_s,
+			Out_Ready	        => fifo_out_ready_s,
+
+            Out_Level           => buffer_usage_s
+		);
+
+    can_frame_vec_s <= can_core_vector_t(fifo_out_data_s);
+
+    per_status_cntr_i0 : entity work.per_status_cntr 
+        generic map(
+            memory_depth_g      => memory_depth_g
+        )
         port map(
-            clk             => clk,
-            rst_n           => rst_n,
-        
-            axi_intf_i      => axi_intf_i,
-            axi_intf_o      => axi_intf_o,
+            clk                 => clk,
+            rst_n               => rst_n,
 
-            bus_active_i    => '1',
+            per_status_i        => peripheral_status_i,
+            per_status_o        => peripheral_status_s,
 
-            can_intf        => can_intf_s,
-            can_valid_i     => can_valid_s,
-            can_ready_o     => can_ready_s
+            buffer_usage_i      => buffer_usage_s,
+            frame_missed_i      => frame_missed_s
         );
 
-    can_core_sim_i0 : entity work.exchange_testbench
+    axi_reg_i0 : entity work.axi_reg
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
-            can_core_intf           => can_intf_s,
-            output_fifo_valid       => can_valid_s,
-            output_fifo_ready       => can_ready_s
-        );
+            axi_intf_i              => axi_intf_i,
+            axi_intf_o              => axi_intf_o,
 
-    
+            can_frame_i             => to_can_core_intf(can_frame_vec_s),
+            peripheral_status_i     => peripheral_status_s,
+
+            ready_o                 => fifo_out_ready_s,
+            valid_i                 => fifo_out_valid_s
+        );
 
 end rtl;
 

@@ -1,6 +1,6 @@
 # Variablen
 OLO_BASE_SRC_DIR := ../../extern/olo/src/base  # Verzeichnis für die Basis-VHDL-Dateien
-PROJECT_NAME := t_core
+PROJECT_NAME := core
 
 # Manuelle Auflistung der VHDL-Dateien ohne Zeilenfortsetzung
 SRC_FILES = \
@@ -44,9 +44,8 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
     ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
-    ../../src/interfaces/per_intf.vhd \
+	../cangen/t_cangen.vhd \
     ../../src/interfaces/can_core_intf.vhd \
-    ../../src/interfaces/axi_lite_intf.vhd \
     ../../src/sampling/sample_edge_detect.vhd \
     ../../src/sampling/resync_cntr.vhd \
     ../../src/sampling/sample_validator.vhd \
@@ -79,16 +78,7 @@ SRC_FILES = \
     ../../src/error_handling/de1_error_handling.vhd \
     ../../src/crc/de1_crc.vhd \
     ../../src/can_core/de1_can_core.vhd \
-    ../../src/exchange_interface/axi_addr_cntr.vhd \
-    ../../src/exchange_interface/axi_fifo_cntr.vhd \
-    ../../src/exchange_interface/axi_reg.vhd \
-    ../../src/exchange_interface/fifo_input_cntr.vhd \
-    ../../src/exchange_interface/per_status_cntr.vhd \
-    ../../src/exchange_interface/de1_exchange_interface.vhd \
-    ../../src/core/de1_core.vhd \
-	../cangen/t_cangen.vhd \
-	../exchange_interface/t_hps_engine.vhd \
-    t_core.vhd
+    t_can_core.vhd
 
 
 

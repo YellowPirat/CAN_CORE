@@ -6,203 +6,51 @@ entity destuffing is
     port (
         clk                 : in    std_logic;
         rst_n               : in    std_logic;
+
         data_i              : in    std_logic;
         sample_i            : in    std_logic;
-        bus_active_i        : in    std_logic;
+        reset_i             : in    std_logic;
+        enable_i            : in    std_logic;
+
         stuff_bit_o         : out   std_logic;
-        error_o             : out    std_logic     
+        stuff_error_o       : out    std_logic     
     );
 end entity;
 
 architecture rtl of destuffing is
 
-    type state_t is (
-        idle_s,
-        z0_s,
-        z1_s,
-        z2_s,
-        z3_s,
-        z4_s,
-        bs_s,
-        e0_s,
-        e1_s,
-        e2_s,
-        e3_s,
-        e4_s,
-        err_s
-    );
-
-    signal current_state, new_state : state_t;
-
-    signal stuff_bit_s, error_s : std_logic;
-
     signal last_bit_s           : std_logic;
 
 begin
 
-    last_bit_p : process(clk)
-    begin
-        if rising_edge(clk) then
-            last_bit_s  <= last_bit_s;
+    last_bit_i0 : entity work.last_bit
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
 
-            if sample_i = '1' then 
-                last_bit_s <= data_i;
-            end if;
+            data_i          => data_i,
+            sample_i        => sample_i,
 
-            if rst_n = '0' then
-                last_bit_s      <= '1';
-            end if;
-        end if;
-    end process;
+            last_bit_o      => last_bit_s
+        );
 
-    error_o <= error_s;
-    stuff_bit_o <= stuff_bit_s;
+    destuffing_logic_i0 : entity work.destuffing_logic
+        port map(
+            clk             => clk,
+            rst_n           => rst_n,
 
-    bit_destuff_p : process(current_state, data_i, sample_i, bus_active_i, last_bit_s)
-    begin
-        new_state <= current_state;
-        stuff_bit_s <= '0';
-        error_s <= '0';
+            data_i          => data_i,
+            sample_i        => sample_i,
+            reset_i         => reset_i,
+            enable_i        => enable_i,
+            last_bit_i      => last_bit_s,
 
-        case current_state is
-            when idle_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= z0_s;
-                    else
-                        new_state <= e0_s;
-                    end if;
-                end if;
-            
-            when z0_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= z1_s;
-                    else
-                        new_state <= e0_s;
-                    end if;
-                end if;
+            stuff_bit_o     => stuff_bit_o,
+            stuff_error_o   => stuff_error_o
+        );
 
-            when z1_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= z2_s;
-                    else
-                        new_state <= e0_s;
-                    end if;
-                end if;
 
-            when z2_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= z3_s;
-                    else
-                        new_state <= e0_s;
-                    end if;
-                end if;
-                
-            when z3_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= z4_s;
-                    else
-                        new_state <= e0_s;
-                    end if;
-                end if;
 
-            when z4_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        new_state <= err_s;
-                    else
-                        new_state <= bs_s;
-                        stuff_bit_s <= '1';
-                    end if;
-                end if;
 
-            when err_s =>
-                if bus_active_i = '0' then 
-                    new_state <= idle_s;
-                    error_s <= '1';
-                end if;
 
-            when bs_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '0' then
-                        if last_bit_s = '0' then
-                            new_state <= z1_s;
-                        else 
-                            new_state <= z0_s;
-                        end if;
-                    else
-                        if last_bit_s = '1' then
-                            new_state <= e1_s;
-                        else
-                            new_state <= e0_s;
-                        end if;
-                    end if;
-                    
-                end if;
-
-            when e0_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '1' then
-                        new_state <= e1_s;
-                    else
-                        new_state <= z0_s;
-                    end if;
-                end if;
-
-            when e1_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '1' then
-                        new_state <= e2_s;
-                    else
-                        new_state <= z0_s;
-                    end if;
-                end if;
-
-            when e2_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '1' then
-                        new_state <= e3_s;
-                    else
-                        new_state <= z0_s;
-                    end if;
-                end if;
-
-            when e3_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '1' then
-                        new_state <= e4_s;
-                    else
-                        new_state <= z0_s;
-                    end if;
-                end if;
-
-            when e4_s =>
-                if bus_active_i = '1' and sample_i = '1' then
-                    if data_i = '1' then
-                        new_state <= err_s;
-                    else
-                        new_state <= bs_s;
-                        stuff_bit_s <= '1';
-                    end if;
-                end if;
-
-            when others =>
-                new_state <= idle_s;
-        end case;
-    end process bit_destuff_p;
-
-    p : process(clk)
-    begin
-        if rising_edge(clk) then 
-            current_state <= new_state;
-            if rst_n = '0' then
-                current_state <= idle_s;
-            end if;
-        end if;
-    end process p;
-
-end architecture;
+end rtl ; -- rtl

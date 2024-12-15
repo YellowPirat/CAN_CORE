@@ -72,6 +72,8 @@ architecture rtl of sample_cntr is
     signal negative_resync          : std_logic;
     signal positive_resync          : std_logic;
 
+    signal resync_error_s           : std_logic;
+
 begin
 
     reload_sync_o                   <= reload_sync_s;
@@ -132,6 +134,8 @@ begin
         store_shift_s       <= '0';
         clear_shift_s       <= '0';
 
+        resync_error_s      <= '0';
+
         shift_val_sync_s    <= to_unsigned(0, log2ceil(sync_seg_g + 1));
         shift_val_prob_s    <= to_unsigned(0, log2ceil(prob_seg_g + 1));
         shift_val_phase1_s  <= to_unsigned(0, log2ceil(phase_seg1_g + 1));
@@ -174,6 +178,10 @@ begin
                     new_state       <= phase_sig2_s;
                     reload_phase2_s <= '1';
                     sample_s        <= '1';
+                end if;
+
+                if edge_i = '1' and sync_enable_i = '1' then
+                    resync_error_s  <= '1';
                 end if;
 
                 if hard_reload_i = '1' then

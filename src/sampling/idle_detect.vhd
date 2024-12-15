@@ -40,7 +40,7 @@ begin
                 end if;
             when active_s =>
                 bus_active_s <= '1';
-                if frame_end_i = '1' then
+                if frame_end_i = '1'then
                     new_state <= idle_s;
                 end if;
 

@@ -1,7 +1,6 @@
-project_new -overwrite -family CYCLONEV -part 5CSEMA5F31C6 exchange_interface
+project_new -overwrite -family CYCLONEV -part 5CSEMA5F31C6 sampling
 
-set_global_assignment -name TOP_LEVEL_ENTITY de1_exchange_interface_base
-set_global_assignment -name QIP_FILE ../../project_files/de1_soc/synthesis/de1_soc.qip
+set_global_assignment -name TOP_LEVEL_ENTITY de1_read
 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/base/vhdl/olo_base_pkg_array.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/base/vhdl/olo_base_pkg_math.vhd 
@@ -41,41 +40,61 @@ set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_mast
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd 
 set_global_assignment -name VHDL_FILE ../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd
+set_global_assignment -name VHDL_FILE ../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd
+set_global_assignment -name VHDL_FILE ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_shit_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample_edge_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/resync_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample_validator.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/edge_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/idle_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_logic.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/last_bit.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/quantum_prescaler.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/seq_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/sample.vhd
+set_global_assignment -name VHDL_FILE ../../src/sampling/de1_sampling.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/interfaces/per_intf.vhd
-set_global_assignment -name VHDL_FILE ../../src/interfaces/can_core_intf.vhd
-set_global_assignment -name VHDL_FILE ../../src/interfaces/axi_lite_intf.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/frame_generator/frame_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/frame_generator/en_gen.vhd
-set_global_assignment -name VHDL_FILE ../../src/frame_generator/frames.vhd
-set_global_assignment -name VHDL_FILE ../../src/frame_generator/bench_finisher.vhd
-set_global_assignment -name VHDL_FILE ../../src/frame_generator/de1_frame_gen.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_addr_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_reg.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/fifo_input_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
-
+set_global_assignment -name VHDL_FILE ../../src/core/frame_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/uni_dec_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/uni_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/field_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/valid_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/bit_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/core/id_mapping.vhd
 set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/yellowPirat/yellowPirat.vhd
+set_global_assignment -name VHDL_FILE ../../src/shield_adapter/shield_adapter.vhd
+set_global_assignment -name VHDL_FILE ../../src/shield_adapter/bin2hex.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/debug/splice_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/uart_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/error_handling/error_handling_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/error_handling/eof_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/error_handling/de1_error_handling.vhd
+
+set_global_assignment -name VHDL_FILE de1_read.vhd
+
+
 
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT NONE -section_id eda_simulation
-set_global_assignment -name SDC_FILE exchange_interface.sdc
+set_global_assignment -name SDC_FILE sampling.sdc
 
 # enabling signaltap 
 #set_global_assignment -name ENABLE_SIGNALTAP ON
 #set_global_assignment -name USE_SIGNALTAP_FILE cti_tapping.stp
 #set_global_assignment -name SIGNALTAP_FILE cti_tapping.stp
 
-source ../../project_files/pin_assignment_de1_soc_top.tcl
+source ../../project_files/pin_assignment_de1_soc_small_top.tcl
 
 project_close

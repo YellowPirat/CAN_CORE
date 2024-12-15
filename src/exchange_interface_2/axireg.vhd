@@ -143,8 +143,6 @@ begin
 			load_new_i				=> load_new_s,
 			valid_i					=> fifo_out_valid_s,
 
-
-
 			ready_o					=> fifo_out_ready_s,
 			store_o					=> store_s,
 			store_err_o				=> store_err_s

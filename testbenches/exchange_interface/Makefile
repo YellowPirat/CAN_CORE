@@ -42,18 +42,21 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_pl_stage.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_master_full.vhd \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
-    ../../src/exchange_interface/per_intf.vhd \
-    ../../src/exchange_interface/cntr_missed_frame.vhd \
-    ../../src/exchange_interface/cnt_missed_frame.vhd \
-    ../../src/exchange_interface/per_status.vhd \
-    ../../src/exchange_interface/can_core_intf.vhd \
-    ../../src/exchange_interface/axi_lite_intf.vhd \
-    ../../src/exchange_interface/axi_fifo_cntr.vhd \
+    ../../src/interfaces/per_intf.vhd \
+    ../../src/interfaces/can_core_intf.vhd \
+    ../../src/interfaces/axi_lite_intf.vhd \
+    ../../src/frame_generator/frame_cnt.vhd \
+    ../../src/frame_generator/en_gen.vhd \
+    ../../src/frame_generator/frames.vhd \
+    ../../src/frame_generator/bench_finisher.vhd \
+    ../../src/frame_generator/de1_frame_gen.vhd \
     ../../src/exchange_interface/axi_addr_cntr.vhd \
-	../../src/exchange_interface/axireg.vhd \
-    ../../src/exchange_interface/exchange_testbench.vhd \
-	../../src/exchange_interface/axi_interconnect.vhd \
-	../../src/exchange_interface/de1_exchange_interface.vhd \
+    ../../src/exchange_interface/axi_fifo_cntr.vhd \
+    ../../src/exchange_interface/axi_reg.vhd \
+    ../../src/exchange_interface/fifo_input_cntr.vhd \
+    ../../src/exchange_interface/per_status_cntr.vhd \
+    ../../src/exchange_interface/de1_exchange_interface.vhd \
+    ../../src/core/de1_core.vhd \
     t_hps_engine.vhd \
 	t_exchange_interface.vhd
 

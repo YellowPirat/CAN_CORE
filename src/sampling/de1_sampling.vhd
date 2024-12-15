@@ -9,11 +9,14 @@ entity de1_sampling is
 
         rxd_i                   : in    std_logic;
         frame_finished_i        : in    std_logic;
+        enable_destuffing_i     : in    std_logic;
+        reset_destuffing_i      : in    std_logic;
 
         rxd_sync_o              : out   std_logic;
         sample_o                : out   std_logic;
         stuff_bit_o             : out   std_logic;
-        bus_active_detect_o     : out   std_logic
+        bus_active_detect_o     : out   std_logic;
+        stuff_error_o           : out   std_logic
     );
 end entity;
 
@@ -25,18 +28,18 @@ architecture rtl of de1_sampling is
     signal sample_s         : std_logic;
     signal bus_active_s     : std_logic;
     signal stuff_bit_s      : std_logic;
-    signal bit_stuff_error  : std_logic;
+
     signal hard_reload_s    : std_logic;
     signal sync_enable_s    : std_logic;
 
     signal rst_h            : std_logic;
 begin
-    rxd_async_s(0) <= rxd_i;
-    rst_h  <= not rst_n;
-    rxd_sync_o <= rxd_sync_s(0);
-    sample_o <= sample_s;
-    stuff_bit_o <= stuff_bit_s;
-    bus_active_detect_o <= bus_active_s;
+    rxd_async_s(0)          <= rxd_i;
+    rst_h                   <= not rst_n;
+    rxd_sync_o              <= rxd_sync_s(0);
+    sample_o                <= sample_s;
+    stuff_bit_o             <= stuff_bit_s;
+    bus_active_detect_o     <= bus_active_s;
 
     sync_stage_i0 : entity work.olo_intf_sync
         generic map(
@@ -97,10 +100,11 @@ begin
 
             data_i          => rxd_sync_s(0),
             sample_i        => sample_s,
-            bus_active_i    => bus_active_s,
+            enable_i        => enable_destuffing_i,
+            reset_i         => reset_destuffing_i,
             
             stuff_bit_o     => stuff_bit_s,
-            error_o          => bit_stuff_error
+            stuff_error_o   => stuff_error_o
         );
 
     resync_validator_i0 : entity work.sample_validator
