@@ -78,7 +78,6 @@ def implement_error(frame, error_type, stuffed_positions):
         modified_bits = list(frame_bits)
         modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
         modified_frame["stuffed_frame"] = "".join(modified_bits)
-
     
     elif error_type == "crc":
         crc_start = len(frame_bits) - 28
@@ -231,6 +230,19 @@ def generate_remote_frame(frame_id, id_type, dlc):
             "stuffed_frame": stuffed_frame + trailing_bits,
             "stuffed_positions": stuffed_positions
         }
+    
+def generate_error_frame():
+        superpositioned_error_flag = random.randint(6, 12)  # As specified in the CAN bus protocol, an error flag consists of min. 6 and max. 12 dominant bits
+        error_flag = "0" * superpositioned_error_flag
+        error_delimiter = "1" * 8
+
+        extended_ifs = "1" * 11 # Intermission (3 recessive bits) + suspend transmission (8 recessive bits)                  
+
+        error_frame = f"{error_flag}{error_delimiter}{extended_ifs}"
+
+        return {
+            "error_frame": error_frame
+        }
 
 def save_to_csv(frames, filename_with):
     with open(filename_with, mode="w", newline="") as file:
@@ -252,16 +264,16 @@ def main():
     with open(args.path) as stream:
         yaml_data = yaml.safe_load(stream)
     
-    num_frames = yaml_data['frames']
+    num_frames = yaml_data["frames"]
     frames = []
 
     for i in range(1, num_frames + 1):
-        frame_key = f'frame_{i}'
-        frame_type = yaml_data[frame_key]['type']
-        frame_id = yaml_data[frame_key]['id']
-        dlc = yaml_data[frame_key]['dlc']
-        data = yaml_data[frame_key]['data']
-        error_type = yaml_data[frame_key]['error']
+        frame_key = f"frame_{i}"
+        frame_type = yaml_data[frame_key]["type"]
+        frame_id = yaml_data[frame_key]["id"]
+        dlc = yaml_data[frame_key]["dlc"]
+        data = yaml_data[frame_key]["data"]
+        error_type = yaml_data[frame_key]["error"]
 
         if frame_id < 2047:  # 2^11
             id_type = "standard"
@@ -270,47 +282,58 @@ def main():
         else:
             print("ID is outside of range")
             return
+        
+        data_bytes = []
+        for byte in data:
+            data_bytes.append(f"{byte:02x}")
 
-        if frame_type == "data":
-            data_bytes = []
-            for byte in data:
-                data_bytes.append(f"{byte:02x}")
+        is_last_frame = i == num_frames
 
-            is_last_frame = i == num_frames
-            frame = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
+        if frame_type == "data" and not error_type: # data frame without errors
+            frame_without_error = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
+            frames.append(frame_without_error)
 
-        elif frame_type == "remote":
-            frame = generate_remote_frame(frame_id, id_type, dlc)
+        elif frame_type == "remote" and not error_type: # remote frame without errors
+            frame_without_error = generate_remote_frame(frame_id, id_type, dlc)
+            frames.append(frame_without_error)
 
-        if error_type:
-            error_frame = implement_error(frame.copy(), error_type, frame["stuffed_positions"])
-            frames.append(error_frame) #Frame with error
-            frames.append(frame) #Same frame without error
-        else:
-            frames.append(frame)
+        elif (frame_type == "data" or frame_type == "remote") and error_type: # data or remote frame with errors (inclusive error frame and retransmission)
+            if frame_type == "data":
+                frame_without_error = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
+            elif frame_type == "remote":
+                frame_without_error = generate_remote_frame(frame_id, id_type, dlc)
+            frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"])
+            error_location = frame_with_error["error_location"]
+            error_frame = generate_error_frame()["error_frame"]
+            frame_before_error = frame_with_error["stuffed_frame"][:error_location]
+            combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+            frames.append(combined_frame) #Frame with error frame
+            frames.append(frame_without_error) #Same frame without error
 
         if frame_type == "data" or frame_type == "remote":
             print(f"\nFrame {i}:")
-            print(f"Number of stuffed bits: {frame['stuffed_bits_count']}")
-            print(f"ID (hex): {frame['id_hex']}")
-            print(f"ID (bin): {frame['id_bin']}")
-            print(f"DLC: {frame['dlc']}")
+            print(f"Number of stuffed bits: {frame_without_error['stuffed_bits_count']}")
+            print(f"ID (hex): {frame_without_error['id_hex']}")
+            print(f"ID (bin): {frame_without_error['id_bin']}")
+            print(f"DLC: {frame_without_error['dlc']}")
             if frame_type == "data":
-                print(f"Data: {frame['data']}")
-            print(f"CRC (bin): {frame['crc_bin']}")
-            print(f"CRC (hex): {frame['crc_hex']}")
+                print(f"Data: {frame_without_error['data']}")
+            print(f"CRC (bin): {frame_without_error['crc_bin']}")
+            print(f"CRC (hex): {frame_without_error['crc_hex']}")
             print(f"Error type: {error_type}")
             if error_type:
-                print(f"Frame {i} with error:    {error_frame['stuffed_frame']}")
-                print(f"Error:                 {' ' * error_frame['error_location']}^")
-                print(f"Frame {i} without error: {frame['stuffed_frame']}\n")
+                print(f"Frame {i} with error:    {frame_with_error['stuffed_frame']}")
+                print(f"Error:                 {' ' * frame_with_error['error_location']}^")
+                print(f"Frame {i} without error: {frame_without_error['stuffed_frame']}\n")
 
     if frame_type == "data" and not error_type:
         save_to_csv(frames, f"can_message_data.csv")
     elif frame_type == "data" and error_type:
         save_to_csv(frames, f"can_message_data_with_error.csv")
-    elif frame_type == "remote":
+    elif frame_type == "remote" and not error_type:
         save_to_csv(frames, f"can_message_remote.csv")
+    elif frame_type == "remote" and error_type:
+        save_to_csv(frames, f"can_message_remote_with_error.csv")
 
 if __name__ == "__main__":
     main()

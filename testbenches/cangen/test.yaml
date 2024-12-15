@@ -1,0 +1,9 @@
+frames: 1
+frame_1:
+  type: "data"
+  id: 0x777 #standard frame
+  dlc: 2
+  error: "stuff"
+  data:
+  - 0xe7
+  - 0x83
