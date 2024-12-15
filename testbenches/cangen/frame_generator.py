@@ -281,7 +281,6 @@ def main():
 
         is_last_frame = i == num_frames
         frame = generate_can_frame(frame_id, frame_type, dlc, data_bytes, is_last_frame)
-        frames.append(frame)
 
         print(f"\nFrame {i}:")
         print(f"Number of stuffed bits: {frame['stuffed_bits_count']}")
