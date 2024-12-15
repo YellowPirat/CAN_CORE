@@ -5,7 +5,7 @@ library ieee;
 
 use work.axi_lite_intf.all;
     
-entity de1_exchange_interface_base is
+entity yellowPirat is
 	port(
   -- ADC
   ADC_CS_n : out std_logic;
@@ -152,7 +152,7 @@ entity de1_exchange_interface_base is
 	);         
 end entity;
 
-architecture rtl of de1_exchange_interface_base is
+architecture rtl of yellowPirat is
     signal Buttons_Sync     : std_logic_vector(1 downto 0);
     signal Switches_Sync    : std_logic_vector(3 downto 0);
     signal RisingEdges      : std_logic_vector(1 downto 0);

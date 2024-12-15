@@ -113,3 +113,6 @@ extern/u-boot-socfpga
 
 *.pyc
 *.tar
+hps_isw_handoff/
+output_files/
+hps_sdram_p0_summary.csv
