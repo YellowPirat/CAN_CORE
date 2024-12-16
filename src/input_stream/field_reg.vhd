@@ -19,7 +19,8 @@ entity field_reg is
         data_i                  : in    std_logic;
 
         done_o                  : out   std_logic;
-        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0)
+        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0);
+        cnt_o                   : out   unsigned(log2ceil(startCnt_g + 1) - 1 downto 0)
     );
 end entity;
 
@@ -28,6 +29,8 @@ architecture rtl of field_reg is
     signal cnt_s                : std_logic_vector(log2ceil(startCnt_g + 1) - 1 downto 0);
 
 begin
+
+    cnt_o                       <= unsigned(cnt_s);
 
     cnt_i0 : entity work.uni_dec_cnt
         generic map(

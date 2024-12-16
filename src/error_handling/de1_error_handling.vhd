@@ -44,14 +44,13 @@ begin
             enable_eof_detect_o => enable_eof_detect_s
         );
 
-    eof_detect_i0 : entity work.eof_detect
+    eof_detect_i0 : entity work.ef_cntr
         port map(
             clk                 => clk,
             rst_n               => rst_n,
 
             rxd_i               => rxd_i,
             sample_i            => sample_i,
-
             enable_i            => enable_eof_detect_s,
 
             eof_detect_o        => eof_detect_s

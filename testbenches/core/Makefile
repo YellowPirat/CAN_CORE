@@ -74,7 +74,8 @@ SRC_FILES = \
     ../../src/debug/splicer.vhd \
     ../../src/debug/asci_mapper.vhd \
     ../../src/debug/de1_debug.vhd \
-    ../../src/error_handling/eof_detect.vhd \
+    ../../src/error_handling/ef_detect.vhd \
+    ../../src/error_handling/ef_cntr.vhd \
     ../../src/error_handling/error_handling_cntr.vhd \
     ../../src/error_handling/de1_error_handling.vhd \
     ../../src/crc/de1_crc.vhd \
