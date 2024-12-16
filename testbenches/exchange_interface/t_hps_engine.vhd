@@ -48,6 +48,7 @@ architecture tbench of t_hps_engine is
     );
 
     signal fifo_empty_s         : boolean := false;
+    signal start_sequence_s     : boolean := true;
 
 begin
 
@@ -56,8 +57,9 @@ begin
   hps_engine: process
   begin
 
-    if fifo_empty_s = true then
-        wait for 500 us;
+    if fifo_empty_s = true or start_sequence_s = true then
+        wait for 700 us;
+        start_sequence_s <= false;
     end if;
 
     for i in 0 to 10 loop

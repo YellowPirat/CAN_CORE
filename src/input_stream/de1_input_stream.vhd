@@ -61,8 +61,8 @@ architecture rtl of de1_input_stream is
     signal crc_sample_s         : std_logic;
     signal crc_data_s           : std_logic_vector(14 downto 0);
     -- ERR DEL
-    signal err_del_dec_s        : std_logic;
-    signal err_del_cnt_done_s   : std_logic;
+    signal eof_dec_s        : std_logic;
+    signal eof_cnt_done_s   : std_logic;
     --OLF
     signal olf_dec_s            : std_logic;
     signal olf_cnt_done_s       : std_logic;
@@ -187,20 +187,20 @@ begin
             data_o              => crc_data_s
         );
 
-    err_del_reg_i0 : entity work.field_reg
+    eof_reg_i0 : entity work.field_reg
         generic map(
-            startCnt_g          => 7
+            startCnt_g          => 4
         )
         port map(
             clk                 => clk,
             rst_n               => rst_n,
             
             reload_i            => reload_s,
-            dec_i               => err_del_dec_s,
+            dec_i               => eof_dec_s,
             store_i             => '0',
             data_i              => rxd_sync_i,
 
-            done_o              => err_del_cnt_done_s
+            done_o              => eof_cnt_done_s
         );
 
     olf_reg_i0 : entity work.field_reg
@@ -312,8 +312,8 @@ begin
             crc_sample_o        => crc_sample_s,
 
             -- ERR DEL
-            err_del_dec_o       => err_del_dec_s,
-            err_del_cnt_done_i  => err_del_cnt_done_s,
+            eof_dec_o           => eof_dec_s,
+            eof_cnt_done_i      => eof_cnt_done_s,
 
             -- OLF
             olf_dec_o           => olf_dec_s,

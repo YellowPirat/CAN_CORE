@@ -116,3 +116,6 @@ extern/u-boot-socfpga
 hps_isw_handoff/
 output_files/
 hps_sdram_p0_summary.csv
+
+testbenches/cangen/can_message.csv
+testbenches/cangen/can_message.yaml
