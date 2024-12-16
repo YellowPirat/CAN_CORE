@@ -18,7 +18,9 @@ entity axi_reg is
         peripheral_status_i     : in    per_intf_t;
 
         ready_o                 : out   std_logic;
-        valid_i                 : in    std_logic
+        valid_i                 : in    std_logic;
+
+        load_new_o              : out   std_logic
     );
 end entity axi_reg;
 
@@ -37,11 +39,12 @@ architecture rtl of axi_reg is
 
     signal load_new_s           : std_logic;
     signal store_s              : std_logic;
-    signal store_err_s			: std_logic;
 
 begin
 
-    rst_h   <= not rst_n;
+    load_new_o          <= load_new_s;
+
+    rst_h               <= not rst_n;
 
 	axi_fifo_cntr_i0 : entity work.axi_fifo_cntr
 		port map(
@@ -52,8 +55,7 @@ begin
 			valid_i					=> valid_i,
 
 			ready_o					=> ready_o,
-			store_o					=> store_s,
-			store_err_o				=> store_err_s
+			store_o					=> store_s
 		);
 
 	-- OUTPUT CNTR

@@ -79,6 +79,9 @@ SRC_FILES = \
     ../../src/error_handling/de1_error_handling.vhd \
     ../../src/crc/de1_crc.vhd \
     ../../src/can_core/de1_can_core.vhd \
+    ../../src/exchange_interface/valid_edge_det.vhd \
+    ../../src/exchange_interface/buffer_usage_cnt.vhd \
+    ../../src/exchange_interface/buffer_usage_cntr.vhd \
     ../../src/exchange_interface/axi_addr_cntr.vhd \
     ../../src/exchange_interface/axi_fifo_cntr.vhd \
     ../../src/exchange_interface/axi_reg.vhd \

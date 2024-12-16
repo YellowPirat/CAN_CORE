@@ -32,21 +32,21 @@ begin
     p : process(clk) 
     begin
         if rising_edge(clk) then
-            per_status_s.buffer_usage(log2ceil(memory_depth_g + 1) - 1 downto 0)   <= buffer_usage_i;
-            per_status_s.buffer_usage(9 downto log2ceil(memory_depth_g + 1))       <= (others => '0');
+            per_status_s.buffer_usage(log2ceil(memory_depth_g + 1) - 1 downto 0)    <= buffer_usage_i;
+            per_status_s.buffer_usage(9 downto log2ceil(memory_depth_g + 1))        <= (others => '0');
 
-            per_status_s.peripheral_error                                   <= per_status_i.peripheral_error;
+            per_status_s.peripheral_error                                           <= per_status_i.peripheral_error;
 
             if frame_missed_i = '1' then
-                per_status_s.missed_frames                                  <= per_status_s.missed_frames + 1;
+                per_status_s.missed_frames                                          <= per_status_s.missed_frames + 1;
                 if per_status_s.missed_frames = 8388608 then
-                    per_status_s.missed_frames_overflow                     <= '1';
+                    per_status_s.missed_frames_overflow                             <= '1';
                 end if;
             end if;
             
             if rst_n = '0' then
-                per_status_s.missed_frames                                  <= to_unsigned(0, per_status_s.missed_frames'length);
-                per_status_s.missed_frames_overflow                         <= '0';
+                per_status_s.missed_frames                                          <= to_unsigned(0, per_status_s.missed_frames'length);
+                per_status_s.missed_frames_overflow                                 <= '0';
             end if;
         end if;
     end process p;

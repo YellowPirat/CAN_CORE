@@ -39,6 +39,8 @@ architecture rtl of de1_exchange_interface is
     signal can_frame_vec_s      : can_core_vector_t;
     signal peripheral_status_s  : per_intf_t;
 
+    signal load_new_s           : std_logic;
+
     signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
 
 begin
@@ -75,9 +77,7 @@ begin
 
 			Out_Data            => fifo_out_data_s,
 			Out_Valid       	=> fifo_out_valid_s,
-			Out_Ready	        => fifo_out_ready_s,
-
-            Out_Level           => buffer_usage_s
+			Out_Ready	        => fifo_out_ready_s
 		);
 
     can_frame_vec_s <= can_core_vector_t(fifo_out_data_s);
@@ -97,6 +97,21 @@ begin
             frame_missed_i      => frame_missed_s
         );
 
+    buffer_usage_cntr_i0 : entity work.buffer_usage_cntr
+        generic map(
+            memory_depth_g      => memory_depth_g
+        )
+        port map(
+            clk                 => clk,
+            rst_n               => rst_n,
+
+            inc_i               => can_frame_valid_i,
+
+            dec_i               => load_new_s,
+
+            cnt_o               => buffer_usage_s
+        );
+
     axi_reg_i0 : entity work.axi_reg
         port map(
             clk                     => clk,
@@ -109,7 +124,9 @@ begin
             peripheral_status_i     => peripheral_status_s,
 
             ready_o                 => fifo_out_ready_s,
-            valid_i                 => fifo_out_valid_s
+            valid_i                 => fifo_out_valid_s,
+
+            load_new_o              => load_new_s
         );
 
 end rtl;

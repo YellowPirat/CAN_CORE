@@ -89,6 +89,9 @@ set_global_assignment -name VHDL_FILE ../../src/crc/de1_crc.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/can_core/de1_can_core.vhd
 
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/valid_edge_det.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/buffer_usage_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/exchange_interface/buffer_usage_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_addr_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_fifo_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_reg.vhd
