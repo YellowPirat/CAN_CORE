@@ -1,7 +1,0 @@
-# type: "data", "remote", "overload"
-# error: "stuff", "form", "crc"
-frames: 1
-frame_1:
-  type: "remote"
-  id: 0x777 #standard frame
-  dlc: 2

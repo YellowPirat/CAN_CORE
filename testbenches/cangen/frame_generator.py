@@ -48,49 +48,70 @@ def apply_bit_stuffing(frame):
 
     return "".join(stuffed_frame), stuff_cnt, stuffed_positions
 
-def implement_error(frame, error_type, stuffed_positions):
+def implement_error(frame, error_type, stuffed_positions, bus_idle):
     frame_bits = frame["stuffed_frame"]
     error_location = 0
     modified_frame = frame.copy()
     
     if error_type == "stuff":
-        if not stuffed_positions:
-            return frame  # No stuff bits to modify
-    
-        error_location = random.choice(stuffed_positions)
-        modified_bits = list(frame_bits)
-        modified_bits.pop(error_location)
-        modified_frame["stuffed_frame"] = "".join(modified_bits)
+        if stuffed_positions:
+            error_location = random.choice(stuffed_positions)
+            modified_bits = list(frame_bits)
+            modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        else:
+            error_location = random.randint(0, len(frame_bits) - 13 - bus_idle - 6) # trailing bits, bus_idle, space for 6 bits
+            modified_bits = list(frame_bits)
+            replacement_bit = '0' if modified_bits[error_location] == '1' else '1'
+            del modified_bits[error_location:error_location+6]
+            modified_bits[error_location:error_location] = [replacement_bit] * 6
 
     elif error_type == "form":
         possible_locations = [
-            #0,                    # SOF
-            len(frame_bits) - 13,  # CRC delimiter
-            len(frame_bits) - 11,  # ACK delimiter
-            len(frame_bits) - 10   # Start of EOF (7 bits)
+            len(frame_bits) - 13 - bus_idle,  # CRC delimiter
+            len(frame_bits) - 11 - bus_idle,  # ACK delimiter
+            len(frame_bits) - 10 - bus_idle   # Start of EOF
         ]
-        """
-        SOF in possible_locations is commented out because it creates a problem with the CRC calucation.
-        Meaning if the form error occurs in SOF position, then CRC will also be wrong, since SOF is a part of the CRC calucation. 
-        """
-        error_location = possible_locations[1] + random.randint(0, 8)
+        error_location = random.choice(possible_locations)
             
         modified_bits = list(frame_bits)
         modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
         modified_frame["stuffed_frame"] = "".join(modified_bits)
     
     elif error_type == "crc":
-        crc_start = len(frame_bits) - 28
-        error_location = crc_start + random.randint(0, 14)
+        crc_start = len(frame_bits) - 28 - bus_idle
         modified_bits = list(frame_bits)
-        modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        found_valid_bit = False
+        
+        for i in range(15):
+            error_location = crc_start + i
+            if error_location not in stuffed_positions: # First check if this is not a stuffed bit
+                original_bit = modified_bits[error_location]
+                flipped_bit = '1' if original_bit == '0' else '0'
+                modified_bits[error_location] = flipped_bit
+                _, _, new_stuffed_positions = apply_bit_stuffing(''.join(modified_bits[:error_location+1])) 
+                
+                if len(new_stuffed_positions) == len(frame["stuffed_positions"]): # Check if this flip would cause a new bit stuffing violation
+                    found_valid_bit = True
+                    break
+                else:
+                    modified_bits[error_location] = original_bit # If it would cause a stuff bit violation, revert the change
+        
+        if not found_valid_bit:
+            print("WARNING: Could not create CRC error - all CRC bits are stuffed bits or would cause stuff bit errors. This will result in a stuff bit error instead.")
+        
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+
+    elif error_type == "ack":
+        ack_location = len(frame_bits) - 12 - bus_idle
+        modified_bits = list(frame_bits)
+        modified_bits[ack_location] = '1'
         modified_frame["stuffed_frame"] = "".join(modified_bits)
     
     modified_frame["error_type"] = error_type
     modified_frame["error_location"] = error_location
     return modified_frame
 
-def generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame=False):
+def generate_data_frame(frame_id, id_type, dlc, data_bytes, bus_idle):
     if id_type == "standard":
         identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
         sof = "0"                                # Start-of-frame (SOF): Dominant
@@ -108,10 +129,10 @@ def generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame=False)
 
         frame_with_crc = frame + crc
 
-        if is_last_frame:
-            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
+        if bus_idle:
+            trailing_bits = "10" + "1" * 11  + "1" * bus_idle # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS) + bus idle lenght
         else:
-            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+            trailing_bits = "10" + "1" * 11 # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS)
 
         stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
@@ -146,10 +167,10 @@ def generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame=False)
 
         frame_with_crc = frame + crc
 
-        if is_last_frame:
-            trailing_bits = "1" * 10  # CRC delimiter + ACK slot + ACK delimiter + EOF
+        if bus_idle:
+            trailing_bits = "10" + "1" * 11  + "1" * bus_idle # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS) + bus idle lenght
         else:
-            trailing_bits = "1" * 13  # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+            trailing_bits = "10" + "1" * 11 # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS)
 
         stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
@@ -165,7 +186,7 @@ def generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame=False)
             "stuffed_positions": stuffed_positions
         }
 
-def generate_remote_frame(frame_id, id_type, dlc):
+def generate_remote_frame(frame_id, id_type, dlc, bus_idle):
     if id_type == "standard":
         identifier = bin(frame_id)[2:].zfill(11) # Identifier (11 bits)
         sof = "0"                                # Start-of-frame (SOF): Dominant
@@ -181,7 +202,10 @@ def generate_remote_frame(frame_id, id_type, dlc):
 
         frame_with_crc = frame + crc
 
-        trailing_bits = "1" * 13 # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+        if bus_idle:
+            trailing_bits = "10" + "1" * 11  + "1" * bus_idle # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS) + bus idle lenght
+        else:
+            trailing_bits = "10" + "1" * 11 # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS)
 
         stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
@@ -213,10 +237,10 @@ def generate_remote_frame(frame_id, id_type, dlc):
 
         frame_with_crc = frame + crc
 
-        """
-        After Remote Request frame there is always IFS
-        """
-        trailing_bits = "1" * 13 # CRC delimiter + ACK slot + ACK delimiter + EOF + IFS
+        if bus_idle:
+            trailing_bits = "10" + "1" * 11  + "1" * bus_idle # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS) + bus idle lenght
+        else:
+            trailing_bits = "10" + "1" * 11 # CRC delimiter + ACK slot + (ACK delimiter + EOF + IFS)
 
         stuffed_frame, stuffed_bits_count, stuffed_positions = apply_bit_stuffing(frame_with_crc)
 
@@ -264,67 +288,69 @@ def main():
     with open(args.path) as stream:
         yaml_data = yaml.safe_load(stream)
     
-    num_frames = yaml_data["frames"]
     frames = []
+    frame_number = 0
+    for frame in yaml_data['Frames']:
+        frame_type = frame.get('type', 'data')
+        bus_idle = frame.get('bus_idle', 0)
+        error_type = frame.get('error', None)
 
-    for i in range(1, num_frames + 1):
-        frame_key = f"frame_{i}"
-        frame_type = yaml_data[frame_key]["type"]
-        frame_id = yaml_data[frame_key]["id"]
-        dlc = yaml_data[frame_key]["dlc"]
-        data = yaml_data[frame_key]["data"]
-        error_type = yaml_data[frame_key]["error"]
+        frame_number += 1
 
-        if frame_id < 2047:  # 2^11
+        if frame['id'] < 2047:  # 2^11
             id_type = "standard"
-        elif frame_id > 2047 and frame_id < 536870911:  # 2^29
+        elif frame['id'] > 2047 and frame['id'] < 536870911:  # 2^29
             id_type = "extended"
         else:
             print("ID is outside of range")
             return
         
         data_bytes = []
-        for byte in data:
+        for byte in frame['data']:
             data_bytes.append(f"{byte:02x}")
 
-        is_last_frame = i == num_frames
+        if frame_type == "data": 
+            frame_without_error = generate_data_frame(frame['id'], id_type, frame['dlc'], data_bytes, bus_idle)
+            if error_type: # data frame with errors
+                frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
+                error_location = frame_with_error["error_location"]
+                error_frame = generate_error_frame()["error_frame"]
+                frame_before_error = frame_with_error["stuffed_frame"][:error_location]
+                combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+                frames.append(combined_frame) #Frame with error frame
+                frames.append(frame_without_error) #Same frame without error
+            else: # data frame without errors
+                frames.append(frame_without_error)
 
-        if frame_type == "data" and not error_type: # data frame without errors
-            frame_without_error = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
-            frames.append(frame_without_error)
+        elif frame_type == "remote": # remote frame without errors
+            frame_without_error = generate_remote_frame(frame['id'], id_type, frame['dlc'], bus_idle)
+            if error_type: # remote frame with errors
+                frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
+                error_location = frame_with_error["error_location"]
+                error_frame = generate_error_frame()["error_frame"]
+                frame_before_error = frame_with_error["stuffed_frame"][:error_location]
+                combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+                frames.append(combined_frame) #Frame with error frame
+                frames.append(frame_without_error) #Same frame without error
+            else: # remote frame without errors
+                frames.append(frame_without_error)
 
-        elif frame_type == "remote" and not error_type: # remote frame without errors
-            frame_without_error = generate_remote_frame(frame_id, id_type, dlc)
-            frames.append(frame_without_error)
-
-        elif (frame_type == "data" or frame_type == "remote") and error_type: # data or remote frame with errors (inclusive error frame and retransmission)
-            if frame_type == "data":
-                frame_without_error = generate_data_frame(frame_id, id_type, dlc, data_bytes, is_last_frame)
-            elif frame_type == "remote":
-                frame_without_error = generate_remote_frame(frame_id, id_type, dlc)
-            frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"])
-            error_location = frame_with_error["error_location"]
-            error_frame = generate_error_frame()["error_frame"]
-            frame_before_error = frame_with_error["stuffed_frame"][:error_location]
-            combined_frame = {"stuffed_frame": frame_before_error + error_frame}
-            frames.append(combined_frame) #Frame with error frame
-            frames.append(frame_without_error) #Same frame without error
-
-        if frame_type == "data" or frame_type == "remote":
-            print(f"\nFrame {i}:")
-            print(f"Number of stuffed bits: {frame_without_error['stuffed_bits_count']}")
-            print(f"ID (hex): {frame_without_error['id_hex']}")
-            print(f"ID (bin): {frame_without_error['id_bin']}")
-            print(f"DLC: {frame_without_error['dlc']}")
-            if frame_type == "data":
-                print(f"Data: {frame_without_error['data']}")
-            print(f"CRC (bin): {frame_without_error['crc_bin']}")
-            print(f"CRC (hex): {frame_without_error['crc_hex']}")
-            print(f"Error type: {error_type}")
-            if error_type:
-                print(f"Frame {i} with error:    {frame_with_error['stuffed_frame']}")
-                print(f"Error:                 {' ' * frame_with_error['error_location']}^")
-                print(f"Frame {i} without error: {frame_without_error['stuffed_frame']}\n")
+        print(f"\nFrame {frame_number}:")
+        print(f"Bus idle lenght: {bus_idle}")
+        print(f"Error type: {error_type}")
+        print(f"Frame type: {frame_type}")
+        print(f"Number of stuffed bits: {frame_without_error['stuffed_bits_count']}")
+        print(f"ID (hex): {frame_without_error['id_hex']}")
+        print(f"ID (bin): {frame_without_error['id_bin']}")
+        print(f"DLC: {frame_without_error['dlc']}")
+        if frame_type == "data":
+            print(f"Data: {frame_without_error['data']}")
+        print(f"CRC (bin): {frame_without_error['crc_bin']}")
+        print(f"CRC (hex): {frame_without_error['crc_hex']}")
+        if error_type:
+            print(f"Frame {frame_number} with error:    {frame_with_error['stuffed_frame']}")
+            print(f"Error:                 {' ' * frame_with_error['error_location']}^")
+            print(f"Frame {frame_number} without error: {frame_without_error['stuffed_frame']}\n")
 
     if frame_type == "data" and not error_type:
         save_to_csv(frames, f"can_message_data.csv")
@@ -337,3 +363,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""
+##### TODO: length error
+"""
