@@ -4,19 +4,39 @@
 Frames:
   - id: 0x777 # standard frame
     dlc: 2
-    error: "crc"
+    error: "stuff"
     data:
     - 0xe7
     - 0x83
-#  - id: 0x999 # extended frame
-#    dlc: 1
-#    data:
-#    - 0xfb
-#  - id: 0x111 # standard frame
-#    dlc: 5
-#    data:
-#    - 0x6d
-#    - 0x40
-#    - 0xfb
-#    - 0xfc
-#    - 0x64
+  - id: 0x123 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xaf
+    - 0xfe
+  - id: 0x125 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xbe
+    - 0xef
+  - id: 0x127 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xde
+    - 0xad
+  - id: 0x18 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xde
+    - 0xad
+  - id: 0x15 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xde
+    - 0xad
+    - 0xbe
+    - 0xef

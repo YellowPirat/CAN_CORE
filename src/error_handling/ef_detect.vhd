@@ -78,7 +78,7 @@ begin
                         if pe_cnt_i = 6 then
                             pe_dec_s            <= '1';
                         else
-                            if rxd_i = '1' then
+                            if rxd_i = '0' then
                                 pe_dec_s        <= '1';
                             else 
                                 new_state       <= error_s;
@@ -102,7 +102,7 @@ begin
                         if ae_cnt_i = 6 then
                             ae_dec_s        <= '1';
                         else
-                            if rxd_i = '1' then
+                            if rxd_i = '0' then
                                 ae_dec_s    <= '1';
                             else
                                 new_state   <= error_del_s;

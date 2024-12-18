@@ -54,16 +54,16 @@ def implement_error(frame, error_type, stuffed_positions, bus_idle):
     modified_frame = frame.copy()
     
     if error_type == "stuff":
-            modified_bits = list(frame_bits)
-            """if stuffed_positions:
-                error_location = random.choice(stuffed_positions)
-                start = max(0, error_location - 5)
-                prev_bits = modified_bits[start:error_location]
-                if len(prev_bits) == 5 and all(b == prev_bits[0] for b in prev_bits):
-                    modified_bits[error_location] = prev_bits[0]
-                else:
-                    modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
-            else:"""
+        modified_bits = list(frame_bits)
+        if stuffed_positions:
+            error_location = random.choice(stuffed_positions)
+            start = max(0, error_location - 5)
+            prev_bits = modified_bits[start:error_location]
+            if len(prev_bits) == 5 and all(b == prev_bits[0] for b in prev_bits):
+                modified_bits[error_location] = prev_bits[0]
+            else:
+                modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        else:
             error_location = random.randint(1, len(frame_bits) - 13 - bus_idle - 6)
             # Get the previous bit to determine what sequence to insert
             prev_bit = modified_bits[error_location - 1]
@@ -75,6 +75,8 @@ def implement_error(frame, error_type, stuffed_positions, bus_idle):
                 stuff_error_bits + 
                 modified_bits[error_location:-6]
             )
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+
 
     elif error_type == "form":
         possible_locations = [

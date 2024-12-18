@@ -2,31 +2,36 @@ library ieee;
 use ieee.std_logic_1164.all; 
 use ieee.numeric_std.all; 
 
+use work.can_core_intf.all;
+
 entity t_hps_engine is 
     port (
-        clk            : in std_logic;
-        rst_n          : in std_logic;
+        clk                 : in    std_logic;
+        rst_n               : in    std_logic;
 
-        axi_awaddr     : out std_logic_vector(20 downto 0);
-        axi_awvalid    : out std_logic := '0';
-        axi_awready    : in std_logic;
+        axi_awaddr          : out   std_logic_vector(20 downto 0);
+        axi_awvalid         : out   std_logic := '0';
+        axi_awready         : in    std_logic;
       
-        axi_wdata      : out std_logic_vector(31 downto 0) := (others => '0');
-        axi_wvalid     : out std_logic := '0';
-        axi_wready     : in std_logic;
+        axi_wdata           : out   std_logic_vector(31 downto 0) := (others => '0');
+        axi_wvalid          : out   std_logic := '0';
+        axi_wready          : in    std_logic;
       
-        axi_bresp      : in std_logic_vector(1 downto 0);
-        axi_bvalid     : in std_logic;
-        axi_bready     : out std_logic := '0';
+        axi_bresp           : in    std_logic_vector(1 downto 0);
+        axi_bvalid          : in    std_logic;
+        axi_bready          : out   std_logic := '0';
       
-        axi_araddr     : out std_logic_vector(20 downto 0) := (others => '0');
-        axi_arvalid    : out std_logic := '0';
-        axi_arready    : in std_logic;
+        axi_araddr          : out   std_logic_vector(20 downto 0) := (others => '0');
+        axi_arvalid         : out   std_logic := '0';
+        axi_arready         : in    std_logic;
       
-        axi_rdata      : in std_logic_vector(31 downto 0);
-        axi_rresp      : in std_logic_vector(1 downto 0);
-        axi_rvalid     : in std_logic;
-        axi_rready     : out std_logic := '0'
+        axi_rdata           : in    std_logic_vector(31 downto 0);
+        axi_rresp           : in    std_logic_vector(1 downto 0);
+        axi_rvalid          : in    std_logic;
+        axi_rready          : out   std_logic := '0';
+
+        can_frame_o         : out   can_core_vector_t;
+        can_frame_valid_o   : out   std_logic
     );
 end entity;
 
@@ -50,15 +55,18 @@ architecture tbench of t_hps_engine is
     signal fifo_empty_s         : boolean := false;
     signal start_sequence_s     : boolean := true;
 
+    signal can_frame_s          : can_core_vector_t;
+    signal axi_frame_s          : axi_lite_vector_t;
+
 begin
 
-
+  can_frame_o <= can_frame_s;
 
   hps_engine: process
   begin
 
     if fifo_empty_s = true or start_sequence_s = true then
-        wait for 700 us;
+        wait for 200 us;
         start_sequence_s <= false;
     end if;
 
@@ -74,8 +82,12 @@ begin
         wait until clk = '1' and clk'event;
         axi_rready <= '0';
 
+        can_frame_s <= set_axi_frame_into_can_vector(can_frame_s, i, axi_rdata);
+
         if i = 0 and unsigned(axi_rdata) = to_unsigned(0, axi_rdata'length) then
             fifo_empty_s    <= true;
+        elsif i = 0 and unsigned(axi_rdata) > to_unsigned(0, axi_rdata'length) then
+            fifo_empty_s    <= false;
         end if;
         
     end loop;

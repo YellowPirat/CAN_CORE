@@ -48,7 +48,7 @@ begin
     constant NUM_COL                : integer := 1;   -- number of column of file
     type t_integer_array       is array(integer range <> )  of integer;
     --file test_vector                : text open read_mode is "../cangen/extended_can_frame.csv";
-    file test_vector                : text open read_mode is "../cangen/can_message.csv";
+    file test_vector                : text open read_mode is "../cangen/can_message_data.csv";
     variable row                    : line;
     variable v_data_read            : t_integer_array(1 to NUM_COL);
     variable v_data_row_counter     : integer := 0;
