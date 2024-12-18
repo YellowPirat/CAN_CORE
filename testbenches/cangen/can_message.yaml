@@ -3,7 +3,7 @@ frames: 3
 frame_1:
   id: 0x777 #standard frame
   dlc: 2
-  error: "stuff"
+  error: 
   data:
   - 0xe7
   - 0x83

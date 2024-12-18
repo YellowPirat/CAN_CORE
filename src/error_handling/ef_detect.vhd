@@ -105,7 +105,7 @@ begin
                             if rxd_i = '1' then
                                 ae_dec_s    <= '1';
                             else
-                                new_state   <= error_s;
+                                new_state   <= error_del_s;
                             end if;
                         end if;
                     elsif ae_cnt_done_i = '1' and sample_i = '1' then
