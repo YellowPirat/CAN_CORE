@@ -57,15 +57,18 @@ architecture tbench of t_hps_engine is
 
     signal can_frame_s          : can_core_vector_t;
     signal axi_frame_s          : axi_lite_vector_t;
+    signal can_frame_valid_s    : std_logic;
 
 begin
 
-  can_frame_o <= can_frame_s;
+  can_frame_o           <= can_frame_s;
+  can_frame_valid_o     <= can_frame_valid_s;
 
   hps_engine: process
   begin
 
     if fifo_empty_s = true or start_sequence_s = true then
+        can_frame_valid_s   <= '0';
         wait for 200 us;
         start_sequence_s <= false;
     end if;
@@ -82,12 +85,20 @@ begin
         wait until clk = '1' and clk'event;
         axi_rready <= '0';
 
-        can_frame_s <= set_axi_frame_into_can_vector(can_frame_s, i, axi_rdata);
+        if i > 2 then
+            can_frame_s <= set_axi_frame_into_can_vector(can_frame_s, i - 3, axi_rdata);
+        end if;
 
         if i = 0 and unsigned(axi_rdata) = to_unsigned(0, axi_rdata'length) then
             fifo_empty_s    <= true;
         elsif i = 0 and unsigned(axi_rdata) > to_unsigned(0, axi_rdata'length) then
             fifo_empty_s    <= false;
+        end if;
+
+        if i = 10 then
+            can_frame_valid_s   <= '1';
+        else
+            can_frame_valid_s   <= '0';
         end if;
         
     end loop;

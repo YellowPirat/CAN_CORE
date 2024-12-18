@@ -34,7 +34,7 @@ begin
 
     pe_reg_i0 : entity work.field_reg
         generic map(
-            startCnt_g          => 5
+            startCnt_g          => 6
         )
         port map(
             clk                 => clk,
@@ -51,7 +51,7 @@ begin
 
     ae_reg_i0 : entity work.field_reg
         generic map(
-            startCnt_g          => 5
+            startCnt_g          => 6
         )
         port map(
             clk                 => clk,
@@ -68,7 +68,7 @@ begin
 
     ed_reg_i0 : entity work.field_reg
         generic map(
-            startCnt_g          => 7
+            startCnt_g          => 8
         )
         port map(
             clk                 => clk,

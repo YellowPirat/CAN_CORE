@@ -134,8 +134,16 @@ package body can_core_intf is
     function set_axi_frame_into_can_vector(can_core_vector : can_core_vector_t; pos : integer; axi_frame : axi_lite_vector_t) return can_core_vector_t is
         variable ret : can_core_vector_t;
     begin
+        
+        for i in 0 to 7 loop
 
-        ret := can_core_vector;
+            if i = pos then
+                ret(31 + (32 * i) downto 0 + (32 * i)) := axi_frame;
+            else 
+                ret(31 + (32 * i) downto 0 + (32 * i))  := can_core_vector(31 + (32 * i) downto 0 + (32 * i));
+            end if;
+
+        end loop;
 
         return ret;
 
