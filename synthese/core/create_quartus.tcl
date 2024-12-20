@@ -81,7 +81,8 @@ set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
 set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
 set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/error_handling/eof_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/error_handling/ef_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/error_handling/ef_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/error_handling/error_handling_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/error_handling/de1_error_handling.vhd
 
