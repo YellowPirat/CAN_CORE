@@ -88,6 +88,13 @@ set_global_assignment -name VHDL_FILE ../../src/error_handling/de1_error_handlin
 
 set_global_assignment -name VHDL_FILE ../../src/crc/de1_crc.vhd
 
+set_global_assignment -name VHDL_FILE ../../src/frame_valid/frame_valid_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/frame_valid/de1_frame_valid.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/timestamp/timestamp_sampler.vhd
+set_global_assignment -name VHDL_FILE ../../src/timestamp/uni_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/timestamp/de1_timestamp.vhd
+
 set_global_assignment -name VHDL_FILE ../../src/can_core/de1_can_core.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/valid_edge_det.vhd

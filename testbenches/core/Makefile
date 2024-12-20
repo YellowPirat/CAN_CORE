@@ -81,6 +81,9 @@ SRC_FILES = \
     ../../src/crc/de1_crc.vhd \
     ../../src/frame_valid/frame_valid_cntr.vhd \
     ../../src/frame_valid/de1_frame_valid.vhd \
+    ../../src/timestamp/timestamp_sampler.vhd \
+    ../../src/timestamp/uni_cnt.vhd \
+    ../../src/timestamp/de1_timestamp.vhd \
     ../../src/can_core/de1_can_core.vhd \
     ../../src/exchange_interface/valid_edge_det.vhd \
     ../../src/exchange_interface/buffer_usage_cnt.vhd \

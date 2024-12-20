@@ -53,9 +53,8 @@
 *~
 *example*
 *sopc_*
-*.rbf
 # *.sdc # I want those timing files
-
+*.rbf
 # ignore Quartus II generated folders
 */db/
 */incremental_db/

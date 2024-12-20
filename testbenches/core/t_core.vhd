@@ -42,7 +42,7 @@ begin
 
   simstop_p : process
   begin
-    wait for 1000 us;
+    wait for 2 ms;
     simstop <= true;
     wait;
   end process simstop_p;

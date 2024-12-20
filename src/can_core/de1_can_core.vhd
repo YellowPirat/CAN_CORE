@@ -64,6 +64,8 @@ architecture rtl of de1_can_core is
 
     signal error_codes_s            : std_logic_vector(15 downto 0);
 
+    signal timestamp_s              : std_logic_vector(63 downto 0);
+
 
 begin
 
@@ -109,6 +111,20 @@ begin
 
             error_o                 => error_s,
             error_code_o            => error_codes_s
+        );
+
+    timestamp_i0 : entity work.de1_timestamp
+        generic map(
+            timer_width_g           => 64,
+            sample_cnt_g            => 50
+        )
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            sample_i                => new_frame_started_s,
+
+            cnt_o                   => timestamp_s
         );
 
     frame_valid_i0 : entity work.de1_frame_valid
@@ -171,17 +187,19 @@ begin
             new_frame_started_o         => new_frame_started_s
         );
 
-    can_frame_s.error_codes         <= error_codes_s;
-    can_frame_s.frame_type          <= (others => '0');
-    can_frame_s.timestamp           <= (others => '0');
-    can_frame_s.crc                 <= crc_s;
-    can_frame_s.can_dlc             <= dlc_s;
-    can_frame_s.can_id              <= id_s;
-    can_frame_s.rtr                 <= rtr_s;
-    can_frame_s.eff                 <= eff_s;
-    can_frame_s.err                 <= err_s;
-    can_frame_s.data                <= data_s;
-    can_frame_o                     <= can_frame_s;
+    can_frame_s.error_codes                 <= error_codes_s;
+    can_frame_s.frame_type                  <= (others => '0');
+    can_frame_s.timestamp(31 downto 0)      <= timestamp_s(63 downto 32);
+    can_frame_s.timestamp(63 downto 32)     <= timestamp_s(31 downto 0);
+    can_frame_s.crc                         <= crc_s;
+    can_frame_s.can_dlc                     <= dlc_s;
+    can_frame_s.can_id                      <= id_s;
+    can_frame_s.rtr                         <= rtr_s;
+    can_frame_s.eff                         <= eff_s;
+    can_frame_s.err                         <= err_s;
+    can_frame_s.data(31 downto 0)           <= data_s(63 downto 32);
+    can_frame_s.data(63 downto 32)          <= data_s(31 downto 0);
+    can_frame_o                             <= can_frame_s;
 
     -- DEBUG MAPPING
     -- ID
