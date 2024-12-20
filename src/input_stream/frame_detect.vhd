@@ -63,7 +63,8 @@ entity frame_detect is
         reset_i                 : in    std_logic;
         decode_error_o          : out   std_logic;
         enable_destuffing_o     : out   std_logic;
-        data_valid_o            : out   std_logic
+        data_valid_o            : out   std_logic;
+        sof_state_o             : out   std_logic
     );
 
 end entity;
@@ -141,6 +142,7 @@ architecture rtl of frame_detect is
     signal decode_error_s       : std_logic;
     signal enable_destuffing_s  : std_logic;
     signal data_valid_s         : std_logic;
+    signal sof_state_s          : std_logic;
     
 
 begin
@@ -176,6 +178,7 @@ begin
     decode_error_o          <= decode_error_s;
     enable_destuffing_o     <= enable_destuffing_s;
     data_valid_o            <= data_valid_s;
+    sof_state_o             <= sof_state_s;
 
     frame_done_o            <= frame_finished_s;
     reload_o                <= reload_s;
@@ -240,6 +243,7 @@ begin
         decode_error_s          <= '0';
         enable_destuffing_s     <= '0';
         data_valid_s            <= '0';
+        sof_state_s             <= '0';
 
         case current_state is
             when idle_s =>
@@ -250,13 +254,20 @@ begin
                     new_state                       <= id_s;
                     reload_s                        <= '1';
                     enable_destuffing_s             <= '1';
+                    sof_state_s                     <= '0';
+                else 
+                    sof_state_s                     <= '1';
                 end if;
+
             when valid_sof_s => 
-                data_valid_s                    <= '1';
                 if valid_sample_s = '1' and rxd_i = '0' and reset_i = '0' then 
                     new_state                       <= id_s;
                     reload_s                        <= '1';
                     enable_destuffing_s             <= '1';
+                    sof_state_s                     <= '0';
+                else
+                    sof_state_s                     <= '1';
+                    data_valid_s                    <= '1';
                 end if;
 
             when id_s =>

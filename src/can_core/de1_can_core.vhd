@@ -58,10 +58,14 @@ architecture rtl of de1_can_core is
     signal reset_crc_s              : std_logic;
     signal error_crc_s              : std_logic;
 
+    signal error_s                  : std_logic;
+    signal sof_state_s              : std_logic;
+    signal new_frame_started_s      : std_logic;
+
+    signal error_codes_s            : std_logic_vector(15 downto 0);
+
 
 begin
-
-    can_frame_valid_o               <= data_valid_s;
 
     peripheral_status_o.buffer_usage            <= (others => '0');
     peripheral_status_o.peripheral_error        <= (others => '0');
@@ -93,12 +97,30 @@ begin
             rxd_i                   => rxd_sync_s,
             sample_i                => sample_s,
 
+            new_frame_started_i     => new_frame_started_s,
+
             stuff_error_i           => stuff_error_s,
             decode_error_i          => decode_error_s,
             sample_error_i          => '0',
+            crc_error_i             => error_crc_s,
 
             reset_core_o            => reset_core_s,
-            reset_destuffing_o      => reset_destuffing_s
+            reset_destuffing_o      => reset_destuffing_s,
+
+            error_o                 => error_s,
+            error_code_o            => error_codes_s
+        );
+
+    frame_valid_i0 : entity work.de1_frame_valid
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            can_frame_valid_i       => data_valid_s,
+            error_frame_valid_i     => error_s,
+            sof_state_i             => sof_state_s,
+
+            frame_valid_o           => can_frame_valid_o
         );
 
     crc_i0 : entity work.de1_crc 
@@ -143,10 +165,13 @@ begin
 
             reset_i                     => reset_core_s,
             decode_error_o              => decode_error_s,
-            enable_destuffing_o         => enable_destuffing_s
+            enable_destuffing_o         => enable_destuffing_s,
+
+            sof_state_o                 => sof_state_s,
+            new_frame_started_o         => new_frame_started_s
         );
 
-    can_frame_s.error_codes         <= (others => '0');
+    can_frame_s.error_codes         <= error_codes_s;
     can_frame_s.frame_type          <= (others => '0');
     can_frame_s.timestamp           <= (others => '0');
     can_frame_s.crc                 <= crc_s;

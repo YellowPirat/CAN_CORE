@@ -79,6 +79,8 @@ SRC_FILES = \
     ../../src/error_handling/error_handling_cntr.vhd \
     ../../src/error_handling/de1_error_handling.vhd \
     ../../src/crc/de1_crc.vhd \
+    ../../src/frame_valid/frame_valid_cntr.vhd \
+    ../../src/frame_valid/de1_frame_valid.vhd \
     ../../src/can_core/de1_can_core.vhd \
     ../../src/exchange_interface/valid_edge_det.vhd \
     ../../src/exchange_interface/buffer_usage_cnt.vhd \

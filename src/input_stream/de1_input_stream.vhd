@@ -26,7 +26,9 @@ entity de1_input_stream is
 
         reset_i                 : in    std_logic;
         decode_error_o          : out   std_logic;
-        enable_destuffing_o     : out   std_logic
+        enable_destuffing_o     : out   std_logic;
+        sof_state_o             : out   std_logic;
+        new_frame_started_o     : out   std_logic
     );
 end entity;
 
@@ -89,6 +91,8 @@ begin
     data_o                  <= data_s;
     dlc_o                   <= dlc_data_s;
     crc_o                   <= crc_data_s;
+
+    new_frame_started_o     <= reload_s;
 
     id_mapping_i0 : entity work.id_mapping
         port map(
@@ -334,7 +338,8 @@ begin
             reset_i             => reset_i,
             decode_error_o      => decode_error_o,
             enable_destuffing_o => enable_destuffing_o,
-            data_valid_o        => valid_o
+            data_valid_o        => valid_o,
+            sof_state_o         => sof_state_o
         );
 
 end rtl ;
