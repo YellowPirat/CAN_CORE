@@ -14,6 +14,8 @@ package peripheral_intf is
     subtype per_vector_t    is std_logic_vector(95 downto 0);
     subtype per_word_t is std_logic_vector(31 downto 0);
 
+    type per_vec_t is array (natural range <>) of per_intf_t;
+
     function to_per_vector(per_intf : per_intf_t) return per_vector_t;
     function to_per_intf(per_vector : per_vector_t) return per_intf_t;
     function get_word_from_per_intf_vector(per_intf_vector : per_vector_t; pos : integer) return per_word_t;

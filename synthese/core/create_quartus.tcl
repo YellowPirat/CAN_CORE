@@ -107,6 +107,8 @@ set_global_assignment -name VHDL_FILE ../../src/exchange_interface/fifo_input_cn
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
 
+set_global_assignment -name VHDL_FILE ../../src/axi_interconnect/axi_smmm.vhd
+
 set_global_assignment -name VHDL_FILE ../../src/core/de1_core.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/yellowPirat/yellowPirat.vhd

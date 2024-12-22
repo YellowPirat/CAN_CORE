@@ -70,6 +70,11 @@ package axi_lite_intf is
     function get_axi_lite_intf(axi_lite_comp_intf : axi_lite_comb_intf_t) return axi_lite_intf_t;
     function get_axi_comp_intf(axi_lite_intf : axi_lite_intf_t) return axi_lite_comb_intf_t;
 
+    type axi_addr_vec_t is array (natural range <>) of std_logic_vector(20 downto 0);
+    type axi_data_vec_t is array (natural range <>) of std_logic_vector(31 downto 0);
+    type axi_sig_vec_t is array (natural range <>) of std_logic;
+    type axi_resp_vec_t is array (natural range <>) of std_logic_vector(1 downto 0);
+
 end package axi_lite_intf;
 
 package body axi_lite_intf is

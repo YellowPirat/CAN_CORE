@@ -30,6 +30,8 @@ package can_core_intf is
     subtype can_core_vector_t is std_logic_vector(255 downto 0);
     subtype axi_lite_vector_t is std_logic_vector(31 downto 0);
 
+    type can_frame_vec_t is array (natural range <>) of can_core_out_intf_t;
+
     function to_can_core_vector(input_intf : can_core_out_intf_t) return can_core_vector_t;
     function to_can_core_intf(input_vec : can_core_vector_t) return can_core_out_intf_t;
     function get_empty_can_core_intf return can_core_out_intf_t;

@@ -94,6 +94,7 @@ SRC_FILES = \
     ../../src/exchange_interface/fifo_input_cntr.vhd \
     ../../src/exchange_interface/per_status_cntr.vhd \
     ../../src/exchange_interface/de1_exchange_interface.vhd \
+    ../../src/axi_interconnect/axi_smmm.vhd \
     ../../src/core/de1_core.vhd \
 	../cangen/t_cangen.vhd \
 	../exchange_interface/t_hps_engine.vhd \

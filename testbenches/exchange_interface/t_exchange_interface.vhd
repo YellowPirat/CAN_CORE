@@ -47,6 +47,9 @@ begin
 
 
   hps_engine_i0 : entity work.t_hps_engine
+    generic map(
+      can_core_count_g  => 2
+    )
     port map(
       clk                 => clk,
       rst_n               => rst_n,

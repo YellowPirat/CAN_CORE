@@ -26,52 +26,147 @@ end entity;
 
 architecture rtl of de1_core is
 
-    signal can_frame_s          : can_core_out_intf_t;
-    signal peripheral_status_s  : per_intf_t;
-    signal can_frame_valid_s    : std_logic;
+    signal can_frame_s          : can_frame_vec_t(can_core_count_g - 1 downto 0);
+    signal peripheral_status_s  : per_vec_t(can_core_count_g - 1 downto 0);
+    signal can_frame_valid_s    : std_logic_vector(can_core_count_g - 1 downto 0);
+
+    signal axi_awaddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_awvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_awready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+
+    signal axi_wdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_wvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_wready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+
+    signal axi_bresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_bvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_bready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+
+    signal axi_araddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_arvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_arready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+
+    signal axi_rdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_rresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_rvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_rready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
 
 begin 
 
-
-    exchange_interface_i0 : entity work.de1_exchange_interface
+    axi_smmm_i0 : entity work.axi_smmmm
+        generic map(
+            slave_count_g           => can_core_count_g,
+            start_addr_g            => to_unsigned(0, 21),
+            offset_addr_g           => to_unsigned(44, 21)
+        )
         port map(
-            clk                     => clk,
-            rst_n                   => rst_n,
+            m_axi_awaddr            => axi_intf_i.axi_awaddr,
+            m_axi_awvalid           => axi_intf_i.axi_awvalid,
+            m_axi_awready           => axi_intf_o.axi_awready,
 
-            axi_intf_o              => axi_intf_o,
-            axi_intf_i              => axi_intf_i,
+            m_axi_wdata             => axi_intf_i.axi_wdata,
+            m_axi_wvalid            => axi_intf_i.axi_wvalid,
+            m_axi_wready            => axi_intf_o.axi_wready,
 
-            can_frame_i             => can_frame_s,
-            can_frame_valid_i       => can_frame_valid_s,
+            m_axi_bresp             => axi_intf_o.axi_bresp,
+            m_axi_bvalid            => axi_intf_o.axi_bvalid,
+            m_axi_bready            => axi_intf_i.axi_bready,
 
-            peripheral_status_i     => peripheral_status_s
+            m_axi_araddr            => axi_intf_i.axi_araddr,
+            m_axi_arvalid           => axi_intf_i.axi_arvalid,
+            m_axi_arready           => axi_intf_o.axi_arready,
+
+            m_axi_rdata             => axi_intf_o.axi_rdata,
+            m_axi_rresp             => axi_intf_o.axi_rresp,
+            m_axi_rvalid            => axi_intf_o.axi_rvalid,
+            m_axi_rready            => axi_intf_i.axi_rready,
+
+
+            s_axi_awaddr            => axi_awaddr_s,
+            s_axi_awvalid           => axi_awvalid_s,
+            s_axi_awready           => axi_awready_s,
+
+            s_axi_wdata             => axi_wdata_s,
+            s_axi_wvalid            => axi_wvalid_s,
+            s_axi_wready            => axi_wready_s,
+
+            s_axi_bresp             => axi_bresp_s,
+            s_axi_bvalid            => axi_bvalid_s,
+            s_axi_bready            => axi_bready_s,
+
+            s_axi_araddr            => axi_araddr_s,
+            s_axi_arvalid           => axi_arvalid_s,
+            s_axi_arready           => axi_arready_s,
+
+            s_axi_rdata             => axi_rdata_s,
+            s_axi_rresp             => axi_rresp_s,
+            s_axi_rvalid            => axi_rvalid_s,
+            s_axi_rready            => axi_rready_s
         );
 
-    --frame_gen_i0 : entity work.de1_frame_gen
-    --    port map(
-    --        clk                     => clk,
-    --        rst_n                   => rst_n,
 
-    --        can_frame_o             => can_frame_s,
-    --        can_frame_valid_o       => can_frame_valid_s,
+    can_core_gen : for i in 0 to can_core_count_g - 1 generate
 
-    --        peripheral_status_o     => peripheral_status_s
-    --    );
 
-    de1_can_core_i0 : entity work.de1_can_core 
-        port map(
-            clk                     => clk,
-            rst_n                   => rst_n,
+        exchange_interface_i0 : entity work.de1_exchange_interface
+            generic map(
+                memory_depth_g          => 256
+            )
+            port map(
+                clk                     => clk,
+                rst_n                   => rst_n,
 
-            rxd_async_i             => rxd_async_i(0),
+                axi_intf_o.axi_awready  => axi_awready_s(i),
 
-            can_frame_o             => can_frame_s,
-            can_frame_valid_o       => can_frame_valid_s,
+                axi_intf_o.axi_wready   => axi_wready_s(i),
 
-            uart_debug_tx_o         => uart_debug_o(0),
+                axi_intf_o.axi_bresp    => axi_bresp_s(i),
+                axi_intf_o.axi_bvalid   => axi_bvalid_s(i),
 
-            peripheral_status_o     => peripheral_status_s
-        );
+                axi_intf_o.axi_arready  => axi_arready_s(i),
+
+                axi_intf_o.axi_rdata    => axi_rdata_s(i),
+                axi_intf_o.axi_rresp    => axi_rresp_s(i),
+                axi_intf_o.axi_rvalid   => axi_rvalid_s(i),
+                
+
+                axi_intf_i.axi_awaddr   => axi_awaddr_s(i),
+                axi_intf_i.axi_awvalid  => axi_awvalid_s(i),
+
+                axi_intf_i.axi_wdata    => axi_wdata_s(i),
+                axi_intf_i.axi_wvalid   => axi_wvalid_s(i),
+                axi_intf_i.axi_wstrb    => (others => '0'),
+
+                axi_intf_i.axi_bready   => axi_bready_s(i),
+
+                axi_intf_i.axi_araddr   => axi_araddr_s(i),
+                axi_intf_i.axi_arvalid  => axi_arvalid_s(i),
+
+                axi_intf_i.axi_rready   => axi_rready_s(i),
+
+
+
+                can_frame_i             => can_frame_s(i),
+                can_frame_valid_i       => can_frame_valid_s(i),
+
+                peripheral_status_i     => peripheral_status_s(i)
+            );
+
+        de1_can_core_i0 : entity work.de1_can_core 
+            port map(
+                clk                     => clk,
+                rst_n                   => rst_n,
+
+                rxd_async_i             => rxd_async_i(i),
+
+                can_frame_o             => can_frame_s(i),
+                can_frame_valid_o       => can_frame_valid_s(i),
+
+                uart_debug_tx_o         => uart_debug_o(i),
+
+                peripheral_status_o     => peripheral_status_s(i)
+            );
+    end generate can_core_gen;
 
 
 end rtl;
