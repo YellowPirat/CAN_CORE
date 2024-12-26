@@ -65,11 +65,8 @@ def implement_error(frame, error_type, stuffed_positions, bus_idle):
                 modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
         else:
             error_location = random.randint(1, len(frame_bits) - 13 - bus_idle - 6)
-            # Get the previous bit to determine what sequence to insert
             prev_bit = modified_bits[error_location - 1]
-            # Create sequence of 6 bits opposite to previous bit
             stuff_error_bits = ['0' if prev_bit == '1' else '1'] * 6
-            # Create new frame with error bits inserted
             modified_bits = (
                 modified_bits[:error_location] + 
                 stuff_error_bits + 
@@ -106,7 +103,7 @@ def implement_error(frame, error_type, stuffed_positions, bus_idle):
                 if len(new_stuffed_positions) == len(frame["stuffed_positions"]):  # Check for stuff bit violation
                     valid_positions.append(error_location)
                 
-                modified_bits[error_location] = original_bit  # Revert the change
+                modified_bits[error_location] = original_bit  # Revert the change if it isn't valid
         
         if valid_positions:
             error_location = random.choice(valid_positions)
@@ -327,23 +324,23 @@ def main():
 
         if frame_type == "data": 
             frame_without_error = generate_data_frame(frame['id'], id_type, frame['dlc'], data_bytes, bus_idle)
-            if error_type: # data frame with errors
+            if error_type: # Data frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
                 error_location = frame_with_error["error_location"] + 1
                 error_frame = generate_error_frame()["error_frame"]
-                if error_type == "crc": # the reason for specific handling of crc error is that the whole sequence (+ the delimiter) needs to be sent first to check notice the error, so we moved the frame after the sequence
+                if error_type == "crc": # The reason for specific handling of crc error is that the whole sequence (+ the delimiter) needs to be sent first to check notice the error, so we moved the frame after the sequence
                     crc_end = len(frame_with_error["stuffed_frame"]) - 12 - bus_idle
                     frame_before_error = frame_with_error["stuffed_frame"][:crc_end]
                     combined_frame = {"stuffed_frame": frame_before_error + error_frame}
                 else:
                     frame_before_error = frame_with_error["stuffed_frame"][:error_location]
                     combined_frame = {"stuffed_frame": frame_before_error + error_frame}
-                frames.append(combined_frame) #Frame with error frame
-                frames.append(frame_without_error) #Same frame without error
-            else: # data frame without errors
+                frames.append(combined_frame) # Frame with error frame
+                frames.append(frame_without_error) # Same frame without error
+            else: # Data frame without errors
                 frames.append(frame_without_error)
 
-        elif frame_type == "remote": # remote frame without errors
+        elif frame_type == "remote": # Remote frame without errors
             frame_without_error = generate_remote_frame(frame['id'], id_type, frame['dlc'], bus_idle)
             if error_type: # remote frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
@@ -351,9 +348,9 @@ def main():
                 error_frame = generate_error_frame()["error_frame"]
                 frame_before_error = frame_with_error["stuffed_frame"][:error_location]
                 combined_frame = {"stuffed_frame": frame_before_error + error_frame}
-                frames.append(combined_frame) #Frame with error frame
-                frames.append(frame_without_error) #Same frame without error
-            else: # remote frame without errors
+                frames.append(combined_frame) # Frame with error frame
+                frames.append(frame_without_error) # Same frame without error
+            else: # Remote frame without errors
                 frames.append(frame_without_error)
 
         print(f"\nFrame {frame_number}:")
@@ -373,20 +370,11 @@ def main():
             print(f"Error:                 {' ' * frame_with_error['error_location']}^")
             print(f"Frame {frame_number} without error: {frame_without_error['stuffed_frame']}\n")
 
-    if frame_type == "data" and not error_type:
-        save_to_csv(frames, f"can_message_data.csv")
-    elif frame_type == "data" and error_type:
-        save_to_csv(frames, f"can_message_data_with_error.csv")
-    elif frame_type == "remote" and not error_type:
-        save_to_csv(frames, f"can_message_remote.csv")
-    elif frame_type == "remote" and error_type:
-        save_to_csv(frames, f"can_message_remote_with_error.csv")
+    save_to_csv(frames, f"can_message.csv")
 
 if __name__ == "__main__":
     main()
 
 """
-##### TODO: stuff error without stuffed positions doesnt add the error, but just the error frame
-##### TODO: check the crc error, sometimes multiple bits get flipped
 ##### TODO: length error needs to be implemented
 """
