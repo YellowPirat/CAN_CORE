@@ -19,28 +19,15 @@ entity de1_crc is
 
         crc_error_o             : out   std_logic -- single bit signaling if the both CRCs are the same or not: -> "1" if crc_i != calculated CRC
     ); --                                                                                                       -> "0" if crc_i == calculated CRC
-end de1_crc;
+end entity;
 
 architecture rtl of de1_crc is
 
 begin
 
-    crc_calculation_i0 : entity work.crc_calculation
-        port map(
-            clk                 => clk,
-            rst_n               => rst_n,
-
-            sample_i            => sample_i,
-            stuff_bit_i         => stuff_bit_i,
-            rxd_sync_i          => rxd_sync_i,
-
-            crc_i               => crc_i,
-            crc_valid_i         => crc_valid_i,
-
-            enable_i            => enable_i,
-            reset_i             => reset_i,
-
-            crc_error_o         => crc_error_o
-        );
-
+    if sample_i = '1' and stuff_bit_i = '0' then
+        rxd_sync_i
+        -- code
+      end if;
+      
 end rtl ; -- rtl
