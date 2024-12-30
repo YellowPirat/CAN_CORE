@@ -73,6 +73,7 @@ set_global_assignment -name VHDL_FILE ../../src/input_stream/field_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/input_stream/valid_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/input_stream/bit_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/input_stream/id_mapping.vhd
+set_global_assignment -name VHDL_FILE ../../src/input_stream/socketcan_mapper.vhd
 set_global_assignment -name VHDL_FILE ../../src/input_stream/de1_input_stream.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/debug/splice_cnt.vhd
