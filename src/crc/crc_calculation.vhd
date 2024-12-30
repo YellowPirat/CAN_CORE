@@ -23,11 +23,32 @@ end entity;
 
 architecture rtl of de1_crc is
 
+    type state_t is (idle_s, calculate_crc_s, error_s);
+    signal current_state, new_state : state_t;
+    signal crc_value : std_logic_vector(14 downto 0);
+    constant crc_polynomial : std_logic_vector(15 downto 0) := "1100010110011001";
+
 begin
 
-    if sample_i = '1' and stuff_bit_i = '0' then
-        rxd_sync_i
-        -- code
-      end if;
-      
+    crc_calculation_p : process(clk, rst_n)
+    begin
+        if rst_n = '0' then
+            current_state <= idle_s;
+        elsif rising_edge(clk) then
+            if reset_i = '1' then
+                -- code
+
+
+    p : process(clk)
+    begin 
+        if rising_edge(clk) then 
+            current_state <= new_state;
+            if rst_n = '0' then 
+                current_state <= idle_s;
+            end if;
+        end if;
+    end process p;
+
+    crc_error_o <= '1' when crc_value = crc_i and crc_valid_i = '1' else '0';
+
 end rtl ; -- rtl
