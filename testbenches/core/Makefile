@@ -68,6 +68,7 @@ SRC_FILES = \
     ../../src/input_stream/valid_cntr.vhd \
     ../../src/input_stream/bit_reg.vhd \
     ../../src/input_stream/id_mapping.vhd \
+    ../../src/input_stream/socketcan_mapper.vhd \
     ../../src/input_stream/de1_input_stream.vhd \
     ../../src/debug/splice_cnt.vhd \
     ../../src/debug/uart_cntr.vhd \

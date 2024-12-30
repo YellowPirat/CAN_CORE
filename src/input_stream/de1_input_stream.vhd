@@ -88,11 +88,18 @@ begin
     -- OUTPUT MAPPING
     frame_finished_o        <= frame_finished_s;
     eff_o                   <= eff_s;
-    data_o                  <= data_s;
+    --data_o                  <= data_s;
     dlc_o                   <= dlc_data_s;
     crc_o                   <= crc_data_s;
 
     new_frame_started_o     <= reload_s;
+
+    socketcan_mapper_i0 : entity work.socketcan_mapper
+        port map(
+            data_i          => data_s,
+            dlc_i           => dlc_data_s,
+            data_o          => data_o
+        );
 
     id_mapping_i0 : entity work.id_mapping
         port map(
