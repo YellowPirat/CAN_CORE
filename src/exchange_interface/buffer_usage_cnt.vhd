@@ -15,7 +15,9 @@ entity buffer_usage_cnt is
         inc_i               : in    std_logic;
         dec_i               : in    std_logic;
 
-        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0)
+        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
+
+        clr_i               : in    std_logic
     );
 end entity;
 
@@ -37,6 +39,10 @@ begin
                 cnt_s           <= cnt_s + 1;
             elsif inc_i = '0' and dec_i = '1' and cnt_s > 0 then
                 cnt_s           <= cnt_s - 1;
+            end if;
+
+            if clr_i = '1' then
+                cnt_s           <= to_unsigned(0, cnt_s'length);
             end if;
 
 

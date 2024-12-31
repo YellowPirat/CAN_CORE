@@ -3,6 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity de1_sampling is
+    generic(
+        width_g                 : natural
+    );
     port (
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
@@ -16,7 +19,13 @@ entity de1_sampling is
         sample_o                : out   std_logic;
         stuff_bit_o             : out   std_logic;
         bus_active_detect_o     : out   std_logic;
-        stuff_error_o           : out   std_logic
+        stuff_error_o           : out   std_logic;
+
+        sync_seg_i              : in    unsigned(width_g - 1 downto 0);
+        prob_seg_i              : in    unsigned(width_g - 1 downto 0);
+        phase_seg1_i            : in    unsigned(width_g - 1 downto 0);
+        phase_seg2_i            : in    unsigned(width_g - 1 downto 0);
+        prescaler_i             : in    unsigned(width_g - 1 downto 0)
     );
 end entity;
 
@@ -64,19 +73,22 @@ begin
 
     sample_i0 : entity work.sample
         generic map(
-            prescaler_g     => 4,
-            sync_seg_g      => 1,
-            prob_seg_g      => 5,
-            phase_seg1_g    => 7,
-            phase_seg2_g    => 7
+
+            width_g         => width_g
         )
         port map(
             clk             => clk, 
             rst_n           => rst_n,
 
-            edge_i        => edge_s,
+            edge_i          => edge_s,
             hard_reload_i   => hard_reload_s,
             sync_enable_i   => sync_enable_s,
+            
+            sync_seg_i      => sync_seg_i,
+            prob_seg_i      => prob_seg_i,
+            phase_seg1_i    => phase_seg1_i,
+            phase_seg2_i    => phase_seg2_i,
+            prescaler_i     => prescaler_i,
 
             sample_o        => sample_s
         );

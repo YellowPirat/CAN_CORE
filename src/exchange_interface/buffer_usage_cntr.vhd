@@ -15,7 +15,9 @@ entity buffer_usage_cntr is
         inc_i               : in    std_logic;
         dec_i               : in    std_logic;
 
-        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0)
+        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
+
+        clr_i               : in    std_logic
     );
 end entity;
 
@@ -36,7 +38,9 @@ begin
             inc_i                       => valid_edge_s,
             dec_i                       => dec_i,
 
-            cnt_o                       => cnt_o
+            cnt_o                       => cnt_o,
+
+            clr_i                       => clr_i
         );
     
     valid_edge_det_i0 : entity work.valid_edge_det

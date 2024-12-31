@@ -70,6 +70,8 @@ begin
   hps_engine: process
   begin
 
+    
+
     for k in 0 to can_core_count_g - 1 loop
 
         if fifo_empty_s(k) = '1' or start_sequence_s(k) = '1' then
