@@ -7,11 +7,7 @@ library work;
 
 entity sample is
     generic (
-        prescaler_g     : natural;
-        sync_seg_g      : natural;
-        prob_seg_g      : natural;
-        phase_seg1_g    : natural;
-        phase_seg2_g    : natural
+        width_g         : natural
     );
     port (
         clk             : in    std_logic;
@@ -20,6 +16,12 @@ entity sample is
         edge_i          : in    std_logic;
         hard_reload_i   : in    std_logic;
         sync_enable_i   : in    std_logic;
+
+        sync_seg_i      : in    unsigned(width_g - 1 downto 0);
+        prob_seg_i      : in    unsigned(width_g - 1 downto 0);
+        phase_seg1_i    : in    unsigned(width_g - 1 downto 0);
+        phase_seg2_i    : in    unsigned(width_g - 1 downto 0);
+        prescaler_i     : in    unsigned(width_g - 1 downto 0);
 
         sample_o        : out   std_logic
     );
@@ -31,41 +33,43 @@ architecture rtl of sample is
 
     signal reload_sync_s            : std_logic;
     signal done_sync_s              : std_logic;
-    signal cnt_sync_s               : unsigned(log2ceil(sync_seg_g + 1) - 1 downto 0);
-    signal shift_val_sync_s         : unsigned(log2ceil(sync_seg_g + 1) - 1 downto 0);
+    signal cnt_sync_s               : unsigned(width_g - 1 downto 0);
+    signal shift_val_sync_s         : unsigned(width_g - 1 downto 0);
 
     signal reload_prob_s            : std_logic;
     signal done_prob_s              : std_logic;
-    signal cnt_prob_s               : unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
-    signal shift_val_prob_s         : unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
+    signal cnt_prob_s               : unsigned(width_g - 1 downto 0);
+    signal shift_val_prob_s         : unsigned(width_g - 1 downto 0);
 
     signal reload_phase1_s          : std_logic;
     signal done_phase1_s            : std_logic;
-    signal cnt_phase1_s             : unsigned(log2ceil(phase_seg1_g + 1) - 1 downto 0);
-    signal shift_val_phase1_s       : unsigned(log2ceil(phase_seg1_g + 1) - 1 downto 0);
+    signal cnt_phase1_s             : unsigned(width_g - 1 downto 0);
+    signal shift_val_phase1_s       : unsigned(width_g - 1 downto 0);
 
     signal reload_phase2_s          : std_logic;
     signal done_phase2_s            : std_logic;
-    signal cnt_phase2_s             : unsigned(log2ceil(phase_seg2_g + 1) - 1 downto 0);
-    signal shift_val_phase2_s       : unsigned(log2ceil(phase_seg2_g + 1) - 1 downto 0);
+    signal cnt_phase2_s             : unsigned(width_g - 1 downto 0);
+    signal shift_val_phase2_s       : unsigned(width_g - 1 downto 0);
 
 begin
 
 
     prescaler_i0 : entity work.quantum_prescaler
         generic map(
-            div_g       => prescaler_g
+            width_g       => width_g
         )
         port map(
             clk         => clk,
             rst_n       => rst_n,
+
+            prescaler_i => prescaler_i,
 
             en_o        => prescale_enable_s
         );
 
     sync_cnt_i0 : entity work.seq_cnt
         generic map(
-            start_g     => sync_seg_g
+            width_g     => width_g
         )
         port map(
             clk         => clk,
@@ -74,6 +78,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_sync_s,
             shift_val_i => shift_val_sync_s,
+            start_i     => sync_seg_i,
 
             done_o      => done_sync_s,
             cnt_o       => cnt_sync_s
@@ -81,7 +86,7 @@ begin
 
     prob_cnt_i0 : entity work.seq_cnt
         generic map(
-            start_g     => prob_seg_g
+            width_g     => width_g
         )
         port map(
             clk         => clk,
@@ -90,6 +95,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_prob_s,
             shift_val_i => shift_val_prob_s,
+            start_i     => prob_seg_i,
 
             done_o      => done_prob_s,
             cnt_o       => cnt_prob_s
@@ -97,7 +103,7 @@ begin
 
     phase1_cnt_i0 : entity work.seq_cnt
         generic map(
-            start_g     => phase_seg1_g
+            width_g     => width_g
         )
         port map(
             clk         => clk,
@@ -106,6 +112,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_phase1_s,
             shift_val_i => shift_val_phase1_s,
+            start_i     => phase_seg1_i,
 
             done_o      => done_phase1_s,
             cnt_o       => cnt_phase1_s
@@ -113,7 +120,7 @@ begin
 
     phase2_cnt_i0 : entity work.seq_cnt
         generic map(
-            start_g     => phase_seg2_g
+            width_g     => width_g
         )
         port map(
             clk         => clk,
@@ -122,6 +129,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_phase2_s,
             shift_val_i => shift_val_phase2_s,
+            start_i     => phase_seg2_i,
 
             done_o      => done_phase2_s,
             cnt_o       => cnt_phase2_s
@@ -129,10 +137,7 @@ begin
 
     sample_cntr_i0 : entity work.sample_cntr
         generic map(
-            sync_seg_g          => sync_seg_g,
-            prob_seg_g          => prob_seg_g,
-            phase_seg1_g        => phase_seg1_g,
-            phase_seg2_g        => phase_seg2_g
+            width_g             => width_g
         )
         port map(
             clk                 => clk,
@@ -161,7 +166,12 @@ begin
             reload_phase2_o     => reload_phase2_s,
             done_phase2_i       => done_phase2_s,
             cnt_phase2_i        => cnt_phase2_s,
-            shift_val_phase2_o  => shift_val_phase2_s
+            shift_val_phase2_o  => shift_val_phase2_s,
+
+            sync_seg_i          => sync_seg_i,
+            prob_seg_i          => prob_seg_i,
+            phase_seg1_i        => phase_seg1_i,
+            phase_seg2_i        => phase_seg2_i
         );
 
 end rtl ; -- rtl

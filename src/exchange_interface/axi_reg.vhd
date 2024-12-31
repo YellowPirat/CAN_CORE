@@ -7,6 +7,10 @@ use work.can_core_intf.all;
 use work.peripheral_intf.all;
 
 entity axi_reg is 
+    generic (
+        width_g                 : positive;
+        offset_g                : std_logic_vector(20 downto 0)
+    );
     port (
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
@@ -20,7 +24,15 @@ entity axi_reg is
         ready_o                 : out   std_logic;
         valid_i                 : in    std_logic;
 
-        load_new_o              : out   std_logic
+        load_new_o              : out   std_logic;
+
+        sync_seg_o              : out   unsigned(width_g - 1 downto 0);
+        prob_seg_o              : out   unsigned(width_g - 1 downto 0);
+        phase_seg1_o            : out   unsigned(width_g - 1 downto 0);
+        phase_seg2_o            : out   unsigned(width_g - 1 downto 0);
+        prescaler_o             : out   unsigned(width_g - 1 downto 0);
+        
+        driver_reset_o          : out   std_logic
     );
 end entity axi_reg;
 
@@ -40,7 +52,23 @@ architecture rtl of axi_reg is
     signal load_new_s           : std_logic;
     signal store_s              : std_logic;
 
+    signal sync_seg_s           : unsigned(width_g - 1 downto 0);
+    signal prob_seg_s           : unsigned(width_g - 1 downto 0);
+    signal phase_seg1_s         : unsigned(width_g - 1 downto 0);
+    signal phase_seg2_s         : unsigned(width_g - 1 downto 0);
+    signal prescaler_s          : unsigned(width_g - 1 downto 0);
+
+    signal driver_reset_s       : std_logic;
+
 begin
+
+    sync_seg_o      <= sync_seg_s;
+    prob_seg_o      <= prob_seg_s;
+    phase_seg1_o    <= phase_seg1_s;
+    phase_seg2_o    <= phase_seg2_s;
+    prescaler_o     <= prescaler_s;
+
+    driver_reset_o  <= driver_reset_s;
 
     load_new_o          <= load_new_s;
 
@@ -60,6 +88,9 @@ begin
 
 	-- OUTPUT CNTR
 	axi_addr_cntr_i0 : entity work.axi_addr_cntr
+        generic map(
+            AddrSpaceStartPos_g     => offset_g
+        )
 		port map(
 			clk						=> clk,
 			rst_n					=> rst_n,
@@ -78,6 +109,46 @@ begin
 			load_new_o				=> load_new_s,
 			store_i					=> store_s
 		);
+
+    p_w : process(clk)
+    begin
+        if rising_edge(clk) then
+            sync_seg_s      <= sync_seg_s;
+            prob_seg_s      <= prob_seg_s;
+            phase_seg1_s    <= phase_seg1_s;
+            phase_seg2_s    <= phase_seg2_s;
+            prescaler_s     <= prescaler_s;
+
+            driver_reset_s  <= '0';
+
+            if rb_wr = '1' then
+                if unsigned(rb_addr) = unsigned(offset_g) + 44 then
+                    sync_seg_s      <= unsigned(rb_wr_data);
+                elsif unsigned(rb_addr) = unsigned(offset_g) + 48 then
+                    prob_seg_s      <= unsigned(rb_wr_data);
+                elsif unsigned(rb_addr) = unsigned(offset_g) + 52 then
+                    phase_seg1_s    <= unsigned(rb_wr_data);
+                elsif unsigned(rb_addr) = unsigned(offset_g) + 56 then
+                    phase_seg2_s    <= unsigned(rb_wr_data);
+                elsif unsigned(rb_addr) = unsigned(offset_g) + 60 then
+                    prescaler_s     <= unsigned(rb_wr_data);
+                elsif unsigned(rb_addr) = unsigned(offset_g) + 64 then
+                    driver_reset_s  <= '1';
+                end if;
+            end if;
+
+            if rst_n = '0' then
+                sync_seg_s      <= to_unsigned(1, 32);
+                prob_seg_s      <= to_unsigned(5, 32);
+                phase_seg1_s    <= to_unsigned(7, 32);
+                phase_seg2_s    <= to_unsigned(7, 32);
+                prescaler_s     <= to_unsigned(4, 32);
+                driver_reset_s  <= '0';
+            end if;
+        end if;
+    end process p_w;
+
+
 
     slave_i0 : entity work.olo_axi_lite_slave
         generic map(

@@ -7,10 +7,7 @@ library work;
 
 entity sample_cntr is 
     generic (
-        sync_seg_g      : natural;
-        prob_seg_g      : natural;
-        phase_seg1_g    : natural;
-        phase_seg2_g    : natural
+        width_g         : natural
     );
     port (
         clk                 : in    std_logic;
@@ -23,23 +20,28 @@ entity sample_cntr is
 
         reload_sync_o       : out   std_logic;
         done_sync_i         : in    std_logic;
-        cnt_sync_i          : in    unsigned(log2ceil(sync_seg_g + 1) - 1 downto 0);
-        shift_val_sync_o    : out   unsigned(log2ceil(sync_seg_g + 1) - 1 downto 0);
+        cnt_sync_i          : in    unsigned(width_g - 1 downto 0);
+        shift_val_sync_o    : out   unsigned(width_g - 1 downto 0);
 
         reload_prob_o       : out   std_logic;
         done_prob_i         : in    std_logic;
-        cnt_prob_i          : in    unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
-        shift_val_prob_o    : out   unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
+        cnt_prob_i          : in    unsigned(width_g - 1 downto 0);
+        shift_val_prob_o    : out   unsigned(width_g - 1 downto 0);
 
         reload_phase1_o     : out   std_logic;
         done_phase1_i       : in    std_logic;
-        cnt_phase1_i        : in    unsigned(log2ceil(phase_seg1_g + 1) - 1 downto 0);
-        shift_val_phase1_o  : out   unsigned(log2ceil(phase_seg1_g + 1) - 1 downto 0);
+        cnt_phase1_i        : in    unsigned(width_g - 1 downto 0);
+        shift_val_phase1_o  : out   unsigned(width_g - 1 downto 0);
 
         reload_phase2_o     : out   std_logic;
         done_phase2_i       : in    std_logic;
-        cnt_phase2_i        : in    unsigned(log2ceil(phase_seg2_g + 1) - 1 downto 0);
-        shift_val_phase2_o  : out   unsigned(log2ceil(phase_seg2_g + 1) - 1 downto 0)
+        cnt_phase2_i        : in    unsigned(width_g - 1 downto 0);
+        shift_val_phase2_o  : out   unsigned(width_g - 1 downto 0);
+
+        sync_seg_i          : in    unsigned(width_g - 1 downto 0);
+        prob_seg_i          : in    unsigned(width_g - 1 downto 0);
+        phase_seg1_i        : in    unsigned(width_g - 1 downto 0);
+        phase_seg2_i        : in    unsigned(width_g - 1 downto 0)
     );
 end entity;
 
@@ -58,12 +60,12 @@ architecture rtl of sample_cntr is
     signal reload_phase1_s          : std_logic;
     signal reload_phase2_s          : std_logic;
 
-    signal shift_val_sync_s         : unsigned(log2ceil(sync_seg_g + 1) - 1 downto 0);
-    signal shift_val_prob_s         : unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
-    signal shift_val_phase1_s       : unsigned(log2ceil(phase_seg1_g + 1) - 1 downto 0);
-    signal shift_val_phase2_s       : unsigned(log2ceil(phase_seg2_g + 1) - 1 downto 0);
+    signal shift_val_sync_s         : unsigned(width_g - 1 downto 0);
+    signal shift_val_prob_s         : unsigned(width_g - 1 downto 0);
+    signal shift_val_phase1_s       : unsigned(width_g - 1 downto 0);
+    signal shift_val_phase2_s       : unsigned(width_g - 1 downto 0);
 
-    signal shift_val_s              : unsigned(log2ceil(prob_seg_g + 1) - 1 downto 0);
+    signal shift_val_s              : unsigned(width_g - 1 downto 0);
     signal store_shift_s            : std_logic;
     signal clear_shift_s            : std_logic;
 
@@ -136,10 +138,10 @@ begin
 
         resync_error_s      <= '0';
 
-        shift_val_sync_s    <= to_unsigned(0, log2ceil(sync_seg_g + 1));
-        shift_val_prob_s    <= to_unsigned(0, log2ceil(prob_seg_g + 1));
-        shift_val_phase1_s  <= to_unsigned(0, log2ceil(phase_seg1_g + 1));
-        shift_val_phase2_s  <= to_unsigned(0, log2ceil(phase_seg2_g + 1)); 
+        shift_val_sync_s    <= to_unsigned(0, shift_val_sync_s'length);
+        shift_val_prob_s    <= to_unsigned(0, shift_val_prob_s'length);
+        shift_val_phase1_s  <= to_unsigned(0, shift_val_phase1_s'length);
+        shift_val_phase2_s  <= to_unsigned(0, shift_val_phase2_s'length); 
 
         case current_state is
             when sync_seg_s =>
@@ -159,7 +161,7 @@ begin
                     reload_phase1_s <= '1';
                     if shift_val_s > 0 then
                         clear_shift_s   <= '1';
-                        shift_val_phase1_s  <= to_unsigned(prob_seg_g - to_integer(shift_val_s) + 1, shift_val_phase1_s'length);
+                        shift_val_phase1_s  <= to_unsigned(to_integer(unsigned(prob_seg_i)) - to_integer(shift_val_s) + 1, shift_val_phase1_s'length);
                     end if;
                 end if;
 

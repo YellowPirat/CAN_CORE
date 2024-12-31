@@ -7,7 +7,7 @@ use work.peripheral_intf.all;
 
 entity axi_addr_cntr is
     generic(
-        AddrSpaceStartPos_g	: std_logic_vector(20 downto 0) := "000000000000000000000"
+        AddrSpaceStartPos_g	    : std_logic_vector(20 downto 0) := "000000000000000000000"
     );
     port (
         clk                     : in    std_logic;

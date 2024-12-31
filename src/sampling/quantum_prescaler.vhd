@@ -7,11 +7,13 @@ library work;
 
 entity quantum_prescaler is
     generic (
-        div_g               : natural   := 1
+        width_g               : natural   := 1
     );
     port (
         clk                 : in    std_logic;
         rst_n               : in    std_logic;
+
+        prescaler_i         : in    unsigned(width_g - 1 downto 0);
 
         en_o                : out   std_logic
     );
@@ -19,7 +21,7 @@ end entity;
 
 architecture rtl of quantum_prescaler is
 
-    signal  cnt_s           : unsigned(log2ceil(div_g + 1) - 1 downto 0);
+    signal  cnt_s           : unsigned(width_g - 1 downto 0);
 
 begin
 
@@ -28,7 +30,7 @@ begin
     cnt_p : process(clk)
     begin 
         if rising_edge(clk) then
-            if cnt_s < div_g then
+            if cnt_s < prescaler_i then
                 cnt_s       <= cnt_s + 1;
             else
                 cnt_s       <= to_unsigned(0, cnt_s'length);

@@ -6,6 +6,9 @@ use work.can_core_intf.all;
 use work.peripheral_intf.all;
 
 entity de1_can_core is
+    generic(
+        width_g                 : natural
+    );
     port (
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
@@ -17,7 +20,13 @@ entity de1_can_core is
 
         uart_debug_tx_o         : out   std_logic;
 
-        peripheral_status_o     : out   per_intf_t
+        peripheral_status_o     : out   per_intf_t;
+
+        sync_seg_i              : in    unsigned(width_g - 1 downto 0);
+        prob_seg_i              : in    unsigned(width_g - 1 downto 0);
+        phase_seg1_i            : in    unsigned(width_g - 1 downto 0);
+        phase_seg2_i            : in    unsigned(width_g - 1 downto 0);
+        prescaler_i             : in    unsigned(width_g - 1 downto 0)
     );
 end entity;
 
@@ -75,6 +84,9 @@ begin
     peripheral_status_o.missed_frames_overflow  <= '0';
 
     sampling_i0 : entity work.de1_sampling
+        generic map(
+            width_g                 => width_g
+        )
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
@@ -88,7 +100,13 @@ begin
             sample_o                => sample_s,
             stuff_bit_o             => stuff_bit_s,
             bus_active_detect_o     => bus_active_detect_s,
-            stuff_error_o           => stuff_error_s
+            stuff_error_o           => stuff_error_s,
+
+            sync_seg_i              => sync_seg_i,
+            prob_seg_i              => prob_seg_i,
+            phase_seg1_i            => phase_seg1_i,
+            phase_seg2_i            => phase_seg2_i,
+            prescaler_i             => prescaler_i
        );
 
     error_handling_i0 : entity work.de1_error_handling

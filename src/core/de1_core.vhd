@@ -51,13 +51,21 @@ architecture rtl of de1_core is
     signal axi_rvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
     signal axi_rready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
 
+    
+
+    signal sync_seg_setting_s   : sample_settings_vec_t(can_core_count_g - 1 downto 0);
+    signal prob_seg_setting_s   : sample_settings_vec_t(can_core_count_g - 1 downto 0);
+    signal phase_seg1_setting_s : sample_settings_vec_t(can_core_count_g - 1 downto 0);
+    signal pahse_seg2_setting_s : sample_settings_vec_t(can_core_count_g - 1 downto 0);
+    signal prescaler_setting_s  : sample_settings_vec_t(can_core_count_g - 1 downto 0);
+
 begin 
 
     axi_smmm_i0 : entity work.axi_smmmm
         generic map(
             slave_count_g           => can_core_count_g,
             start_addr_g            => to_unsigned(0, 21),
-            offset_addr_g           => to_unsigned(44, 21)
+            offset_addr_g           => to_unsigned(64, 21)
         )
         port map(
             m_axi_awaddr            => axi_intf_i.axi_awaddr,
@@ -110,7 +118,9 @@ begin
 
         exchange_interface_i0 : entity work.de1_exchange_interface
             generic map(
-                memory_depth_g          => 256
+                memory_depth_g          => 256,
+                width_g                 => 32,
+                offset_g                => std_logic_vector(to_unsigned(i * 64, 21))
             )
             port map(
                 clk                     => clk,
@@ -149,10 +159,19 @@ begin
                 can_frame_i             => can_frame_s(i),
                 can_frame_valid_i       => can_frame_valid_s(i),
 
-                peripheral_status_i     => peripheral_status_s(i)
+                peripheral_status_i     => peripheral_status_s(i),
+
+                sync_seg_o              => sync_seg_setting_s(i),
+                prob_seg_o              => prob_seg_setting_s(i),
+                phase_seg1_o            => phase_seg1_setting_s(i),
+                phase_seg2_o            => pahse_seg2_setting_s(i),
+                prescaler_o             => prescaler_setting_s(i)
             );
 
-        de1_can_core_i0 : entity work.de1_can_core 
+        de1_can_core_i0 : entity work.de1_can_core
+            generic map(
+                width_g                 => 32
+            )
             port map(
                 clk                     => clk,
                 rst_n                   => rst_n,
@@ -164,7 +183,19 @@ begin
 
                 uart_debug_tx_o         => uart_debug_o(i),
 
-                peripheral_status_o     => peripheral_status_s(i)
+                peripheral_status_o     => peripheral_status_s(i),
+
+                --sync_seg_i              => to_unsigned(1, 32),
+                --prob_seg_i              => to_unsigned(5, 32),
+                --phase_seg1_i            => to_unsigned(7, 32),
+                --phase_seg2_i            => to_unsigned(7, 32),
+                --prescaler_i             => to_unsigned(4, 32),
+
+                sync_seg_i              => sync_seg_setting_s(i),
+                prob_seg_i              => prob_seg_setting_s(i),
+                phase_seg1_i            => phase_seg1_setting_s(i),
+                phase_seg2_i            => pahse_seg2_setting_s(i),
+                prescaler_i             => prescaler_setting_s(i)
             );
     end generate can_core_gen;
 

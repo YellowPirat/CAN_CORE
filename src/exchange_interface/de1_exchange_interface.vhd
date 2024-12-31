@@ -9,7 +9,9 @@ use work.olo_base_pkg_math.all;
 
 entity de1_exchange_interface is
     generic (
-        memory_depth_g          : positive := 10
+        memory_depth_g          : positive := 10;
+        width_g                 : positive;
+        offset_g                : std_logic_vector(20 downto 0)
     );
     port (
         clk                     : in    std_logic;
@@ -21,7 +23,13 @@ entity de1_exchange_interface is
         can_frame_i             : in    can_core_out_intf_t;
         can_frame_valid_i       : in    std_logic;
 
-        peripheral_status_i     : in    per_intf_t
+        peripheral_status_i     : in    per_intf_t;
+
+        sync_seg_o              : out   unsigned(width_g - 1 downto 0);
+        prob_seg_o              : out   unsigned(width_g - 1 downto 0);
+        phase_seg1_o            : out   unsigned(width_g - 1 downto 0);
+        phase_seg2_o            : out   unsigned(width_g - 1 downto 0);
+        prescaler_o             : out   unsigned(width_g - 1 downto 0)
     );
 end de1_exchange_interface;
 
@@ -43,9 +51,11 @@ architecture rtl of de1_exchange_interface is
 
     signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
 
+    signal driver_reset_s       : std_logic;
 begin
 
-    rst_h           <= not rst_n;
+    -- OMG
+    rst_h           <= (not rst_n) or driver_reset_s;
 
     -- FIFO INPUT CNTR
     fifo_input_cntr_i0 : entity work.fifo_input_cntr 
@@ -109,10 +119,16 @@ begin
 
             dec_i               => load_new_s,
 
-            cnt_o               => buffer_usage_s
+            cnt_o               => buffer_usage_s,
+
+            clr_i               => driver_reset_s
         );
 
     axi_reg_i0 : entity work.axi_reg
+        generic map(
+            width_g                 => width_g,
+            offset_g                => offset_g
+        )
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
@@ -126,7 +142,15 @@ begin
             ready_o                 => fifo_out_ready_s,
             valid_i                 => fifo_out_valid_s,
 
-            load_new_o              => load_new_s
+            load_new_o              => load_new_s,
+
+            sync_seg_o              => sync_seg_o,
+            prob_seg_o              => prob_seg_o,
+            phase_seg1_o            => phase_seg1_o,
+            phase_seg2_o            => phase_seg2_o,
+            prescaler_o             => prescaler_o,
+
+            driver_reset_o          => driver_reset_s
         );
 
 end rtl;

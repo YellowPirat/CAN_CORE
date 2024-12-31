@@ -16,6 +16,8 @@ package peripheral_intf is
 
     type per_vec_t is array (natural range <>) of per_intf_t;
 
+    type sample_settings_vec_t is array (natural range <>) of unsigned(31 downto 0);
+
     function to_per_vector(per_intf : per_intf_t) return per_vector_t;
     function to_per_intf(per_vector : per_vector_t) return per_intf_t;
     function get_word_from_per_intf_vector(per_intf_vector : per_vector_t; pos : integer) return per_word_t;
