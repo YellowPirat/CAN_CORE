@@ -32,11 +32,11 @@ begin
     step <= '0';
     --wait for 62528 ps;
     --wait for 24800 ps;
-    wait for 1 us;
+    wait for 500 ns;
     step <= '1';
     --wait for 62528 ps;
     --wait for 24800 ps;
-    wait for 1 us;
+    wait for 500 ns;
     cnt_s <= cnt_s + 1;
     if simstop then
       wait;
