@@ -33,6 +33,7 @@ begin
     begin
         new_state <= current_state;
         next_crc_registers <= crc_registers;
+        crc_error_o <= '0';
 
         case current_state is
             when idle_s =>
@@ -65,7 +66,7 @@ begin
                 else
                         new_state <= idle_s;
                 end if;
-                if reset_i = '1' then
+                if reset_i = '1' or crc_error_o = '1' then
                     new_state <= idle_s;
                     next_crc_registers <= (others => '0');
                 end if;
