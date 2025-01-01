@@ -65,7 +65,7 @@ begin
         generic map(
             slave_count_g           => can_core_count_g,
             start_addr_g            => to_unsigned(0, 21),
-            offset_addr_g           => to_unsigned(64, 21)
+            offset_addr_g           => to_unsigned(68, 21)
         )
         port map(
             m_axi_awaddr            => axi_intf_i.axi_awaddr,
