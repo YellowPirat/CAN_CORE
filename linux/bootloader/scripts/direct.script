@@ -1,0 +1,28 @@
+echo "=== Starting boot script ==="
+# Load FPGA bitstream
+fatload mmc 0:1 0x2000000 yellowPirat.rbf
+fpga load 0 0x2000000 $filesize
+bridge enable 0x2
+
+# Load base DTB
+echo "Loading base device tree..."
+fatload mmc 0:1 ${fdt_addr_r} dtb
+fdt addr ${fdt_addr_r}
+fdt resize 32768
+
+# Calculate address after DTB
+setexpr overlay_addr ${fdt_addr_r} + ${filesize}
+setexpr overlay_addr ${overlay_addr} + 0x1000  # Add some padding
+
+# Load and apply overlay
+echo "Loading overlay to ${overlay_addr}"
+fatload mmc 0:1 ${overlay_addr} overlays/yp-can.dtbo
+fdt apply ${overlay_addr}  # Changed from 'apply' to 'import'
+
+# Load kernel and boot
+setenv bootargs 'root=/dev/mmcblk0p2 rw rootwait earlyprintk console=ttyS0,115200n8'
+load mmc 0:1 ${kernel_addr_r} vmlinuz-6.6.22-lts-socfpga
+
+echo "=== Boot script complete ==="
+
+bootz ${kernel_addr_r} - ${fdt_addr_r}

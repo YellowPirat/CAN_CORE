@@ -1,0 +1,38 @@
+echo "=== Starting boot script ==="
+# Load FPGA bitstream
+fatload mmc 0:1 0x2000000 yellowPirat.rbf
+fpga load 0 0x2000000 $filesize
+bridge enable 0x2
+
+# Load base DTB
+echo "Loading base device tree..."
+fatload mmc 0:1 ${fdt_addr_r} dtb
+setexpr overlay_addr ${fdt_addr_r} + ${filesize}
+setexpr overlay_addr ${overlay_addr} + 0x1000  # Add some padding
+fdt addr ${fdt_addr_r}
+fdt resize 32768
+
+# Check and process config.txt
+echo "Processing config.txt..."
+if test -e mmc 0:1 config.txt; then
+    echo "Found config.txt - processing..."
+    echo "Current loadaddr value: ${loadaddr}"
+    if fatload mmc 0:1 ${loadaddr} config.txt; then
+        echo "Loaded config.txt - processing..."
+        process_overlays ${loadaddr} ${overlay_addr}
+    else
+        echo "Failed to load config.txt - continuing with base DTB"
+    fi
+else
+    echo "No config.txt found - continuing with base DTB"
+fi
+
+# Load kernel
+setenv bootargs 'root=/dev/mmcblk0p2 rw rootwait earlyprintk console=ttyS0,115200n8'
+load mmc 0:1 ${kernel_addr_r} vmlinuz-6.6.22-lts-socfpga
+
+echo "=== Boot script complete ==="
+
+# Boot
+bootz ${kernel_addr_r} - ${fdt_addr_r}
+

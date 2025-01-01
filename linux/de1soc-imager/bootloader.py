@@ -41,6 +41,26 @@ class Bootloader:
             print(f"Failed to clone U-Boot: {e.stderr.decode()}")
             return False
 
+    def _setup_overlay_support(self) -> bool:
+        try:
+            # Copy the process_overlays.c to cmd directory
+            shutil.copy2('bootloader/cmd/process_overlays.c',
+                        self.uboot_dir / 'cmd' / 'process_overlays.c')
+            
+            # Append to cmd/Makefile
+            with open(self.uboot_dir / 'cmd' / 'Makefile', 'a') as f:
+                f.write('\nobj-y += process_overlays.o\n')
+            
+            # Enable overlay support in config
+            subprocess.run(['scripts/config',
+                          '--file', '.config',
+                          '--enable', 'OF_LIBFDT_OVERLAY'],
+                         cwd=self.uboot_dir, check=True)
+            return True
+        except (OSError, subprocess.CalledProcessError) as e:
+            print(f"Failed to setup overlay support: {e}")
+            return False
+
     def _build_uboot(self) -> bool:
         try:
             # Generate BSP
@@ -53,62 +73,16 @@ class Bootloader:
             # Configure and build
             subprocess.run(['make', 'CROSS_COMPILE=arm-linux-gnueabihf-', 'socfpga_cyclone5_defconfig'],
                            cwd=self.uboot_dir, check=True)
+
+            if not self._setup_overlay_support():
+                return False
+
+            # Build
             subprocess.run(['make', 'CROSS_COMPILE=arm-linux-gnueabihf-', '-j4'],
                            cwd=self.uboot_dir, check=True)
             return True
         except subprocess.CalledProcessError as e:
             print(f"Failed to build U-Boot: {e}")
-            return False
-
-    def _create_boot_script(self) -> bool:
-        try:
-            rbf_name = self.config.rbf_path.name
-            script_content = f"fatload mmc 0:1 0x2000000 {rbf_name}\n"
-            script_content += "fpga load 0 0x2000000 $filesize\n"
-            script_content += "bridge enable 0x2\n"
-
-            boot_script = self.temp_dir / "boot.script"
-            boot_script.write_text(script_content)
-
-            subprocess.run([
-                str(self.uboot_dir / "tools/mkimage"),
-                '-A', 'arm', '-O', 'linux',
-                '-T', 'script', '-C', 'none',
-                '-a', '0', '-e', '0',
-                '-n', 'doof',
-                '-d', str(boot_script),
-                str(self.config.output_dir / "u-boot.scr")
-            ], check=True)
-            return True
-        except (subprocess.CalledProcessError, OSError) as e:
-            print(f"Failed to create boot script: {e}")
-            return False
-
-    def _create_extlinux_conf(self) -> bool:
-        try:
-            extlinux_dir = self.config.output_dir / "extlinux"
-            extlinux_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Find vmlinuz file
-            vmlinuz_files = list(self.config.output_dir.glob("vmlinuz*socfpga"))
-            if not vmlinuz_files:
-                print("No vmlinuz file found")
-                return False
-                
-            vmlinuz_path = f"../{vmlinuz_files[0].name}"
-            
-            conf_content = [
-                "LABEL Linux Default",
-                f" KERNEL {vmlinuz_path}",
-                " FDT ../dtb",
-                " APPEND root=/dev/mmcblk0p2 rw rootwait earlyprintk console=ttyS0,115200n8"
-            ]
-            
-            (extlinux_dir / "extlinux.conf").write_text("\n".join(conf_content))
-            return True
-            
-        except OSError as e:
-            print(f"Failed to create extlinux configuration: {e}")
             return False
 
     def generate(self) -> bool:
@@ -121,11 +95,9 @@ class Bootloader:
 
             self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
-            if not self._create_boot_script():
-                return False
-
-            if not self._create_extlinux_conf():
-                return False
+            # Copy flexible boot script instead of generating one
+            shutil.copy2('bootloader/scripts/flexible.script',
+                        self.config.output_dir / 'u-boot.scr')
 
             # Copy SFP file
             shutil.copy2(self.uboot_dir / "u-boot-with-spl.sfp",

@@ -18,7 +18,7 @@ source activate.sh
 # Create Quartus project and hps core (Can be skipped if already done)
 cd project_files
 make qip
-cd ../synthese/exchange_interface
+cd ../synthese/core
 make qpf
 
 # Compile exchange_interface
@@ -42,3 +42,4 @@ gtkterm --port=/dev/ttyUSB0
 Read data from the AXI register 
 ```
     sudo memtool md 0xff200000+44
+```

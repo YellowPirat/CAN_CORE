@@ -7,7 +7,7 @@ This is a simple script to write a debian image to an SD card for the DE1-SoC bo
 ### Build to tar
 
 ```bash
-python3 ./de1soc-imager.py build --hps ../../synthese/exchange_interface/hps_isw_handoff/de1_soc_hps_0 --rbf ../yellowPirat.rbf
+python3 ./de1soc-imager.py build --hps ../../synthese/core/hps_isw_handoff/de1_soc_hps_0 --rbf ../yellowPirat.rbf
 ```
 
 This will create a tar file in the current directory with the name `image.tar`.
@@ -15,7 +15,7 @@ This will create a tar file in the current directory with the name `image.tar`.
 ### Write to SD card
 
 ```bash
-python3 ./de1soc-imager.py build --device /dev/sdX --hps ../../synthese/exchange_interface/hps_isw_handoff/de1_soc_hps_0 --rbf ../yellowPirat.rbf
+python3 ./de1soc-imager.py build --device /dev/sdX --hps ../../synthese/core/hps_isw_handoff/de1_soc_hps_0 --rbf ../yellowPirat.rbf
 ```
 
 This will write the image directly to the SD card at `/dev/sdX`.
