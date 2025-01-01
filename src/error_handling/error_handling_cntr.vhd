@@ -10,6 +10,7 @@ entity error_handling_cntr is
         stuff_error_i           : in    std_logic;
         decode_error_i          : in    std_logic;
         sample_error_i          : in    std_logic;
+        crc_error_i             : in    std_logic;
 
         eof_detect_i            : in    std_logic;
 
@@ -39,7 +40,7 @@ begin
     reset_destuffing_o      <= reset_destuffing_s;
     enable_eof_detect_o     <= enable_eof_detect_s;
 
-    error_handling_cntr_p : process(current_state, stuff_error_i, decode_error_i, sample_error_i, eof_detect_i)
+    error_handling_cntr_p : process(current_state, stuff_error_i, decode_error_i, sample_error_i, crc_error_i, eof_detect_i)
     begin 
         new_state           <= current_state;
         reset_core_s        <= '0';
@@ -48,7 +49,7 @@ begin
 
         case current_state is
             when idle_s =>
-                if stuff_error_i = '1' or decode_error_i = '1' or sample_error_i = '1' then
+                if stuff_error_i = '1' or decode_error_i = '1' or sample_error_i = '1' or crc_error_i = '1' then
                     new_state               <= wait_eof_s;
                     enable_eof_detect_s     <= '1';
                     reset_core_s            <= '1';

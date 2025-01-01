@@ -57,6 +57,7 @@ architecture rtl of de1_can_core is
     signal enable_crc_s             : std_logic;
     signal reset_crc_s              : std_logic;
     signal error_crc_s              : std_logic;
+    signal valid_crc_s              : std_logic;
 
     signal error_s                  : std_logic;
     signal sof_state_s              : std_logic;
@@ -149,7 +150,7 @@ begin
             rxd_sync_i              => rxd_sync_s,
 
             crc_i                   => crc_s,
-            crc_valid_i             => '0',
+            crc_valid_i             => valid_crc_s,
 
             enable_i                => enable_crc_s,
             reset_i                 => reset_crc_s,
@@ -184,7 +185,11 @@ begin
             enable_destuffing_o         => enable_destuffing_s,
 
             sof_state_o                 => sof_state_s,
-            new_frame_started_o         => new_frame_started_s
+            new_frame_started_o         => new_frame_started_s,
+
+            enable_crc_o                => enable_crc_s,
+            reset_crc_o                 => reset_crc_s,
+            valid_crc_o                 => valid_crc_s
         );
 
     can_frame_s.error_codes                 <= error_codes_s;

@@ -78,6 +78,7 @@ SRC_FILES = \
     ../../src/error_handling/ef_cntr.vhd \
     ../../src/error_handling/error_handling_cntr.vhd \
     ../../src/error_handling/de1_error_handling.vhd \
+    ../../src/crc/crc_calculation.vhd \
     ../../src/crc/de1_crc.vhd \
     ../../src/frame_valid/frame_valid_cntr.vhd \
     ../../src/frame_valid/de1_frame_valid.vhd \
