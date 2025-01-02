@@ -271,14 +271,13 @@ def generate_error_frame():
         superpositioned_error_flag = random.randint(6, 12)  # As specified in the CAN bus protocol, an error flag consists of min. 6 and max. 12 dominant bits
         error_flag = "0" * superpositioned_error_flag
         error_delimiter = "1" * 8
-        print(f"this is the lenght of the error flag: {len(error_flag)}")
-
         extended_ifs = "1" * 11 # Intermission (3 recessive bits) + suspend transmission (8 recessive bits)                  
 
         error_frame = f"{error_flag}{error_delimiter}{extended_ifs}"
 
         return {
-            "error_frame": error_frame
+            "error_frame": error_frame,
+            "error_flag_length": error_flag
         }
 
 def save_to_csv(frames, filename_with):
@@ -327,7 +326,7 @@ def main():
             if error_type: # Data frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
                 error_location = frame_with_error["error_location"] + 1
-                error_frame = generate_error_frame()["error_frame"]
+                error_frame, error_flag_length = generate_error_frame().values()
                 if error_type == "crc": # The reason for specific handling of crc error is that the whole sequence (+ the delimiter) needs to be sent first to check notice the error, so we moved the frame after the sequence
                     crc_end = len(frame_with_error["stuffed_frame"]) - 12 - bus_idle
                     frame_before_error = frame_with_error["stuffed_frame"][:crc_end]
@@ -345,7 +344,7 @@ def main():
             if error_type: # remote frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
                 error_location = frame_with_error["error_location"] + 1
-                error_frame = generate_error_frame()["error_frame"]
+                error_frame, error_flag_length = generate_error_frame().values()
                 frame_before_error = frame_with_error["stuffed_frame"][:error_location]
                 combined_frame = {"stuffed_frame": frame_before_error + error_frame}
                 frames.append(combined_frame) # Frame with error frame
@@ -366,6 +365,7 @@ def main():
         print(f"CRC (bin): {frame_without_error['crc_bin']}")
         print(f"CRC (hex): {frame_without_error['crc_hex']}")
         if error_type:
+            print(f"Length of the error flag is: {len(error_flag_length)}")
             print(f"Frame {frame_number} with error:    {frame_with_error['stuffed_frame']}")
             print(f"Error:                 {' ' * frame_with_error['error_location']}^")
             print(f"Frame {frame_number} without error: {frame_without_error['stuffed_frame']}\n")
