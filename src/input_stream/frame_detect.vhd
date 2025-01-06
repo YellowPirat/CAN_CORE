@@ -574,7 +574,7 @@ begin
                 elsif valid_sample_s = '1' and crc_cnt_done_i = '1' then
                     new_state                       <= crc_del_s;
                     crc_sample_s                    <= '1';
-                    valid_crc_s                     <= '1';
+                    
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
@@ -585,9 +585,11 @@ begin
 
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state                       <= ack_slot_s;
+                    valid_crc_s                     <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state                       <= invalid_sof_s;
                     decode_error_s                  <= '1';
+                    valid_crc_s                     <= '1';
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
