@@ -17,7 +17,9 @@ entity per_status_cntr is
         per_status_o                : out   per_intf_t;
 
         buffer_usage_i              : in    std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
-        frame_missed_i              : in    std_logic
+        frame_missed_i              : in    std_logic;
+
+        clr_i                       : in    std_logic
     );
 end entity;
 
@@ -44,7 +46,7 @@ begin
                 end if;
             end if;
             
-            if rst_n = '0' then
+            if rst_n = '0' or clr_i = '1' then
                 per_status_s.missed_frames                                          <= to_unsigned(0, per_status_s.missed_frames'length);
                 per_status_s.missed_frames_overflow                                 <= '0';
             end if;

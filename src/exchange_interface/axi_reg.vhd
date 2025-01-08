@@ -59,8 +59,14 @@ architecture rtl of axi_reg is
     signal prescaler_s          : unsigned(width_g - 1 downto 0);
 
     signal driver_reset_s       : std_logic;
+    signal comb_rst_s           : std_logic;
+
+
 
 begin
+
+    comb_rst_s                  <= rst_n and (not driver_reset_s);
+
 
     sync_seg_o      <= sync_seg_s;
     prob_seg_o      <= prob_seg_s;
@@ -77,7 +83,7 @@ begin
 	axi_fifo_cntr_i0 : entity work.axi_fifo_cntr
 		port map(
 			clk						=> clk,
-			rst_n					=> rst_n,
+			rst_n					=> comb_rst_s,
 
 			load_new_i				=> load_new_s,
 			valid_i					=> valid_i,
@@ -119,7 +125,7 @@ begin
             phase_seg2_s    <= phase_seg2_s;
             prescaler_s     <= prescaler_s;
 
-            driver_reset_s  <= '0';
+            driver_reset_s  <= driver_reset_s;
 
             if rb_wr = '1' then
                 if unsigned(rb_addr) = unsigned(offset_g) + 44 then
@@ -133,7 +139,7 @@ begin
                 elsif unsigned(rb_addr) = unsigned(offset_g) + 60 then
                     prescaler_s     <= unsigned(rb_wr_data);
                 elsif unsigned(rb_addr) = unsigned(offset_g) + 64 then
-                    driver_reset_s  <= '1';
+                    driver_reset_s  <= rb_wr_data(0);
                 end if;
             end if;
 
@@ -143,7 +149,7 @@ begin
                 phase_seg1_s    <= to_unsigned(7, 32);
                 phase_seg2_s    <= to_unsigned(7, 32);
                 prescaler_s     <= to_unsigned(4, 32);
-                driver_reset_s  <= '0';
+                driver_reset_s  <= '1';
             end if;
         end if;
     end process p_w;

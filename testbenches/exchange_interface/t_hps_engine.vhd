@@ -76,10 +76,10 @@ architecture tbench of t_hps_engine is
     signal core_setting : core_settings_t := (
         0 => X"00000001",
         1 => X"00000002",
-        2 => X"00000003",
-        3 => X"00000004",
+        2 => X"00000004",
+        3 => X"00000003",
         4 => X"00000004",
-        5 => X"00000001"
+        5 => X"00000000"
     );
 
     signal fifo_empty_s         : std_logic_vector(can_core_count_g - 1 downto 0) := (others => '0');
@@ -100,7 +100,7 @@ begin
 
     for k in 0 to can_core_count_g - 1 loop
         for i in 11 to 16 loop
-            axi_awaddr <= std_logic_vector(unsigned(can_frame_addresses(i)) + to_unsigned(k * 64, 21));
+            axi_awaddr <= std_logic_vector(unsigned(can_frame_addresses(i)) + to_unsigned(k * 4096, 21));
             axi_awvalid <= '1';
             wait until clk = '1' and clk'event;
             wait until axi_awready = '1';
@@ -119,7 +119,8 @@ begin
         end loop;
     end loop;
 
-    wait;
+    wait for 800 us;
+
   end process driver_engine;
 
   hps_engine: process
@@ -136,7 +137,7 @@ begin
         end if;
 
         for i in 0 to 10 loop
-            axi_araddr <= std_logic_vector(unsigned(can_frame_addresses(i)) + to_unsigned(k * 64, 21));
+            axi_araddr <= std_logic_vector(unsigned(can_frame_addresses(i)) + to_unsigned(k * 4096, 21));
             axi_arvalid <= '1';
             wait until clk = '1' and clk'event;
             wait until axi_arready = '1';
@@ -165,6 +166,8 @@ begin
             
         end loop;
     end loop;
+
+    wait for 500 us;
 
   end process hps_engine;
 

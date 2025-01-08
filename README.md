@@ -52,6 +52,7 @@ sudo memtool mw 0xff200034 0x00000004
 sudo memtool mw 0xff200038 0x00000003
 sudo memtool mw 0xff20003c 0x00000004
 sudo memtool mw 0xff200040 0x00000001
+
 ```
 
 Config Sample Unit 500k

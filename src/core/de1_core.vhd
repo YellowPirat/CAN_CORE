@@ -18,9 +18,10 @@ entity de1_core is
 
         uart_debug_o        : out   std_logic_vector(can_core_count_g - 1 downto 0);
 
+        debug_o             : out   std_logic_vector(can_core_count_g - 1 downto 0);
+
         axi_intf_i          : in    axi_lite_output_intf_t;
         axi_intf_o          : out   axi_lite_input_intf_t
-
     );
 end entity;
 
@@ -59,15 +60,21 @@ architecture rtl of de1_core is
     signal pahse_seg2_setting_s : sample_settings_vec_t(can_core_count_g - 1 downto 0);
     signal prescaler_setting_s  : sample_settings_vec_t(can_core_count_g - 1 downto 0);
 
+    signal driver_reset_vec_s   : std_logic_vector(can_core_count_g - 1 downto 0);
+    signal reset_sync_s         : std_logic_vector(can_core_count_g - 1 downto 0);
+
 begin 
 
     axi_smmm_i0 : entity work.axi_smmmm
         generic map(
             slave_count_g           => can_core_count_g,
             start_addr_g            => to_unsigned(0, 21),
-            offset_addr_g           => to_unsigned(68, 21)
+            offset_addr_g           => to_unsigned(4096, 21)
         )
         port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
             m_axi_awaddr            => axi_intf_i.axi_awaddr,
             m_axi_awvalid           => axi_intf_i.axi_awvalid,
             m_axi_awready           => axi_intf_o.axi_awready,
@@ -120,7 +127,7 @@ begin
             generic map(
                 memory_depth_g          => 256,
                 width_g                 => 32,
-                offset_g                => std_logic_vector(to_unsigned(i * 64, 21))
+                offset_g                => std_logic_vector(to_unsigned(i * 4096, 21))
             )
             port map(
                 clk                     => clk,
@@ -155,6 +162,7 @@ begin
                 axi_intf_i.axi_rready   => axi_rready_s(i),
 
 
+                driver_reset_o          => driver_reset_vec_s(i),
 
                 can_frame_i             => can_frame_s(i),
                 can_frame_valid_i       => can_frame_valid_s(i),
@@ -168,13 +176,16 @@ begin
                 prescaler_o             => prescaler_setting_s(i)
             );
 
+        reset_sync_s(i)                 <= rst_n and (not driver_reset_vec_s(i));
+        debug_o(i)                      <= reset_sync_s(i);
+
         de1_can_core_i0 : entity work.de1_can_core
             generic map(
                 width_g                 => 32
             )
             port map(
                 clk                     => clk,
-                rst_n                   => rst_n,
+                rst_n                   => reset_sync_s(i),
 
                 rxd_async_i             => rxd_async_i(i),
 
@@ -184,12 +195,6 @@ begin
                 uart_debug_tx_o         => uart_debug_o(i),
 
                 peripheral_status_o     => peripheral_status_s(i),
-
-                --sync_seg_i              => to_unsigned(1, 32),
-                --prob_seg_i              => to_unsigned(5, 32),
-                --phase_seg1_i            => to_unsigned(7, 32),
-                --phase_seg2_i            => to_unsigned(7, 32),
-                --prescaler_i             => to_unsigned(4, 32),
 
                 sync_seg_i              => sync_seg_setting_s(i),
                 prob_seg_i              => prob_seg_setting_s(i),

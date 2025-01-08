@@ -29,13 +29,15 @@ entity de1_exchange_interface is
         prob_seg_o              : out   unsigned(width_g - 1 downto 0);
         phase_seg1_o            : out   unsigned(width_g - 1 downto 0);
         phase_seg2_o            : out   unsigned(width_g - 1 downto 0);
-        prescaler_o             : out   unsigned(width_g - 1 downto 0)
+        prescaler_o             : out   unsigned(width_g - 1 downto 0); 
+
+        driver_reset_o          : out   std_logic
     );
 end de1_exchange_interface;
 
 architecture rtl of de1_exchange_interface is
 
-    signal rst_h                : std_logic;
+    
 
     signal frame_missed_s       : std_logic;
     signal fifo_out_ready_s     : std_logic;
@@ -52,16 +54,20 @@ architecture rtl of de1_exchange_interface is
     signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
 
     signal driver_reset_s       : std_logic;
+    signal comb_rst_s           : std_logic;
+    signal comb_rst_h           : std_logic;
+
 begin
 
-    -- OMG
-    rst_h           <= (not rst_n) or driver_reset_s;
+    comb_rst_s                  <= rst_n and (not driver_reset_s);
+    comb_rst_h                  <= not comb_rst_s;
+    driver_reset_o              <= driver_reset_s;
 
     -- FIFO INPUT CNTR
     fifo_input_cntr_i0 : entity work.fifo_input_cntr 
         port map(
             clk                 => clk,
-            rst_n               => rst_n,
+            rst_n               => comb_rst_s,
 
             frame_valid_i       => can_frame_valid_i,
             fifo_ready_i        => fifo_in_ready_s,
@@ -79,7 +85,7 @@ begin
 
 		port map(
 			Clk 		        => clk,
-			Rst			        => rst_h,
+			Rst			        => comb_rst_h,
 
 			In_Data		        => to_can_core_vector(can_frame_i),
 			In_Valid	        => fifo_in_valid_s,
@@ -98,13 +104,15 @@ begin
         )
         port map(
             clk                 => clk,
-            rst_n               => rst_n,
+            rst_n               => comb_rst_s,
 
             per_status_i        => peripheral_status_i,
             per_status_o        => peripheral_status_s,
 
             buffer_usage_i      => buffer_usage_s,
-            frame_missed_i      => frame_missed_s
+            frame_missed_i      => frame_missed_s,
+
+            clr_i               => driver_reset_s
         );
 
     buffer_usage_cntr_i0 : entity work.buffer_usage_cntr
@@ -113,7 +121,7 @@ begin
         )
         port map(
             clk                 => clk,
-            rst_n               => rst_n,
+            rst_n               => comb_rst_s,
 
             inc_i               => can_frame_valid_i,
 

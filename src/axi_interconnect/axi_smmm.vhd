@@ -11,6 +11,9 @@ entity axi_smmmm is
         offset_addr_g           : unsigned(20 downto 0)
     );
     port(
+        clk                     : in    std_logic;
+        rst_n                   : in    std_logic;
+
         -- MASTER
         m_axi_awaddr            : in    std_logic_vector(20 downto 0);
         m_axi_awvalid           : in    std_logic := '0';
@@ -61,17 +64,71 @@ architecture rtl of axi_smmmm is
 
     signal slave_sel : integer range 0 to slave_count_g := 0;
 
+    -- 1 := read     0 := write
+    signal rorw : std_logic;
+
+    type state_t is(
+        write_s,
+        read_s
+    );
+    signal current_state, new_state : state_t;
+
+
 begin
 
-    address_decode : process(m_axi_awaddr, m_axi_araddr)
+    rorw_p : process(current_state, m_axi_awvalid, m_axi_arvalid)
+    begin 
+        new_state           <= current_state;
+        rorw                <= '0';
+
+        case current_state is
+            when write_s =>
+                if m_axi_arvalid = '1' and m_axi_awvalid = '0' then
+                    new_state           <= read_s;
+                    rorw                <= '1';
+                else
+                    rorw                <= '0';
+                end if;
+                
+            when read_s =>
+                if m_axi_arvalid = '0' and m_axi_awvalid = '1' then
+                    new_state           <= write_s;
+                    rorw                <= '0';
+                else
+                    rorw                <= '1';
+                end if;
+
+
+            when others => new_state <= write_s;
+            
+        end case;
+    end process;
+
+    p : process(clk) 
+    begin
+        if rising_edge(clk) then
+            current_state           <= new_state;
+
+            if rst_n = '0' then
+                current_state       <= write_s;
+            end if;
+        end if;
+    end process p;
+
+    address_decode : process(m_axi_awaddr, m_axi_araddr, rorw)
     begin
         for i in 0 to slave_count_g - 1 loop
-            if unsigned(m_axi_awaddr) >=  start_addr_g + i * offset_addr_g and unsigned(m_axi_awaddr) <= start_addr_g + i * offset_addr_g + offset_addr_g then
-                slave_sel <= i;
+            
+            if rorw = '0' then
+                if unsigned(m_axi_awaddr) >=  start_addr_g + i * offset_addr_g and unsigned(m_axi_awaddr) <= start_addr_g + i * offset_addr_g + offset_addr_g then
+                    slave_sel <= i;
+                end if;
             end if;
-
-            if unsigned(m_axi_araddr) >=  start_addr_g + i * offset_addr_g and unsigned(m_axi_araddr) <= start_addr_g + i * offset_addr_g + offset_addr_g then
-                slave_sel <= i;
+            
+            if rorw = '1' then
+                if unsigned(m_axi_araddr) >=  start_addr_g + i * offset_addr_g and unsigned(m_axi_araddr) <= start_addr_g + i * offset_addr_g + offset_addr_g then
+                    slave_sel <= i;
+                end if;
             end if;
         end loop;
     end process;
