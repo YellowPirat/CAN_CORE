@@ -13,12 +13,10 @@ entity de1_can_core is
         clk                     : in    std_logic;
         rst_n                   : in    std_logic;
 
-        rxd_async_i             : in    std_logic;
+        rxd_async_i             : in    std_logic_vector(0 downto 0);
 
         can_frame_o             : out   can_core_out_intf_t;
         can_frame_valid_o       : out   std_logic;
-
-        uart_debug_tx_o         : out   std_logic;
 
         peripheral_status_o     : out   per_intf_t;
 
@@ -32,9 +30,18 @@ end entity;
 
 architecture rtl of de1_can_core is
 
-    signal rxd_async_s              : std_logic;
+    -- SYNC
+    signal rxd_sync_s               : std_logic_vector(0 downto 0);
+    signal warm_rxd_sync_s          : std_logic;
+
+    -- RESET
+    signal rst_h                    : std_logic;
+
+    signal edge_s                   : std_logic;
+    signal hard_reload_s            : std_logic;
+
     signal frame_finished_s         : std_logic;
-    signal rxd_sync_s               : std_logic;
+
     signal sample_s                 : std_logic;
     signal stuff_bit_s              : std_logic;
     signal bus_active_detect_s      : std_logic;
@@ -75,7 +82,7 @@ architecture rtl of de1_can_core is
 
     signal timestamp_s              : std_logic_vector(63 downto 0);
 
-    signal warm_rxd_sync_s          : std_logic;
+
 begin
 
     peripheral_status_o.buffer_usage            <= (others => '0');
@@ -83,12 +90,26 @@ begin
     peripheral_status_o.missed_frames           <= to_unsigned(0, peripheral_status_o.missed_frames'length);
     peripheral_status_o.missed_frames_overflow  <= '0';
 
+    rst_h       <= not rst_n;
+
+    sync_stage_i0 : entity work.olo_intf_sync
+        generic map(
+            RstLevel_g      => '1'
+        )
+        port map(
+            Clk             => clk,
+            Rst             => rst_h,
+            DataAsync       => rxd_async_i,
+            DataSync        => rxd_sync_s
+        );
+
+
     warm_start_i0 : entity work.de1_warm_start
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_sync_i              => rxd_sync_s,
+            rxd_sync_i              => rxd_sync_s(0),
             sample_i                => sample_s,
 
             rxd_sync_o              => warm_rxd_sync_s
@@ -102,16 +123,14 @@ begin
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_i                   => rxd_async_i,
+            rxd_sync_i              => warm_rxd_sync_s,
             frame_finished_i        => frame_finished_s,
             enable_destuffing_i     => enable_destuffing_s,
             reset_destuffing_i      => '0',
+            hard_reload_i           => hard_reload_s,
 
-            rxd_sync_o              => rxd_sync_s,
             sample_o                => sample_s,
-            stuff_bit_o             => stuff_bit_s,
-            bus_active_detect_o     => bus_active_detect_s,
-            stuff_error_o           => stuff_error_s,
+            edge_o                  => edge_s,
 
             sync_seg_i              => sync_seg_i,
             prob_seg_i              => prob_seg_i,
@@ -120,12 +139,38 @@ begin
             prescaler_i             => prescaler_i
        );
 
+    destuffing_i0 : entity work.destuffing
+       port map(
+           clk             => clk,
+           rst_n           => rst_n,
+
+           data_i          => warm_rxd_sync_s,
+           sample_i        => sample_s,
+           enable_i        => enable_destuffing_s,
+           reset_i         => '0',
+           
+           stuff_bit_o     => stuff_bit_s,
+           stuff_error_o   => stuff_error_s
+       );
+
+    idle_detect_i0 : entity work.idle_detect
+       port map(
+           clk             => clk,
+           rst_n           => rst_n,
+
+           frame_end_i     => frame_finished_s,
+           edge_i          => edge_s,
+
+           hard_reload_o   => hard_reload_s, 
+           bus_active_o    => bus_active_detect_s
+       );
+
     error_handling_i0 : entity work.de1_error_handling
         port map(
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_i                   => rxd_sync_s,
+            rxd_i                   => warm_rxd_sync_s,
             sample_i                => sample_s,
 
             new_frame_started_i     => new_frame_started_s,
@@ -175,7 +220,7 @@ begin
 
             sample_i                => sample_s,
             stuff_bit_i             => stuff_bit_s,
-            rxd_sync_i              => rxd_sync_s,
+            rxd_sync_i              => warm_rxd_sync_s,
 
             crc_i                   => crc_s,
             crc_valid_i             => '0',
@@ -191,7 +236,7 @@ begin
             clk                         => clk,
             rst_n                       => rst_n,
 
-            rxd_sync_i                  => rxd_sync_s,
+            rxd_sync_i                  => warm_rxd_sync_s,
             sample_i                    => sample_s,
             stuff_bit_i                 => stuff_bit_s,
             bus_active_detect_i         => bus_active_detect_s,
@@ -228,38 +273,5 @@ begin
     can_frame_s.data                        <= data_s;
     can_frame_o                             <= can_frame_s;
 
-    -- DEBUG MAPPING
-    -- ID
-    uart_data_s(28 downto 0)        <= id_s;
-    uart_data_s(31 downto 29)       <= (others => '0');
-    -- FLAGS
-    uart_data_s(32)                 <= rtr_s;
-    uart_data_s(33)                 <= eff_s;
-    uart_data_s(34)                 <= err_s;
-    uart_data_s(39 downto 35)       <= (others => '0');
-    -- DLC
-    uart_data_s(43 downto 40)       <= dlc_s;
-    uart_data_s(47 downto 44)       <= (others => '0');
-    -- DATA
-    uart_data_s(111 downto 48)      <= data_s;
-    -- CRC
-    uart_data_s(126 downto 112)     <= crc_s;
-    uart_data_s(127)                <= '0';
-
-
-    debug_i0 : entity work.de1_debug
-        generic map(
-            widght_g                => 128
-        )
-        port map(
-            clk                     => clk,
-            rst_n                   => rst_n,
-
-            data_i                  => uart_data_s,
-            valid_i                 => data_valid_s,
-
-            rxd_i                   => uart_rx_s,
-            txd_o                   => uart_debug_tx_o
-        );
 
 end rtl ; -- rtl

@@ -187,12 +187,10 @@ begin
                 clk                     => clk,
                 rst_n                   => reset_sync_s(i),
 
-                rxd_async_i             => rxd_async_i(i),
+                rxd_async_i(0)          => rxd_async_i(i),
 
                 can_frame_o             => can_frame_s(i),
                 can_frame_valid_o       => can_frame_valid_s(i),
-
-                uart_debug_tx_o         => uart_debug_o(i),
 
                 peripheral_status_o     => peripheral_status_s(i),
 
@@ -201,6 +199,20 @@ begin
                 phase_seg1_i            => phase_seg1_setting_s(i),
                 phase_seg2_i            => pahse_seg2_setting_s(i),
                 prescaler_i             => prescaler_setting_s(i)
+            );
+
+            debug_i0 : entity work.de1_debug
+            generic map(
+                widght_g                => 128
+            )
+            port map(
+                clk                     => clk,
+                rst_n                   => reset_sync_s(i),
+    
+                can_frame_i             => can_frame_s(i),
+                valid_i                 => can_frame_valid_s(i),
+
+                txd_o                   => uart_debug_o(i)
             );
     end generate can_core_gen;
 

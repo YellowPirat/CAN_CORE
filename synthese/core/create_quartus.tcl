@@ -51,50 +51,43 @@ set_global_assignment -name VHDL_FILE ../../src/interfaces/per_intf.vhd
 set_global_assignment -name VHDL_FILE ../../src/interfaces/can_core_intf.vhd
 set_global_assignment -name VHDL_FILE ../../src/interfaces/axi_lite_intf.vhd
 
-set_global_assignment -name VHDL_FILE ../../src/sampling/sample_edge_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/resync_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/sample_validator.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/edge_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/idle_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_logic.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/last_bit.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/destuffing.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/quantum_prescaler.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/seq_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/sample_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/sample.vhd
-set_global_assignment -name VHDL_FILE ../../src/sampling/de1_sampling.vhd
+#CAN_CORE
 
-set_global_assignment -name VHDL_FILE ../../src/input_stream/frame_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/uni_dec_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/uni_reg.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/field_reg.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/valid_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/bit_reg.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/id_mapping.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/socketcan_mapper.vhd
-set_global_assignment -name VHDL_FILE ../../src/input_stream/de1_input_stream.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/debug/splice_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/debug/uart_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
-set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
-set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/error_handling/ef_detect.vhd
-set_global_assignment -name VHDL_FILE ../../src/error_handling/ef_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/error_handling/error_handling_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/error_handling/de1_error_handling.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/crc/de1_crc.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/frame_valid/frame_valid_cntr.vhd
-set_global_assignment -name VHDL_FILE ../../src/frame_valid/de1_frame_valid.vhd
-
-set_global_assignment -name VHDL_FILE ../../src/timestamp/timestamp_sampler.vhd
-set_global_assignment -name VHDL_FILE ../../src/timestamp/uni_cnt.vhd
-set_global_assignment -name VHDL_FILE ../../src/timestamp/de1_timestamp.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/idle_detect/idle_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/destuffing/destuffing_logic.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/destuffing/destuffing_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/destuffing/last_bit.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/destuffing/destuffing.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/sample_edge_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/resync_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/sample_validator.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/edge_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/quantum_prescaler.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/seq_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/sample_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/sample.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/sampling/de1_sampling.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/frame_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/uni_dec_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/uni_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/field_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/valid_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/bit_reg.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/id_mapping.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/socketcan_mapper.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/input_stream/de1_input_stream.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/error_handling/ef_detect.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/error_handling/ef_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/error_handling/error_handling_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/error_handling/de1_error_handling.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/crc/de1_crc.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/frame_valid/frame_valid_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/frame_valid/de1_frame_valid.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/timestamp/timestamp_sampler.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/timestamp/uni_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/timestamp/de1_timestamp.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/warm_start/warm_start.vhd
+set_global_assignment -name VHDL_FILE ../../src/can_core/warm_start/de1_warm_start.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/can_core/de1_can_core.vhd
 
@@ -107,6 +100,12 @@ set_global_assignment -name VHDL_FILE ../../src/exchange_interface/axi_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/fifo_input_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/per_status_cntr.vhd
 set_global_assignment -name VHDL_FILE ../../src/exchange_interface/de1_exchange_interface.vhd
+
+set_global_assignment -name VHDL_FILE ../../src/debug/splice_cnt.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/uart_cntr.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/splicer.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/asci_mapper.vhd
+set_global_assignment -name VHDL_FILE ../../src/debug/de1_debug.vhd
 
 set_global_assignment -name VHDL_FILE ../../src/axi_interconnect/axi_smmm.vhd
 

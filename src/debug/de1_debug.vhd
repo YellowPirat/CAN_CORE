@@ -5,6 +5,10 @@ library ieee;
 library work;
     use work.olo_base_pkg_math.all;
 
+
+    use work.can_core_intf.all;
+    use work.peripheral_intf.all;
+
 entity de1_debug is
     generic (
         widght_g            : positive := 8
@@ -13,13 +17,12 @@ entity de1_debug is
         clk                 : in    std_logic;
         rst_n               : in    std_logic;
 
-        data_i              : in    std_logic_vector(widght_g - 1 downto 0);
+        can_frame_i         : in    can_core_out_intf_t;
+        
         valid_i             : in    std_logic;
 
-        rxd_i               : in    std_logic;
-        txd_o               : out   std_logic;
-		  
-		  GPIO_1 : inout std_logic_vector(35 downto 0)
+
+        txd_o               : out   std_logic
     );  
 end entity;
 
@@ -37,6 +40,8 @@ architecture rtl of de1_debug is
     signal tx_ready_s           : std_logic;
     signal tx_data_s            : std_logic_vector(7 downto 0);
 
+    signal rxd_s                : std_logic;
+
     signal cnt_s                : std_logic_vector(log2ceil(widght_g / 4 + 1) - 1 downto 0);
 
     signal data_splice_s        : std_logic_vector(3 downto 0);
@@ -44,15 +49,30 @@ architecture rtl of de1_debug is
     signal lf_s                 : std_logic;
     signal rl_s                 : std_logic;
 
+    signal data_s               : std_logic_vector(widght_g - 1 downto 0);
+
 begin
 
-	GPIO_1(2) <= tx_ready_s;
-	GPIO_1(3) <= tx_valid_s;
 	
-
     rst_h                       <= not rst_n;
 
-
+    -- DEBUG MAPPING
+    -- ID
+    data_s(28 downto 0)        <= can_frame_i.can_id;
+    data_s(31 downto 29)       <= (others => '0');
+    -- FLAGS
+    data_s(32)                 <= can_frame_i.rtr;
+    data_s(33)                 <= can_frame_i.eff;
+    data_s(34)                 <= can_frame_i.err;
+    data_s(39 downto 35)       <= (others => '0');
+    -- DLC
+    data_s(43 downto 40)       <= can_frame_i.can_dlc;
+    data_s(47 downto 44)       <= (others => '0');
+    -- DATA
+    data_s(111 downto 48)      <= can_frame_i.data;
+    -- CRC
+    data_s(126 downto 112)     <= can_frame_i.crc;
+    data_s(127)                <= '0';
 
 	
     asci_mapper_i0 : entity work.asci_mapper
@@ -84,7 +104,7 @@ begin
             widght_g            => widght_g
         )
         port map(
-            data_i              => data_i,
+            data_i              => data_s,
             cnt_i               => cnt_s,
 
             data_o              => data_splice_s
@@ -92,7 +112,8 @@ begin
 
     uart_i0 : entity work.olo_intf_uart
         generic map(
-            ClkFreq_g           => real(50000000)
+            ClkFreq_g           => real(50000000),
+            BaudRate_g          => real(500000)
         )
         port map(
             Clk                 => clk,
@@ -103,7 +124,7 @@ begin
             Tx_Data             => tx_data_s,
 
             Uart_Tx             => txd_o,
-            Uart_Rx             => rxd_i
+            Uart_Rx             => rxd_s
         );
 
     uart_cntr_i0 : entity work.uart_cntr
