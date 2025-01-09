@@ -85,6 +85,8 @@ SRC_FILES = \
     ../../src/timestamp/timestamp_sampler.vhd \
     ../../src/timestamp/uni_cnt.vhd \
     ../../src/timestamp/de1_timestamp.vhd \
+    ../../src/warm_start/warm_start.vhd \
+    ../../src/warm_start/de1_warm_start.vhd \
     ../../src/can_core/de1_can_core.vhd \
     ../../src/exchange_interface/valid_edge_det.vhd \
     ../../src/exchange_interface/buffer_usage_cnt.vhd \

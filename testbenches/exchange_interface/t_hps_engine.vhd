@@ -96,7 +96,7 @@ begin
 
   driver_engine : process
   begin
-    wait for 2 us;
+    wait for 30 us;
 
     for k in 0 to can_core_count_g - 1 loop
         for i in 11 to 16 loop

@@ -75,13 +75,24 @@ architecture rtl of de1_can_core is
 
     signal timestamp_s              : std_logic_vector(63 downto 0);
 
-
+    signal warm_rxd_sync_s          : std_logic;
 begin
 
     peripheral_status_o.buffer_usage            <= (others => '0');
     peripheral_status_o.peripheral_error        <= (others => '0');
     peripheral_status_o.missed_frames           <= to_unsigned(0, peripheral_status_o.missed_frames'length);
     peripheral_status_o.missed_frames_overflow  <= '0';
+
+    warm_start_i0 : entity work.de1_warm_start
+        port map(
+            clk                     => clk,
+            rst_n                   => rst_n,
+
+            rxd_sync_i              => rxd_sync_s,
+            sample_i                => sample_s,
+
+            rxd_sync_o              => warm_rxd_sync_s
+        );
 
     sampling_i0 : entity work.de1_sampling
         generic map(
