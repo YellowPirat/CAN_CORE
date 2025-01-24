@@ -4,13 +4,11 @@ library ieee;
 
 entity de1_warm_start is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        rxd_sync_i          : in    std_logic;
-        sample_i            : in    std_logic;
-
-        rxd_sync_o          : out   std_logic
+        clk                 : in    std_logic                   := '0';
+        rst_n               : in    std_logic                   := '1';
+        rxd_sync_i          : in    std_logic                   := '1';
+        sample_i            : in    std_logic                   := '0';
+        rxd_sync_o          : out   std_logic                   := '1'
     );
 end entity;
 

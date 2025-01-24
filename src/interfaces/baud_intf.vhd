@@ -13,4 +13,20 @@ package baud_intf is
 
     type baud_intf_vec_t is array (natural range <>) of baud_intf_t;
 
+    function baud_intf_default return baud_intf_t;
+    
 end package baud_intf;
+
+package body baud_intf is
+    function baud_intf_default return baud_intf_t is
+        variable ret : baud_intf_t;
+    begin 
+        ret.sync_seg            := (others => '0');
+        ret.prob_seg            := (others => '0');
+        ret.phase_seg1          := (others => '0');
+        ret.phase_seg2          := (others => '0');
+        ret.prescaler           := (others => '0');
+        return ret;
+    end function;
+
+end package body baud_intf;

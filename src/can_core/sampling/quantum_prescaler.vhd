@@ -7,21 +7,19 @@ library work;
 
 entity quantum_prescaler is
     generic (
-        width_g               : natural   := 1
+        width_g             : natural                                       := 1
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        prescaler_i         : in    unsigned(width_g - 1 downto 0);
-
-        en_o                : out   std_logic
+        clk                 : in    std_logic                               := '0';
+        rst_n               : in    std_logic                               := '1';
+        prescaler_i         : in    unsigned(width_g - 1 downto 0)          := (others => '0');
+        en_o                : out   std_logic                               := '0'
     );
 end entity;
 
 architecture rtl of quantum_prescaler is
 
-    signal  cnt_s           : unsigned(width_g - 1 downto 0);
+    signal  cnt_s           : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
 
 begin
 

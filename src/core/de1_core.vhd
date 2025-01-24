@@ -169,9 +169,6 @@ begin
         debug_o(i)                      <= reset_sync_s(i);
 
         de1_can_core_i0 : entity work.de1_can_core
-            generic map(
-                width_g                 => 32
-            )
             port map(
                 clk                     => clk,
                 rst_n                   => reset_sync_s(i),

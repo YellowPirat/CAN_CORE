@@ -7,41 +7,41 @@ library work;
 
 entity sample_cntr is 
     generic (
-        width_g         : natural
+        width_g                     : natural                                       := 32
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                         : in    std_logic                               := '0';
+        rst_n                       : in    std_logic                               := '1';
 
-        edge_i              : in    std_logic;
-        hard_reload_i       : in    std_logic;
-        sync_enable_i       : in    std_logic;
-        sample_o            : out   std_logic;
+        edge_i                      : in    std_logic                               := '0';
+        hard_reload_i               : in    std_logic                               := '0';
+        sync_enable_i               : in    std_logic                               := '0';
+        sample_o                    : out   std_logic                               := '0';
 
-        reload_sync_o       : out   std_logic;
-        done_sync_i         : in    std_logic;
-        cnt_sync_i          : in    unsigned(width_g - 1 downto 0);
-        shift_val_sync_o    : out   unsigned(width_g - 1 downto 0);
+        reload_sync_o               : out   std_logic                               := '0';
+        done_sync_i                 : in    std_logic                               := '0';
+        cnt_sync_i                  : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        shift_val_sync_o            : out   unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
 
-        reload_prob_o       : out   std_logic;
-        done_prob_i         : in    std_logic;
-        cnt_prob_i          : in    unsigned(width_g - 1 downto 0);
-        shift_val_prob_o    : out   unsigned(width_g - 1 downto 0);
+        reload_prob_o               : out   std_logic                               := '0';
+        done_prob_i                 : in    std_logic                               := '0';
+        cnt_prob_i                  : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        shift_val_prob_o            : out   unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
 
-        reload_phase1_o     : out   std_logic;
-        done_phase1_i       : in    std_logic;
-        cnt_phase1_i        : in    unsigned(width_g - 1 downto 0);
-        shift_val_phase1_o  : out   unsigned(width_g - 1 downto 0);
+        reload_phase1_o             : out   std_logic                               := '0';
+        done_phase1_i               : in    std_logic                               := '0';
+        cnt_phase1_i                : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        shift_val_phase1_o          : out   unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
 
-        reload_phase2_o     : out   std_logic;
-        done_phase2_i       : in    std_logic;
-        cnt_phase2_i        : in    unsigned(width_g - 1 downto 0);
-        shift_val_phase2_o  : out   unsigned(width_g - 1 downto 0);
+        reload_phase2_o             : out   std_logic                               := '0';
+        done_phase2_i               : in    std_logic                               := '0';
+        cnt_phase2_i                : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        shift_val_phase2_o          : out   unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
 
-        sync_seg_i          : in    unsigned(width_g - 1 downto 0);
-        prob_seg_i          : in    unsigned(width_g - 1 downto 0);
-        phase_seg1_i        : in    unsigned(width_g - 1 downto 0);
-        phase_seg2_i        : in    unsigned(width_g - 1 downto 0)
+        sync_seg_i                  : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        prob_seg_i                  : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        phase_seg1_i                : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g);
+        phase_seg2_i                : in    unsigned(width_g - 1 downto 0)          := to_unsigned(0, width_g)
     );
 end entity;
 
@@ -55,26 +55,26 @@ architecture rtl of sample_cntr is
     );
     signal current_state, new_state : state_t;
 
-    signal reload_sync_s            : std_logic;
-    signal reload_prob_s            : std_logic;
-    signal reload_phase1_s          : std_logic;
-    signal reload_phase2_s          : std_logic;
+    signal reload_sync_s            : std_logic                                     := '0';
+    signal reload_prob_s            : std_logic                                     := '0';
+    signal reload_phase1_s          : std_logic                                     := '0';
+    signal reload_phase2_s          : std_logic                                     := '0';
 
-    signal shift_val_sync_s         : unsigned(width_g - 1 downto 0);
-    signal shift_val_prob_s         : unsigned(width_g - 1 downto 0);
-    signal shift_val_phase1_s       : unsigned(width_g - 1 downto 0);
-    signal shift_val_phase2_s       : unsigned(width_g - 1 downto 0);
+    signal shift_val_sync_s         : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
+    signal shift_val_prob_s         : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
+    signal shift_val_phase1_s       : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
+    signal shift_val_phase2_s       : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
 
-    signal shift_val_s              : unsigned(width_g - 1 downto 0);
-    signal store_shift_s            : std_logic;
-    signal clear_shift_s            : std_logic;
+    signal shift_val_s              : unsigned(width_g - 1 downto 0)                := to_unsigned(0, width_g);
+    signal store_shift_s            : std_logic                                     := '0';
+    signal clear_shift_s            : std_logic                                     := '0';
 
-    signal sample_s                 : std_logic;
+    signal sample_s                 : std_logic                                     := '0';
 
-    signal negative_resync          : std_logic;
-    signal positive_resync          : std_logic;
+    signal negative_resync          : std_logic                                     := '0';
+    signal positive_resync          : std_logic                                     := '0';
 
-    signal resync_error_s           : std_logic;
+    signal resync_error_s           : std_logic                                     := '0';
 
 begin
 
