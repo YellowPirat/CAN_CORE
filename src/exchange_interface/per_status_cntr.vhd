@@ -7,24 +7,21 @@ use work.olo_base_pkg_math.all;
 
 entity per_status_cntr is
     generic (
-        memory_depth_g              : natural := 10
+        memory_depth_g              : natural                                                                   := 10
     );
     port (
-        clk                         : in    std_logic;
-        rst_n                       : in    std_logic;
-
-        per_status_o                : out   per_intf_t;
-
-        buffer_usage_i              : in    std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
-        frame_missed_i              : in    std_logic;
-
-        clr_i                       : in    std_logic
+        clk                         : in    std_logic                                                           := '0';
+        rst_n                       : in    std_logic                                                           := '1';
+        per_status_o                : out   per_intf_t                                                          := get_emtpy;
+        buffer_usage_i              : in    std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0)         := (others => '0');
+        frame_missed_i              : in    std_logic                                                           := '0';
+        clr_i                       : in    std_logic                                                           := '0'
     );
 end entity;
 
 architecture rtl of per_status_cntr is
 
-    signal per_status_s             : per_intf_t;
+    signal per_status_s             : per_intf_t                                                                := get_emtpy;
 
 begin
 

@@ -6,35 +6,35 @@ use work.can_core_intf.all;
 
 entity t_hps_engine is
     generic (
-        can_core_count_g    : natural := 1
+        can_core_count_g    : natural                                                       := 1
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                 : in    std_logic                                               := '0';
+        rst_n               : in    std_logic                                               := '1';
 
-        axi_awaddr          : out   std_logic_vector(20 downto 0);
-        axi_awvalid         : out   std_logic := '0';
-        axi_awready         : in    std_logic;
+        axi_awaddr          : out   std_logic_vector(20 downto 0)                           := (others => '0');
+        axi_awvalid         : out   std_logic                                               := '0';
+        axi_awready         : in    std_logic                                               := '0';
       
-        axi_wdata           : out   std_logic_vector(31 downto 0) := (others => '0');
-        axi_wvalid          : out   std_logic := '0';
-        axi_wready          : in    std_logic;
+        axi_wdata           : out   std_logic_vector(31 downto 0)                           := (others => '0');
+        axi_wvalid          : out   std_logic                                               := '0';
+        axi_wready          : in    std_logic                                               := '0';
       
-        axi_bresp           : in    std_logic_vector(1 downto 0);
-        axi_bvalid          : in    std_logic;
-        axi_bready          : out   std_logic := '0';
+        axi_bresp           : in    std_logic_vector(1 downto 0)                            := (others => '0');
+        axi_bvalid          : in    std_logic                                               := '0';
+        axi_bready          : out   std_logic                                               := '0';
       
-        axi_araddr          : out   std_logic_vector(20 downto 0) := (others => '0');
-        axi_arvalid         : out   std_logic := '0';
-        axi_arready         : in    std_logic;
+        axi_araddr          : out   std_logic_vector(20 downto 0)                           := (others => '0');
+        axi_arvalid         : out   std_logic                                               := '0';
+        axi_arready         : in    std_logic                                               := '0';
       
-        axi_rdata           : in    std_logic_vector(31 downto 0);
-        axi_rresp           : in    std_logic_vector(1 downto 0);
-        axi_rvalid          : in    std_logic;
-        axi_rready          : out   std_logic := '0';
+        axi_rdata           : in    std_logic_vector(31 downto 0)                           := (others => '0');
+        axi_rresp           : in    std_logic_vector(1 downto 0)                            := (others => '0');
+        axi_rvalid          : in    std_logic                                               := '0';
+        axi_rready          : out   std_logic                                               := '0';
 
-        can_frame_o         : out   can_core_out_intf_t;
-        can_frame_valid_o   : out   std_logic_vector(can_core_count_g - 1 downto 0)
+        can_frame_o         : out   can_core_out_intf_t                                     := can_core_intf_default;
+        can_frame_valid_o   : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '0')
     );
 end entity;
 
@@ -82,12 +82,12 @@ architecture tbench of t_hps_engine is
         5 => X"00000000"
     );
 
-    signal fifo_empty_s         : std_logic_vector(can_core_count_g - 1 downto 0) := (others => '0');
-    signal start_sequence_s     : std_logic_vector(can_core_count_g - 1 downto 0) := (others => '1');
+    signal fifo_empty_s         : std_logic_vector(can_core_count_g - 1 downto 0)       := (others => '0');
+    signal start_sequence_s     : std_logic_vector(can_core_count_g - 1 downto 0)       := (others => '1');
 
-    signal can_frame_s          : can_core_vector_t;
-    signal axi_frame_s          : axi_lite_vector_t;
-    signal can_frame_valid_s    : std_logic_vector(can_core_count_g - 1 downto 0);
+    signal can_frame_s          : can_core_vector_t                                     := (others => '0');
+    signal axi_frame_s          : axi_lite_vector_t                                     := (others => '0');
+    signal can_frame_valid_s    : std_logic_vector(can_core_count_g - 1 downto 0)       := (others => '0');
 
 begin
 

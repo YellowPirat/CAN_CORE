@@ -7,36 +7,33 @@ use work.peripheral_intf.all;
 
 entity axi_addr_cntr is
     generic(
-        AddrSpaceStartPos_g	    : std_logic_vector(20 downto 0) := "000000000000000000000"
+        AddrSpaceStartPos_g	    : std_logic_vector(20 downto 0)                     := "000000000000000000000"
     );
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        olo_axi_rb_addr_i       : in    std_logic_vector(20 downto 0);
-        olo_axi_rb_wr_i         : in    std_logic;
-        olo_axi_rb_byte_ena_i   : in    std_logic_vector(3 downto 0);
-        olo_axi_rb_wr_data_i    : in    std_logic_vector(31 downto 0);
-        olo_axi_rb_rd_i         : in    std_logic;
-        olo_axi_rb_rd_data_o    : out   std_logic_vector(31 downto 0);
-        olo_axi_rb_rd_valid_o   : out   std_logic;
-
-        per_intf_i              : in    per_intf_t;
-        can_frame_i             : in    can_core_out_intf_t;
-        
-        load_new_o              : out   std_logic;
-        store_i                 : in    std_logic
+        clk                         : in    std_logic                                   := '0';
+        rst_n                       : in    std_logic                                   := '1';
+        olo_axi_rb_addr_i           : in    std_logic_vector(20 downto 0)               := (others => '0');
+        olo_axi_rb_wr_i             : in    std_logic                                   := '0';
+        olo_axi_rb_byte_ena_i       : in    std_logic_vector(3 downto 0)                := (others => '0');
+        olo_axi_rb_wr_data_i        : in    std_logic_vector(31 downto 0)               := (others => '0');
+        olo_axi_rb_rd_i             : in    std_logic                                   := '0';
+        olo_axi_rb_rd_data_o        : out   std_logic_vector(31 downto 0)               := (others => '0');
+        olo_axi_rb_rd_valid_o       : out   std_logic                                   := '0';
+        per_intf_i                  : in    per_intf_t                                  := get_emtpy;
+        can_frame_i                 : in    can_core_out_intf_t                         := can_core_intf_default;
+        load_new_o                  : out   std_logic                                   := '0';
+        store_i                     : in    std_logic                                   := '0'
     );
 
 end entity axi_addr_cntr;
 
 architecture rtl of axi_addr_cntr is
 
-    signal load_new_s               : std_logic;
-    signal can_frame_s              : can_core_vector_t;
-    signal olo_axi_rb_rd_data_s     : std_logic_vector(31 downto 0);
-    signal olo_axi_rb_rd_valid_s    : std_logic;
-    signal per_intf_vector_s        : per_vector_t;
+    signal load_new_s               : std_logic                                         := '0';
+    signal can_frame_s              : can_core_vector_t                                 := (others => '0');
+    signal olo_axi_rb_rd_data_s     : std_logic_vector(31 downto 0)                     := (others => '0');
+    signal olo_axi_rb_rd_valid_s    : std_logic                                         := '0';
+    signal per_intf_vector_s        : per_vector_t                                      := (others => '0');
 
 begin
 

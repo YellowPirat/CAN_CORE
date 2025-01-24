@@ -6,21 +6,21 @@ use std.textio.all;
 
 entity cangen is
   port(
-    rst_n     : in std_logic;
-    rxd_o     : out std_logic;
-    simstop   : in boolean := false
+    rst_n                 : in    std_logic                                                 := '1';
+    rxd_o                 : out   std_logic                                                 := '1';
+    simstop               : in    boolean                                                   := false
   );
 end entity;
 
 architecture sim of cangen is
 
-    signal step : std_logic := '0';
-    signal rxd : std_logic := '1';
-    signal active_s : std_logic := '0';
+    signal step           : std_logic                                                       := '0';
+    signal rxd            : std_logic                                                       := '1';
+    signal active_s       : std_logic                                                       := '0';
 
-    signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0) := (others => '1');
+    signal value1_std_logic_8_bit, value2_std_logic_8_bit: std_logic_vector(7 downto 0)     := (others => '1');
 
-    signal cnt_s  : unsigned(10 downto 0) := to_unsigned(0, 11);
+    signal cnt_s        : unsigned(10 downto 0)                                             := to_unsigned(0, 11);
 
 begin
 
