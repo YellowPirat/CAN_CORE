@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.can_core_intf.all;
 
 entity de1_input_stream is
     port(
@@ -20,6 +21,8 @@ entity de1_input_stream is
         data_o                  : out   std_logic_vector(63 downto 0);
         crc_o                   : out   std_logic_vector(14 downto 0);
 
+        can_frame_o             : out   can_core_out_intf_t;
+
         valid_o                 : out   std_logic;
 		  
         frame_finished_o        : out   std_logic;
@@ -34,7 +37,7 @@ end entity;
 
 architecture rtl of de1_input_stream is
 
-    signal frame_finished_s     : std_logic;
+
     signal reload_s             : std_logic;
 
     -- ID
@@ -86,11 +89,10 @@ architecture rtl of de1_input_stream is
 begin
 
     -- OUTPUT MAPPING
-    frame_finished_o        <= frame_finished_s;
-    eff_o                   <= eff_s;
-    --data_o                  <= data_s;
-    dlc_o                   <= dlc_data_s;
-    crc_o                   <= crc_data_s;
+
+    can_frame_o.eff                   <= eff_s;
+    can_frame_o.can_dlc                   <= dlc_data_s;
+    can_frame_o.crc                   <= crc_data_s;
 
     new_frame_started_o     <= reload_s;
 
@@ -98,7 +100,7 @@ begin
         port map(
             data_i          => data_s,
             dlc_i           => dlc_data_s,
-            data_o          => data_o
+            data_o          => can_frame_o.data
         );
 
     id_mapping_i0 : entity work.id_mapping
@@ -106,7 +108,7 @@ begin
             eff_i               => eff_s,
             eid_i               => eid_data_s,
             id_i                => id_data_s,
-            id_o                => id_o
+            id_o                => can_frame_o.can_id
         );
 
 
@@ -256,7 +258,7 @@ begin
             sample_i            => rtr_sample_s,
             reload_i            => reload_s,
 
-            data_o              => rtr_o
+            data_o              => can_frame_o.rtr
         );
 
     eff_reg_i0 : entity work.bit_reg
@@ -280,7 +282,7 @@ begin
             sample_i            => err_sample_s,
             reload_i            => reload_s,
 
-            data_o              => err_o
+            data_o              => can_frame_o.err
         );
 
 
@@ -293,7 +295,7 @@ begin
             sample_i            => sample_i,
             stuff_bit_i         => stuff_bit_i,
             bus_active_i        => bus_active_detect_i,
-            frame_done_o        => frame_finished_s,
+            frame_done_o        => frame_finished_o,
             reload_o            => reload_s,
 
             -- ID

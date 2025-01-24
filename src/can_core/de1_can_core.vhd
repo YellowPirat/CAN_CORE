@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.can_core_intf.all;
-use work.peripheral_intf.all;
+
 use work.baud_intf.all;
 
 entity de1_can_core is
@@ -27,7 +27,7 @@ architecture rtl of de1_can_core is
 
     -- SYNC
     signal rxd_sync_s               : std_logic_vector(0 downto 0);
-    signal warm_rxd_sync_s          : std_logic;
+    signal rxd_s          : std_logic;
 
     -- RESET
     signal rst_h                    : std_logic;
@@ -41,21 +41,11 @@ architecture rtl of de1_can_core is
     signal stuff_bit_s              : std_logic;
     signal bus_active_detect_s      : std_logic;
 
-    signal id_s                     : std_logic_vector(28 downto 0);
-    signal rtr_s                    : std_logic;
-    signal eff_s                    : std_logic;
-    signal err_s                    : std_logic;
-    signal dlc_s                    : std_logic_vector(3 downto 0);
-    signal crc_s                    : std_logic_vector(14 downto 0);
-    signal data_s                   : std_logic_vector(63 downto 0);
+
     signal data_valid_s             : std_logic;
 
     signal can_frame_s              : can_core_out_intf_t;
 
-
-    signal uart_rx_s                : std_logic;
-    signal uart_tx_s                : std_logic;
-    signal uart_data_s              : std_logic_vector(127 downto 0);
 
     signal reset_core_s             : std_logic;
     signal reset_destuffing_s       : std_logic;
@@ -75,12 +65,11 @@ architecture rtl of de1_can_core is
 
     signal error_codes_s            : std_logic_vector(15 downto 0);
 
-    signal timestamp_s              : std_logic_vector(63 downto 0);
-
-
 begin
 
     rst_h       <= not rst_n;
+
+    can_frame_o                             <= can_frame_s;
 
     sync_stage_i0 : entity work.olo_intf_sync
         generic map(
@@ -102,7 +91,7 @@ begin
             rxd_sync_i              => rxd_sync_s(0),
             sample_i                => sample_s,
 
-            rxd_sync_o              => warm_rxd_sync_s
+            rxd_sync_o              => rxd_s
         );
 
     sampling_i0 : entity work.de1_sampling
@@ -113,7 +102,7 @@ begin
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_sync_i              => warm_rxd_sync_s,
+            rxd_sync_i              => rxd_s,
             frame_finished_i        => frame_finished_s,
             enable_destuffing_i     => enable_destuffing_s,
             reset_destuffing_i      => '0',
@@ -130,10 +119,10 @@ begin
            clk             => clk,
            rst_n           => rst_n,
 
-           data_i          => warm_rxd_sync_s,
+           data_i          => rxd_s,
            sample_i        => sample_s,
            enable_i        => enable_destuffing_s,
-           reset_i         => '0',
+           reset_i         => reset_destuffing_s,
            
            stuff_bit_o     => stuff_bit_s,
            stuff_error_o   => stuff_error_s
@@ -156,7 +145,7 @@ begin
             clk                     => clk,
             rst_n                   => rst_n,
 
-            rxd_i                   => warm_rxd_sync_s,
+            rxd_i                   => rxd_s,
             sample_i                => sample_s,
 
             new_frame_started_i     => new_frame_started_s,
@@ -184,7 +173,7 @@ begin
 
             sample_i                => new_frame_started_s,
 
-            cnt_o                   => timestamp_s
+            cnt_o                   => can_frame_s.timestamp
         );
 
     frame_valid_i0 : entity work.de1_frame_valid
@@ -206,9 +195,9 @@ begin
 
             sample_i                => sample_s,
             stuff_bit_i             => stuff_bit_s,
-            rxd_sync_i              => warm_rxd_sync_s,
+            rxd_sync_i              => rxd_s,
 
-            crc_i                   => crc_s,
+            crc_i                   => can_frame_s.crc,
             crc_valid_i             => '0',
 
             enable_i                => enable_crc_s,
@@ -222,18 +211,12 @@ begin
             clk                         => clk,
             rst_n                       => rst_n,
 
-            rxd_sync_i                  => warm_rxd_sync_s,
+            rxd_sync_i                  => rxd_s,
             sample_i                    => sample_s,
             stuff_bit_i                 => stuff_bit_s,
             bus_active_detect_i         => bus_active_detect_s,
 
-            id_o                        => id_s,
-            rtr_o                       => rtr_s,
-            eff_o                       => eff_s,
-            err_o                       => err_s,
-            dlc_o                       => dlc_s,
-            data_o                      => data_s,
-            crc_o                       => crc_s,
+            can_frame_o                 => can_frame_s,
 
             valid_o                     => data_valid_s,
 
@@ -247,17 +230,8 @@ begin
             new_frame_started_o         => new_frame_started_s
         );
 
-    can_frame_s.error_codes                 <= error_codes_s;
-    can_frame_s.frame_type                  <= (others => '0');
-    can_frame_s.timestamp                   <= timestamp_s;
-    can_frame_s.crc                         <= crc_s;
-    can_frame_s.can_dlc                     <= dlc_s;
-    can_frame_s.can_id                      <= id_s;
-    can_frame_s.rtr                         <= rtr_s;
-    can_frame_s.eff                         <= eff_s;
-    can_frame_s.err                         <= err_s;
-    can_frame_s.data                        <= data_s;
-    can_frame_o                             <= can_frame_s;
+
+
 
 
 end rtl ; -- rtl
