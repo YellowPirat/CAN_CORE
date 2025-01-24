@@ -86,6 +86,7 @@ begin
             stuff_error_i       => stuff_error_i,
             decode_error_i      => decode_error_i,
             sample_error_i      => sample_error_i,
+            crc_error_i         => crc_error_i,
 
             eof_detect_i        => eof_detect_s,
 

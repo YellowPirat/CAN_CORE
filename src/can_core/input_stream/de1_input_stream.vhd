@@ -332,7 +332,10 @@ begin
             decode_error_o      => decode_error_o,
             enable_destuffing_o => enable_destuffing_o,
             data_valid_o        => valid_o,
-            sof_state_o         => sof_state_o
+            sof_state_o         => sof_state_o,
+            enable_crc_o        => enable_crc_o,
+            reset_crc_o         => reset_crc_o,
+            valid_crc_o         => valid_crc_o
         );
 
 end rtl ;

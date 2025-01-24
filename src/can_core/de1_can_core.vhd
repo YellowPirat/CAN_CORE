@@ -148,9 +148,11 @@ begin
             rst_n                   => rst_n,
             sample_i                => sample_s,
             stuff_bit_i             => stuff_bit_s,
-            rxd_sync_i              => rxd_s,
-            crc_i                   => can_frame_s.crc,
-            crc_valid_i             => '0',
+            rxd_sync_i              => rxd_sync_s,
+
+            crc_i                   => crc_s,
+            crc_valid_i             => valid_crc_s,
+
             enable_i                => enable_crc_s,
             reset_i                 => reset_crc_s,
             crc_error_o             => error_crc_s
