@@ -52,7 +52,7 @@ SRC_FILES = \
     ../../src/can_core/destuffing/destuffing_logic.vhd \
     ../../src/can_core/destuffing/destuffing_cntr.vhd \
     ../../src/can_core/destuffing/last_bit.vhd \
-    ../../src/can_core/destuffing/destuffing.vhd \
+    ../../src/can_core/destuffing/de1_destuffing.vhd \
     ../../src/can_core/sampling/sample_edge_detect.vhd \
     ../../src/can_core/sampling/resync_cntr.vhd \
     ../../src/can_core/sampling/sample_validator.vhd \

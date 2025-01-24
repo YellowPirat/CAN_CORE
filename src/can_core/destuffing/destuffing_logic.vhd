@@ -4,17 +4,15 @@ use ieee.numeric_std.all;
 
 entity destuffing_logic is
     port (
-        clk                         : in    std_logic;
-        rst_n                       : in    std_logic;
-
-        data_i                      : in    std_logic;
-        sample_i                    : in    std_logic;
-        reset_i                     : in    std_logic;
-        enable_i                    : in    std_logic;
-        last_bit_i                  : in    std_logic;
-
-        stuff_bit_o                 : out   std_logic;
-        stuff_error_o               : out    std_logic     
+        clk                             : in    std_logic                   := '0';
+        rst_n                           : in    std_logic                   := '1';
+        data_i                          : in    std_logic                   := '1';
+        sample_i                        : in    std_logic                   := '0';
+        reset_i                         : in    std_logic                   := '0';
+        enable_i                        : in    std_logic                   := '0';
+        last_bit_i                      : in    std_logic                   := '0';
+        stuff_bit_o                     : out   std_logic                   := '0';
+        stuff_error_o                   : out   std_logic                   := '0'
     );
 end entity;
 
@@ -36,13 +34,11 @@ architecture rtl of destuffing_logic is
         err_s
     );
 
-    signal current_state, new_state : state_t;
+    signal current_state, new_state     : state_t                           := idle_s;
 
-    signal stuff_bit_s, error_s : std_logic;
+    signal stuff_bit_s, error_s         : std_logic                         := '0';
 
 begin
-
-
 
     stuff_error_o <= error_s;
     stuff_bit_o <= stuff_bit_s;

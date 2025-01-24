@@ -81,7 +81,7 @@ begin
             baud_config_i           => baud_config_i
        );
 
-    destuffing_i0 : entity work.destuffing
+    destuffing_i0 : entity work.de1_destuffing
        port map(
            clk                      => clk,
            rst_n                    => rst_n,
