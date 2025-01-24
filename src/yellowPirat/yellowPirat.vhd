@@ -501,7 +501,7 @@ begin
             rxd_async_i                 => rxd_s,
 
             uart_debug_o                => GPIO_1(5 downto 0),
-            debug_o                     => dbg_led_s,
+            status_o                    => dbg_led_s,
 
             axi_intf_i                  => axi_intf_o,
             axi_intf_o                  => axi_intf_i

@@ -39,9 +39,11 @@ package can_core_intf is
     function get_word_from_can_core_vector(can_core_vector : can_core_vector_t; pos : integer) return axi_lite_vector_t;
     function set_axi_frame_into_can_vector(can_core_vector : can_core_vector_t; pos : integer; axi_frame : axi_lite_vector_t) return can_core_vector_t;
 
+
 end package can_core_intf;
 
 package body can_core_intf is
+
 
     function to_can_core_vector(input_intf : can_core_out_intf_t) return can_core_vector_t is
         variable ret : can_core_vector_t;

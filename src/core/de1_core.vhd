@@ -9,54 +9,50 @@ use work.baud_intf.all;
 
 entity de1_core is
     generic (
-        can_core_count_g        : positive := 1
+        can_core_count_g        : positive                                                      := 1
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        rxd_async_i         : in    std_logic_vector(can_core_count_g - 1 downto 0);
-
-        uart_debug_o        : out   std_logic_vector(can_core_count_g - 1 downto 0);
-
-        debug_o             : out   std_logic_vector(can_core_count_g - 1 downto 0);
-
-        axi_intf_i          : in    axi_lite_output_intf_t;
-        axi_intf_o          : out   axi_lite_input_intf_t
+        clk                     : in    std_logic                                               := '0';
+        rst_n                   : in    std_logic                                               := '1';
+        rxd_async_i             : in    std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '1');
+        status_o                : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '0');
+        debug_o                 : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '1');
+        axi_intf_i              : in    axi_lite_output_intf_t                                  := axi_lite_output_intf_default;
+        axi_intf_o              : out   axi_lite_input_intf_t                                   := axi_lite_input_intf_default
     );
 end entity;
 
 architecture rtl of de1_core is
 
-    signal can_frame_s          : can_frame_vec_t(can_core_count_g - 1 downto 0);
-    signal can_frame_valid_s    : std_logic_vector(can_core_count_g - 1 downto 0);
+    signal can_frame_s          : can_frame_vec_t(can_core_count_g - 1 downto 0)                := (others => can_core_intf_default);
+    signal can_frame_valid_s    : std_logic_vector(can_core_count_g - 1 downto 0)               := (others => '0');
 
-    signal axi_awaddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_awvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_awready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_awaddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_awvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
+    signal axi_awready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
 
-    signal axi_wdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_wvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_wready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_wdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_wvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
+    signal axi_wready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
 
-    signal axi_bresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_bvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_bready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_bresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_bvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
+    signal axi_bready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
 
-    signal axi_araddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_arvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_arready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_araddr_s         : axi_addr_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_arvalid_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
+    signal axi_arready_s        : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
 
-    signal axi_rdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_rresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_rvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
-    signal axi_rready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0);
+    signal axi_rdata_s          : axi_data_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_rresp_s          : axi_resp_vec_t(can_core_count_g - 1 downto 0)                 := (others => (others => '0'));
+    signal axi_rvalid_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
+    signal axi_rready_s         : axi_sig_vec_t(can_core_count_g - 1 downto 0)                  := (others => '0');
 
 
-    signal baud_config_s        : baud_intf_vec_t(can_core_count_g - 1 downto 0);
+    signal baud_config_s        : baud_intf_vec_t(can_core_count_g - 1 downto 0)                := (others => baud_intf_default);
 
-    signal driver_reset_vec_s   : std_logic_vector(can_core_count_g - 1 downto 0);
-    signal reset_sync_s         : std_logic_vector(can_core_count_g - 1 downto 0);
+    signal driver_reset_vec_s   : std_logic_vector(can_core_count_g - 1 downto 0)               := (others => '0');
+    signal reset_sync_s         : std_logic_vector(can_core_count_g - 1 downto 0)               := (others => '0');
 
 begin 
 
@@ -192,7 +188,7 @@ begin
                 can_frame_i             => can_frame_s(i),
                 valid_i                 => can_frame_valid_s(i),
 
-                txd_o                   => uart_debug_o(i)
+                txd_o                   => status_o(i)
             );
     end generate can_core_gen;
 
