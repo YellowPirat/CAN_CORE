@@ -4,23 +4,21 @@ library ieee;
 
 entity frame_valid_cntr is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        can_frame_valid_i   : in    std_logic;
-        error_i             : in    std_logic;
-        sof_state_i         : in    std_logic;
-
-        frame_valid_o       : out   std_logic
+        clk                             : in    std_logic                   := '0';
+        rst_n                           : in    std_logic                   := '1';
+        can_frame_valid_i               : in    std_logic                   := '0';
+        error_i                         : in    std_logic                   := '0';
+        sof_state_i                     : in    std_logic                   := '0';
+        frame_valid_o                   : out   std_logic                   := '0'
     );
 end frame_valid_cntr;
 
 architecture rtl of frame_valid_cntr is
 
     type state_t is (idle_s, error_frame_s, error_frame_valid_s);
-    signal current_state, new_state : state_t;
 
-    signal frame_valid_s            : std_logic;
+    signal current_state, new_state     : state_t                           := idle_s;
+    signal frame_valid_s                : std_logic                         := '0';
 
 begin
 

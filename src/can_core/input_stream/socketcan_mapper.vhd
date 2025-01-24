@@ -4,16 +4,15 @@ use ieee.numeric_std.all;
 
 entity socketcan_mapper is
     port (
-        data_i              : in    std_logic_vector(63 downto 0);
-        dlc_i               : in    std_logic_vector(3 downto 0);
-
-        data_o              : out   std_logic_vector(63 downto 0)
+        data_i              : in    std_logic_vector(63 downto 0)           := (others => '0');
+        dlc_i               : in    std_logic_vector(3 downto 0)            := (others => '0');
+        data_o              : out   std_logic_vector(63 downto 0)           := (others => '0')
     );
 end entity;
 
 architecture rtl of socketcan_mapper is
 
-    signal data_s           : std_logic_vector(63 downto 0);
+    signal data_s           : std_logic_vector(63 downto 0)                 := (others => '0');
 
 begin
 
@@ -22,14 +21,11 @@ begin
     process(data_i, dlc_i)
         variable dlc_val : integer;
     begin
-        -- Konvertiere dlc_i in einen Integer-Wert
         dlc_val := to_integer(unsigned(dlc_i));
         
-        -- Initialisiere data_s mit Nullen
         data_s <= (others => '0');
         
         if (dlc_val <= 8) then
-            -- Weise Daten basierend auf dlc_val zu
             if dlc_val > 0 then
                 data_s(31 downto 24) <= data_i(7 + 8 * (dlc_val - 1) downto 8 * (dlc_val - 1));
             end if;
