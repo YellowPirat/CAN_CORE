@@ -5,6 +5,8 @@ use ieee.numeric_std.all;
 library work;
     use work.olo_base_pkg_math.all;
 
+    use work.baud_intf.all;
+
 entity sample is
     generic (
         width_g         : natural
@@ -17,11 +19,7 @@ entity sample is
         hard_reload_i   : in    std_logic;
         sync_enable_i   : in    std_logic;
 
-        sync_seg_i      : in    unsigned(width_g - 1 downto 0);
-        prob_seg_i      : in    unsigned(width_g - 1 downto 0);
-        phase_seg1_i    : in    unsigned(width_g - 1 downto 0);
-        phase_seg2_i    : in    unsigned(width_g - 1 downto 0);
-        prescaler_i     : in    unsigned(width_g - 1 downto 0);
+        baud_config_i   : in    baud_intf_t;
 
         sample_o        : out   std_logic
     );
@@ -62,7 +60,7 @@ begin
             clk         => clk,
             rst_n       => rst_n,
 
-            prescaler_i => prescaler_i,
+            prescaler_i => baud_config_i.prescaler,
 
             en_o        => prescale_enable_s
         );
@@ -78,7 +76,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_sync_s,
             shift_val_i => shift_val_sync_s,
-            start_i     => sync_seg_i,
+            start_i     => baud_config_i.sync_seg,
 
             done_o      => done_sync_s,
             cnt_o       => cnt_sync_s
@@ -95,7 +93,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_prob_s,
             shift_val_i => shift_val_prob_s,
-            start_i     => prob_seg_i,
+            start_i     => baud_config_i.prob_seg,
 
             done_o      => done_prob_s,
             cnt_o       => cnt_prob_s
@@ -112,7 +110,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_phase1_s,
             shift_val_i => shift_val_phase1_s,
-            start_i     => phase_seg1_i,
+            start_i     => baud_config_i.phase_seg1,
 
             done_o      => done_phase1_s,
             cnt_o       => cnt_phase1_s
@@ -129,7 +127,7 @@ begin
             en_i        => prescale_enable_s,
             reload_i    => reload_phase2_s,
             shift_val_i => shift_val_phase2_s,
-            start_i     => phase_seg2_i,
+            start_i     => baud_config_i.phase_seg2,
 
             done_o      => done_phase2_s,
             cnt_o       => cnt_phase2_s
@@ -168,10 +166,10 @@ begin
             cnt_phase2_i        => cnt_phase2_s,
             shift_val_phase2_o  => shift_val_phase2_s,
 
-            sync_seg_i          => sync_seg_i,
-            prob_seg_i          => prob_seg_i,
-            phase_seg1_i        => phase_seg1_i,
-            phase_seg2_i        => phase_seg2_i
+            sync_seg_i          => baud_config_i.sync_seg,
+            prob_seg_i          => baud_config_i.prob_seg,
+            phase_seg1_i        => baud_config_i.phase_seg1,
+            phase_seg2_i        => baud_config_i.phase_seg2
         );
 
 end rtl ; -- rtl

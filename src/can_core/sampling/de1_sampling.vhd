@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.baud_intf.all;
 
 entity de1_sampling is
     generic(
@@ -20,12 +21,7 @@ entity de1_sampling is
         sample_o                : out   std_logic;
         edge_o                  : out   std_logic;
 
-
-        sync_seg_i              : in    unsigned(width_g - 1 downto 0);
-        prob_seg_i              : in    unsigned(width_g - 1 downto 0);
-        phase_seg1_i            : in    unsigned(width_g - 1 downto 0);
-        phase_seg2_i            : in    unsigned(width_g - 1 downto 0);
-        prescaler_i             : in    unsigned(width_g - 1 downto 0)
+        baud_config_i           : in    baud_intf_t
     );
 end entity;
 
@@ -72,12 +68,8 @@ begin
             edge_i          => edge_s,
             hard_reload_i   => hard_reload_i,
             sync_enable_i   => sync_enable_s,
-            
-            sync_seg_i      => sync_seg_i,
-            prob_seg_i      => prob_seg_i,
-            phase_seg1_i    => phase_seg1_i,
-            phase_seg2_i    => phase_seg2_i,
-            prescaler_i     => prescaler_i,
+
+            baud_config_i   => baud_config_i,
 
             sample_o        => sample_s
         );

@@ -47,6 +47,7 @@ SRC_FILES = \
     ../../src/interfaces/per_intf.vhd \
     ../../src/interfaces/can_core_intf.vhd \
     ../../src/interfaces/axi_lite_intf.vhd \
+    ../../src/interfaces/baud_intf.vhd \
     ../../src/can_core/idle_detect/idle_detect.vhd \
     ../../src/can_core/destuffing/destuffing_logic.vhd \
     ../../src/can_core/destuffing/destuffing_cntr.vhd \

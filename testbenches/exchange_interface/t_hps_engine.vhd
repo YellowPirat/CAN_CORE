@@ -33,7 +33,7 @@ entity t_hps_engine is
         axi_rvalid          : in    std_logic;
         axi_rready          : out   std_logic := '0';
 
-        can_frame_o         : out   can_core_vector_t;
+        can_frame_o         : out   can_core_out_intf_t;
         can_frame_valid_o   : out   std_logic_vector(can_core_count_g - 1 downto 0)
     );
 end entity;
@@ -91,7 +91,7 @@ architecture tbench of t_hps_engine is
 
 begin
 
-  can_frame_o           <= can_frame_s;
+  can_frame_o           <= to_can_core_intf(can_frame_s);
   can_frame_valid_o     <= can_frame_valid_s;
 
   driver_engine : process
@@ -125,8 +125,6 @@ begin
 
   hps_engine: process
   begin
-
-    wait for 100 us;
 
     for k in 0 to can_core_count_g - 1 loop
 
@@ -167,7 +165,7 @@ begin
         end loop;
     end loop;
 
-    wait for 500 us;
+    wait for 20 us;
 
   end process hps_engine;
 

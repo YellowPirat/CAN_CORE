@@ -5,6 +5,7 @@ library ieee;
 use work.axi_lite_intf.all;
 use work.can_core_intf.all;
 use work.peripheral_intf.all;
+use work.baud_intf.all;
 use work.olo_base_pkg_math.all;
 
 entity de1_exchange_interface is
@@ -23,13 +24,7 @@ entity de1_exchange_interface is
         can_frame_i             : in    can_core_out_intf_t;
         can_frame_valid_i       : in    std_logic;
 
-        peripheral_status_i     : in    per_intf_t;
-
-        sync_seg_o              : out   unsigned(width_g - 1 downto 0);
-        prob_seg_o              : out   unsigned(width_g - 1 downto 0);
-        phase_seg1_o            : out   unsigned(width_g - 1 downto 0);
-        phase_seg2_o            : out   unsigned(width_g - 1 downto 0);
-        prescaler_o             : out   unsigned(width_g - 1 downto 0); 
+        baud_config_o           : out   baud_intf_t;
 
         driver_reset_o          : out   std_logic
     );
@@ -106,7 +101,6 @@ begin
             clk                 => clk,
             rst_n               => comb_rst_s,
 
-            per_status_i        => peripheral_status_i,
             per_status_o        => peripheral_status_s,
 
             buffer_usage_i      => buffer_usage_s,
@@ -152,11 +146,7 @@ begin
 
             load_new_o              => load_new_s,
 
-            sync_seg_o              => sync_seg_o,
-            prob_seg_o              => prob_seg_o,
-            phase_seg1_o            => phase_seg1_o,
-            phase_seg2_o            => phase_seg2_o,
-            prescaler_o             => prescaler_o,
+            baud_config_o           => baud_config_o,
 
             driver_reset_o          => driver_reset_s
         );

@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 use work.can_core_intf.all;
 use work.peripheral_intf.all;
+use work.baud_intf.all;
 
 entity de1_can_core is
     generic(
@@ -18,13 +19,7 @@ entity de1_can_core is
         can_frame_o             : out   can_core_out_intf_t;
         can_frame_valid_o       : out   std_logic;
 
-        peripheral_status_o     : out   per_intf_t;
-
-        sync_seg_i              : in    unsigned(width_g - 1 downto 0);
-        prob_seg_i              : in    unsigned(width_g - 1 downto 0);
-        phase_seg1_i            : in    unsigned(width_g - 1 downto 0);
-        phase_seg2_i            : in    unsigned(width_g - 1 downto 0);
-        prescaler_i             : in    unsigned(width_g - 1 downto 0)
+        baud_config_i           : in   baud_intf_t
     );
 end entity;
 
@@ -85,11 +80,6 @@ architecture rtl of de1_can_core is
 
 begin
 
-    peripheral_status_o.buffer_usage            <= (others => '0');
-    peripheral_status_o.peripheral_error        <= (others => '0');
-    peripheral_status_o.missed_frames           <= to_unsigned(0, peripheral_status_o.missed_frames'length);
-    peripheral_status_o.missed_frames_overflow  <= '0';
-
     rst_h       <= not rst_n;
 
     sync_stage_i0 : entity work.olo_intf_sync
@@ -132,11 +122,7 @@ begin
             sample_o                => sample_s,
             edge_o                  => edge_s,
 
-            sync_seg_i              => sync_seg_i,
-            prob_seg_i              => prob_seg_i,
-            phase_seg1_i            => phase_seg1_i,
-            phase_seg2_i            => phase_seg2_i,
-            prescaler_i             => prescaler_i
+            baud_config_i           => baud_config_i
        );
 
     destuffing_i0 : entity work.destuffing

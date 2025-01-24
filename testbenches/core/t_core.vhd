@@ -50,7 +50,7 @@ begin
 
     hps_engine_i0 : entity work.t_hps_engine
         generic map(
-          can_core_count_g  => 2
+          can_core_count_g  => 1
         )
         port map(
         clk                 => clk,

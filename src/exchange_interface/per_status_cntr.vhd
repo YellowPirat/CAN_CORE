@@ -13,7 +13,6 @@ entity per_status_cntr is
         clk                         : in    std_logic;
         rst_n                       : in    std_logic;
 
-        per_status_i                : in    per_intf_t;
         per_status_o                : out   per_intf_t;
 
         buffer_usage_i              : in    std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
@@ -37,7 +36,7 @@ begin
             per_status_s.buffer_usage(log2ceil(memory_depth_g + 1) - 1 downto 0)    <= buffer_usage_i;
             per_status_s.buffer_usage(9 downto log2ceil(memory_depth_g + 1))        <= (others => '0');
 
-            per_status_s.peripheral_error                                           <= per_status_i.peripheral_error;
+            per_status_s.peripheral_error                                           <= (others => '0');
 
             if frame_missed_i = '1' then
                 per_status_s.missed_frames                                          <= per_status_s.missed_frames + 1;
