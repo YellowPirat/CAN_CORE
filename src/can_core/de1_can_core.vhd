@@ -26,7 +26,7 @@ architecture rtl of de1_can_core is
     signal stuff_bit_s              : std_logic                                 := '0';
     signal bus_active_detect_s      : std_logic                                 := '0';
     signal data_valid_s             : std_logic                                 := '0';
-    signal can_frame_s              : can_core_out_intf_t                       := can_core_intf_default;
+    signal can_frame_s              : can_core_out_intf_t;
     signal reset_core_s             : std_logic                                 := '0';
     signal reset_destuffing_s       : std_logic                                 := '0';
     signal decode_error_s           : std_logic                                 := '0';
@@ -38,13 +38,28 @@ architecture rtl of de1_can_core is
     signal error_s                  : std_logic                                 := '0';
     signal sof_state_s              : std_logic                                 := '0';
     signal new_frame_started_s      : std_logic                                 := '0';
-    signal error_codes_s            : std_logic_vector(15 downto 0)             := (others => '0');
     signal valid_crc_s              : std_logic                                 := '0';
 
+    signal error_codes_s            : std_logic_vector(15 downto 0)             := (others => '0');
+    signal timestamp_s              : std_logic_vector(63 downto 0)             := (others => '0');
+    signal crc_s                    : std_logic_vector(14 downto 0)             := (others => '0');
 begin
 
     rst_h                           <= not rst_n;
-    can_frame_o                     <= can_frame_s;
+
+    can_frame_o.error_codes         <= error_codes_s;
+    can_frame_o.frame_type          <= can_frame_s.frame_type;
+    can_frame_o.timestamp           <= timestamp_s;
+    can_frame_o.can_id              <= can_frame_s.can_id;
+    can_frame_o.rtr                 <= can_frame_s.rtr;
+    can_frame_o.eff                 <= can_frame_s.eff;
+    can_frame_o.err                 <= can_frame_s.err;
+    can_frame_o.can_dlc             <= can_frame_s.can_dlc;
+    can_frame_o.crc                 <= crc_s;
+    can_frame_o.data                <= can_frame_s.data;
+
+
+
 
     sync_stage_i0 : entity work.olo_intf_sync
         generic map(
@@ -118,7 +133,7 @@ begin
             reset_core_o            => reset_core_s,
             reset_destuffing_o      => reset_destuffing_s,
             error_o                 => error_s,
-            error_code_o            => can_frame_s.error_codes
+            error_code_o            => error_codes_s
         );
 
     timestamp_i0 : entity work.de1_timestamp
@@ -130,7 +145,7 @@ begin
             clk                     => clk,
             rst_n                   => rst_n,
             sample_i                => new_frame_started_s,
-            cnt_o                   => can_frame_s.timestamp
+            cnt_o                   => timestamp_s
         );
 
     frame_valid_i0 : entity work.de1_frame_valid
@@ -151,7 +166,7 @@ begin
             stuff_bit_i             => stuff_bit_s,
             rxd_sync_i              => rxd_s,
 
-            crc_i                   => can_frame_s.crc,
+            crc_i                   => crc_s,
             crc_valid_i             => valid_crc_s,
 
             enable_i                => enable_crc_s,

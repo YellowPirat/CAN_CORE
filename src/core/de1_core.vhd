@@ -16,7 +16,7 @@ entity de1_core is
         rst_n                   : in    std_logic                                               := '1';
         rxd_async_i             : in    std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '1');
         status_o                : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '0');
-        debug_o                 : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '1');
+        uart_debug_o            : out   std_logic_vector(can_core_count_g - 1 downto 0)         := (others => '1');
         axi_intf_i              : in    axi_lite_output_intf_t                                  := axi_lite_output_intf_default;
         axi_intf_o              : out   axi_lite_input_intf_t                                   := axi_lite_input_intf_default
     );
@@ -162,7 +162,7 @@ begin
             );
 
         reset_sync_s(i)                 <= rst_n and (not driver_reset_vec_s(i));
-        debug_o(i)                      <= reset_sync_s(i);
+        status_o(i)                      <= reset_sync_s(i);
 
         de1_can_core_i0 : entity work.de1_can_core
             port map(
@@ -188,7 +188,7 @@ begin
                 can_frame_i             => can_frame_s(i),
                 valid_i                 => can_frame_valid_s(i),
 
-                txd_o                   => status_o(i)
+                txd_o                   => uart_debug_o(i)
             );
     end generate can_core_gen;
 
