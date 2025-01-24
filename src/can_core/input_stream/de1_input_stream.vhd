@@ -18,7 +18,10 @@ entity de1_input_stream is
         decode_error_o          : out   std_logic                           := '0';
         enable_destuffing_o     : out   std_logic                           := '0';
         sof_state_o             : out   std_logic                           := '0';
-        new_frame_started_o     : out   std_logic                           := '0'
+        new_frame_started_o     : out   std_logic                           := '0';
+        enable_crc_o            : out   std_logic                           := '0';
+        reset_crc_o             : out   std_logic                           := '0';
+        valid_crc_o             : out   std_logic                           := '0'
     );
 end entity;
 
@@ -333,6 +336,8 @@ begin
             enable_destuffing_o => enable_destuffing_o,
             data_valid_o        => valid_o,
             sof_state_o         => sof_state_o,
+
+            -- CRC
             enable_crc_o        => enable_crc_o,
             reset_crc_o         => reset_crc_o,
             valid_crc_o         => valid_crc_o

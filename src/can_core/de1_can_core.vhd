@@ -39,6 +39,7 @@ architecture rtl of de1_can_core is
     signal sof_state_s              : std_logic                                 := '0';
     signal new_frame_started_s      : std_logic                                 := '0';
     signal error_codes_s            : std_logic_vector(15 downto 0)             := (others => '0');
+    signal valid_crc_s              : std_logic                                 := '0';
 
 begin
 
@@ -117,7 +118,7 @@ begin
             reset_core_o            => reset_core_s,
             reset_destuffing_o      => reset_destuffing_s,
             error_o                 => error_s,
-            error_code_o            => error_codes_s
+            error_code_o            => can_frame_s.error_codes
         );
 
     timestamp_i0 : entity work.de1_timestamp
@@ -148,9 +149,9 @@ begin
             rst_n                   => rst_n,
             sample_i                => sample_s,
             stuff_bit_i             => stuff_bit_s,
-            rxd_sync_i              => rxd_sync_s,
+            rxd_sync_i              => rxd_s,
 
-            crc_i                   => crc_s,
+            crc_i                   => can_frame_s.crc,
             crc_valid_i             => valid_crc_s,
 
             enable_i                => enable_crc_s,
@@ -173,7 +174,10 @@ begin
             decode_error_o          => decode_error_s,
             enable_destuffing_o     => enable_destuffing_s,
             sof_state_o             => sof_state_s,
-            new_frame_started_o     => new_frame_started_s
+            new_frame_started_o     => new_frame_started_s,
+            enable_crc_o            => enable_crc_s,
+            reset_crc_o             => reset_crc_s,
+            valid_crc_o             => valid_crc_s
         );
 
 end rtl ; -- rtl

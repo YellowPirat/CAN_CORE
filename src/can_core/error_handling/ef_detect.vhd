@@ -132,7 +132,7 @@ begin
                 reload_s            <= '1';
 
             when error_s => 
-                new_state           <= if_s;
+                new_state           <= passive_error_s;
           
 
             when others =>

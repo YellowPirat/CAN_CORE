@@ -143,12 +143,6 @@ architecture rtl of frame_detect is
     signal old_dec_s            : std_logic                                 := '0';
     signal old_reload_s         : std_logic                                 := '0';
     -- HANDLING
-<<<<<<< HEAD:src/can_core/input_stream/frame_detect.vhd
-    signal decode_error_s       : std_logic                                 := '0';
-    signal enable_destuffing_s  : std_logic                                 := '0';
-    signal data_valid_s         : std_logic                                 := '0';
-    signal sof_state_s          : std_logic                                 := '0';
-=======
     signal decode_error_s       : std_logic;
     signal enable_destuffing_s  : std_logic;
     signal data_valid_s         : std_logic;
@@ -157,7 +151,6 @@ architecture rtl of frame_detect is
     signal enable_crc_s         : std_logic;
     signal reset_crc_s          : std_logic;
     signal valid_crc_s          : std_logic;
->>>>>>> origin/feature/crc:src/input_stream/frame_detect.vhd
     
 
 begin

@@ -44,48 +44,48 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
     ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
+    ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
     ../../src/interfaces/per_intf.vhd \
     ../../src/interfaces/can_core_intf.vhd \
     ../../src/interfaces/axi_lite_intf.vhd \
-    ../../src/sampling/sample_edge_detect.vhd \
-    ../../src/sampling/resync_cntr.vhd \
-    ../../src/sampling/sample_validator.vhd \
-	../../src/sampling/edge_detect.vhd \
-    ../../src/sampling/idle_detect.vhd \
-    ../../src/sampling/destuffing_logic.vhd \
-    ../../src/sampling/last_bit.vhd \
-    ../../src/sampling/destuffing_cntr.vhd \
-    ../../src/sampling/destuffing.vhd \
-    ../../src/sampling/quantum_prescaler.vhd \
-    ../../src/sampling/seq_cnt.vhd \
-    ../../src/sampling/sample_cntr.vhd \
-    ../../src/sampling/sample.vhd \
-	../../src/sampling/de1_sampling.vhd \
-    ../../src/input_stream/frame_detect.vhd \
-    ../../src/input_stream/uni_dec_cnt.vhd \
-    ../../src/input_stream/uni_reg.vhd \
-    ../../src/input_stream/field_reg.vhd \
-    ../../src/input_stream/valid_cntr.vhd \
-    ../../src/input_stream/bit_reg.vhd \
-    ../../src/input_stream/id_mapping.vhd \
-    ../../src/input_stream/de1_input_stream.vhd \
-    ../../src/debug/splice_cnt.vhd \
-    ../../src/debug/uart_cntr.vhd \
-    ../../src/debug/splicer.vhd \
-    ../../src/debug/asci_mapper.vhd \
-    ../../src/debug/de1_debug.vhd \
-    ../../src/error_handling/ef_detect.vhd \
-    ../../src/error_handling/ef_cntr.vhd \
-    ../../src/error_handling/error_handling_cntr.vhd \
-    ../../src/error_handling/de1_error_handling.vhd \
-    ../../src/crc/crc_calculation.vhd \
-    ../../src/crc/crc_state_machine.vhd \
-    ../../src/crc/de1_crc.vhd \
-    ../../src/frame_valid/frame_valid_cntr.vhd \
-    ../../src/frame_valid/de1_frame_valid.vhd \
-    ../../src/timestamp/timestamp_sampler.vhd \
-    ../../src/timestamp/uni_cnt.vhd \
-    ../../src/timestamp/de1_timestamp.vhd \
+    ../../src/interfaces/baud_intf.vhd \
+    ../../src/can_core/idle_detect/idle_detect.vhd \
+    ../../src/can_core/destuffing/destuffing_logic.vhd \
+    ../../src/can_core/destuffing/destuffing_cntr.vhd \
+    ../../src/can_core/destuffing/last_bit.vhd \
+    ../../src/can_core/destuffing/de1_destuffing.vhd \
+    ../../src/can_core/sampling/sample_edge_detect.vhd \
+    ../../src/can_core/sampling/resync_cntr.vhd \
+    ../../src/can_core/sampling/sample_validator.vhd \
+	../../src/can_core/sampling/edge_detect.vhd \
+    ../../src/can_core/sampling/quantum_prescaler.vhd \
+    ../../src/can_core/sampling/seq_cnt.vhd \
+    ../../src/can_core/sampling/sample_cntr.vhd \
+    ../../src/can_core/sampling/sample.vhd \
+	../../src/can_core/sampling/de1_sampling.vhd \
+    ../../src/can_core/input_stream/frame_detect.vhd \
+    ../../src/can_core/input_stream/uni_dec_cnt.vhd \
+    ../../src/can_core/input_stream/uni_reg.vhd \
+    ../../src/can_core/input_stream/field_reg.vhd \
+    ../../src/can_core/input_stream/valid_cntr.vhd \
+    ../../src/can_core/input_stream/bit_reg.vhd \
+    ../../src/can_core/input_stream/id_mapping.vhd \
+    ../../src/can_core/input_stream/socketcan_mapper.vhd \
+    ../../src/can_core/input_stream/de1_input_stream.vhd \
+    ../../src/can_core/error_handling/ef_detect.vhd \
+    ../../src/can_core/error_handling/ef_cntr.vhd \
+    ../../src/can_core/error_handling/error_handling_cntr.vhd \
+    ../../src/can_core/error_handling/de1_error_handling.vhd \
+    ../../src/can_core/crc/crc_calculation.vhd \
+    ../../src/can_core/crc/crc_state_machine.vhd \
+    ../../src/can_core/crc/de1_crc.vhd \
+    ../../src/can_core/frame_valid/frame_valid_cntr.vhd \
+    ../../src/can_core/frame_valid/de1_frame_valid.vhd \
+    ../../src/can_core/timestamp/timestamp_sampler.vhd \
+    ../../src/can_core/timestamp/uni_cnt.vhd \
+    ../../src/can_core/timestamp/de1_timestamp.vhd \
+    ../../src/can_core/warm_start/warm_start.vhd \
+    ../../src/can_core/warm_start/de1_warm_start.vhd \
     ../../src/can_core/de1_can_core.vhd \
     ../../src/exchange_interface/valid_edge_det.vhd \
     ../../src/exchange_interface/buffer_usage_cnt.vhd \
@@ -106,8 +106,6 @@ SRC_FILES = \
 	../cangen/t_cangen.vhd \
 	../exchange_interface/t_hps_engine.vhd \
     t_core.vhd
-
-
 
 # Ziel: Analyse der Basis VHDL-Dateien
 ghdlinit: analyze

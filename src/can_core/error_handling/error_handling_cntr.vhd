@@ -12,7 +12,8 @@ entity error_handling_cntr is
         eof_detect_i                    : in    std_logic                   := '0';
         reset_core_o                    : out   std_logic                   := '0';
         reset_destuffing_o              : out   std_logic                   := '0';
-        enable_eof_detect_o             : out   std_logic                   := '0'
+        enable_eof_detect_o             : out   std_logic                   := '0';
+        crc_error_i                     : in    std_logic                   := '0'
     );
 end entity;
 
