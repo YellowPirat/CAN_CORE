@@ -7,18 +7,17 @@ library work;
 
 entity asci_mapper is
     port(
-        data_i          : in    std_logic_vector(3 downto 0);
-        data_o          : out   std_logic_vector(7 downto 0);
-        lf_i            : in    std_logic;
-        rl_i            : in    std_logic
+        data_i          : in    std_logic_vector(3 downto 0)                        := (others => '0');
+        data_o          : out   std_logic_vector(7 downto 0)                        := (others => '0');
+        lf_i            : in    std_logic                                           := '0';
+        rl_i            : in    std_logic                                           := '0'
     );
 end entity;
 
 architecture rtl of asci_mapper is
 
-    signal tmp          : std_logic_vector(7 downto 0);
-
-    signal eol_s        : std_logic_vector(7 downto 0);
+    signal tmp          : std_logic_vector(7 downto 0)                              := (others => '0');
+    signal eol_s        : std_logic_vector(7 downto 0)                              := (others => '0');
 
 begin
 

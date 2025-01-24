@@ -10,10 +10,10 @@ entity splicer is
         widght_g        : positive := 8
     );
     port(
-        data_i          : in    std_logic_vector(widght_g - 1 downto 0);
-        cnt_i           : in    std_logic_vector(log2ceil(widght_g / 4 + 1) - 1 downto 0);
+        data_i          : in    std_logic_vector(widght_g - 1 downto 0)                             := (others => '0');
+        cnt_i           : in    std_logic_vector(log2ceil(widght_g / 4 + 1) - 1 downto 0)           := (others => '0');
         
-        data_o          : out   std_logic_vector(3 downto 0)
+        data_o          : out   std_logic_vector(3 downto 0)                                        := (others => '0')
     );
 end entity;
 
