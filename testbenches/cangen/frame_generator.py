@@ -50,77 +50,79 @@ def apply_bit_stuffing(frame):
 
 def implement_error(frame, error_type, stuffed_positions, bus_idle):
     frame_bits = frame["stuffed_frame"]
-    error_location = 0
+    error_positions = 0
     modified_frame = frame.copy()
     
     if error_type == "stuff":
         modified_bits = list(frame_bits)
         if stuffed_positions:
-            error_location = random.choice(stuffed_positions)
-            start = max(0, error_location - 5)
-            prev_bits = modified_bits[start:error_location]
+            error_positions = random.choice(stuffed_positions)
+            start = max(0, error_positions - 5)
+            prev_bits = modified_bits[start:error_positions]
             if len(prev_bits) == 5 and all(b == prev_bits[0] for b in prev_bits):
-                modified_bits[error_location] = prev_bits[0]
+                modified_bits[error_positions] = prev_bits[0]
             else:
-                modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+                modified_bits[error_positions] = '0' if modified_bits[error_positions] == '1' else '1'
         else:
-            error_location = random.randint(1, len(frame_bits) - 13 - bus_idle - 6)
-            prev_bit = modified_bits[error_location - 1]
+            error_positions = random.randint(1, len(frame_bits) - 13 - bus_idle - 6)
+            prev_bit = modified_bits[error_positions - 1]
             stuff_error_bits = ['0' if prev_bit == '1' else '1'] * 6
             modified_bits = (
-                modified_bits[:error_location] + 
+                modified_bits[:error_positions] + 
                 stuff_error_bits + 
-                modified_bits[error_location:-6]
+                modified_bits[error_positions:-6]
             )
         modified_frame["stuffed_frame"] = "".join(modified_bits)
 
-
     elif error_type == "form":
+        eof_start = len(frame_bits) - 10 - bus_idle
+        eof_end = eof_start + 8
+        eof_error_location = random.randint(eof_start, eof_end - 1)
+
         possible_locations = [
             len(frame_bits) - 13 - bus_idle,  # CRC delimiter
             len(frame_bits) - 11 - bus_idle,  # ACK delimiter
-            len(frame_bits) - 10 - bus_idle   # Start of EOF
+            eof_error_location
         ]
-        error_location = random.choice(possible_locations)
+        error_positions = random.choice(possible_locations)
             
         modified_bits = list(frame_bits)
-        modified_bits[error_location] = '0' if modified_bits[error_location] == '1' else '1'
+        modified_bits[error_positions] = '0' if modified_bits[error_positions] == '1' else '1'
+        modified_frame["stuffed_frame"] = "".join(modified_bits)
+
+    elif error_type == "ack":
+        error_positions = len(frame_bits) - 12 - bus_idle
+        modified_bits = list(frame_bits)
+        modified_bits[error_positions] = '1'
         modified_frame["stuffed_frame"] = "".join(modified_bits)
     
     elif error_type == "crc":
         crc_start = len(frame_bits) - 28 - bus_idle
+        crc_end = crc_start + 15
         modified_bits = list(frame_bits)
-        valid_positions = []
-        
-        for i in range(15):
-            error_location = crc_start + i
-            if error_location not in stuffed_positions:  # Check if not a stuffed bit
-                original_bit = modified_bits[error_location]
-                flipped_bit = '1' if original_bit == '0' else '0'
-                modified_bits[error_location] = flipped_bit
-                _, _, new_stuffed_positions = apply_bit_stuffing(''.join(modified_bits[:error_location+1])) 
-                
-                if len(new_stuffed_positions) == len(frame["stuffed_positions"]):  # Check for stuff bit violation
-                    valid_positions.append(error_location)
-                
-                modified_bits[error_location] = original_bit  # Revert the change if it isn't valid
-        
-        if valid_positions:
-            error_location = random.choice(valid_positions)
-            modified_bits[error_location] = '1' if modified_bits[error_location] == '0' else '0'
-        else:
-            print("WARNING: Could not create CRC error - all CRC bits are stuffed bits or would cause stuff bit errors. This will result in a stuff bit error instead.")
+        done = False
+
+        while not done:
+            available_positions = [pos for pos in range(crc_start, crc_end) if pos not in stuffed_positions]
+            error_positions = random.sample(available_positions, random.randint(1, len(available_positions))) # Available positions in CRC range, excluding stuffed positions
+
+            error_positions_values = [modified_bits[i] for i in error_positions]
+            flipped_error_position_values = ['1' if value == '0' else '0' for value in error_positions_values] # Flip the values at these positions
+
+            for i in range(len(error_positions)):
+                modified_bits[error_positions[i]] = flipped_error_position_values[i] # Add the flipped bits to the modified bits
+            
+            _, _, new_stuffed_positions = apply_bit_stuffing(''.join(modified_bits[:crc_end])) # Check if flipping causes bit stuff errors
+            if len(new_stuffed_positions) == len(stuffed_positions):
+                done = True
+            else:
+                for i in range(len(error_positions)):
+                    modified_bits[error_positions[i]] = error_positions_values[i] # Revert the flipped values, since the flipping caused bit stuff errors
 
         modified_frame["stuffed_frame"] = "".join(modified_bits)
 
-    elif error_type == "ack":
-        error_location = len(frame_bits) - 12 - bus_idle
-        modified_bits = list(frame_bits)
-        modified_bits[error_location] = '1'
-        modified_frame["stuffed_frame"] = "".join(modified_bits)
-    
     modified_frame["error_type"] = error_type
-    modified_frame["error_location"] = error_location
+    modified_frame["error_locations"] = error_positions
     return modified_frame
 
 def generate_data_frame(frame_id, id_type, dlc, data_bytes, bus_idle):
@@ -325,15 +327,15 @@ def main():
             frame_without_error = generate_data_frame(frame['id'], id_type, frame['dlc'], data_bytes, bus_idle)
             if error_type: # Data frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
-                error_location = frame_with_error["error_location"] + 1
+                error_locations = frame_with_error["error_locations"]
                 error_frame, error_flag_length = generate_error_frame().values()
-                if error_type == "crc": # The reason for specific handling of crc error is that the whole sequence (+ the delimiter) needs to be sent first to check notice the error, so we moved the frame after the sequence
-                    crc_end = len(frame_with_error["stuffed_frame"]) - 12 - bus_idle
-                    frame_before_error = frame_with_error["stuffed_frame"][:crc_end]
-                    combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+                if error_type == "crc" or error_type == "ack": # The reason for specific handling of crc errorand ack error is that the error flag starts at the bit following ACK delimiter
+                    ack_delimiter = len(frame_with_error["stuffed_frame"]) - 11 - bus_idle
+                    frame_before_error_flag = frame_with_error["stuffed_frame"][:ack_delimiter]
+                    combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
                 else:
-                    frame_before_error = frame_with_error["stuffed_frame"][:error_location]
-                    combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+                    frame_before_error_flag = frame_with_error["stuffed_frame"][:error_locations+1]
+                    combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
                 frames.append(combined_frame) # Frame with error frame
                 frames.append(frame_without_error) # Same frame without error
             else: # Data frame without errors
@@ -343,10 +345,15 @@ def main():
             frame_without_error = generate_remote_frame(frame['id'], id_type, frame['dlc'], bus_idle)
             if error_type: # remote frame with errors
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
-                error_location = frame_with_error["error_location"] + 1
+                error_locations = frame_with_error["error_locations"]
                 error_frame, error_flag_length = generate_error_frame().values()
-                frame_before_error = frame_with_error["stuffed_frame"][:error_location]
-                combined_frame = {"stuffed_frame": frame_before_error + error_frame}
+                if error_type == "crc" or error_type == "ack": # The reason for specific handling of crc errorand ack error is that the error flag starts at the bit following ACK delimiter
+                    ack_delimiter = len(frame_with_error["stuffed_frame"]) - 11 - bus_idle
+                    frame_before_error_flag = frame_with_error["stuffed_frame"][:ack_delimiter]
+                    combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
+                else:
+                    frame_before_error_flag = frame_with_error["stuffed_frame"][:error_locations+1]
+                    combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
                 frames.append(combined_frame) # Frame with error frame
                 frames.append(frame_without_error) # Same frame without error
             else: # Remote frame without errors
@@ -367,14 +374,16 @@ def main():
         if error_type:
             print(f"Length of the error flag is: {len(error_flag_length)}")
             print(f"Frame {frame_number} with error:    {frame_with_error['stuffed_frame']}")
-            print(f"Error:                 {' ' * frame_with_error['error_location']}^")
+            if error_type == "crc":
+                error_indicators = [' '] * len(frame_with_error['stuffed_frame'])
+                for loc in frame_with_error["error_locations"]:
+                    error_indicators[loc] = '^'
+                print(f"Error:                 {''.join(error_indicators)}")
+            else:
+                print(f"Error:                {' ' * (frame_with_error['error_locations'] + 1)}^")
             print(f"Frame {frame_number} without error: {frame_without_error['stuffed_frame']}\n")
 
     save_to_csv(frames, f"can_message.csv")
 
 if __name__ == "__main__":
     main()
-
-"""
-##### TODO: length error needs to be implemented
-"""
