@@ -6,7 +6,8 @@ Frames:
     dlc: 2
     error: "crc"
     data:
-    - 0x11
+    - 0xe7
+    - 0x83
   - id: 0x123 # standard frame
     dlc: 2
     error:
@@ -22,7 +23,6 @@ Frames:
     - 0x33
     - 0x44
     - 0x55
-
   - id: 0x125 # standard frame
     dlc: 8
     error:
