@@ -156,8 +156,10 @@ begin
                 fifo_empty_s(k)    <= '0';
             end if;
 
-            if i = 10 then
+            if i = 10 and fifo_empty_s(k) = '0' then
                 can_frame_valid_s(k)   <= '1';
+                wait until clk = '1' and clk'event;
+                can_frame_valid_s(k)   <= '0';
             else
                 can_frame_valid_s(k)   <= '0';
             end if;

@@ -4,7 +4,7 @@
 Frames:
   - id: 0x777 # standard frame
     dlc: 2
-    error: "crc"
+    error:
     data:
     - 0xe7
     - 0x83

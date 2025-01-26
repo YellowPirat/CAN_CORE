@@ -42,7 +42,6 @@ architecture rtl of de1_can_core is
 
     signal error_codes_s            : std_logic_vector(15 downto 0)             := (others => '0');
     signal timestamp_s              : std_logic_vector(63 downto 0)             := (others => '0');
-    signal crc_s                    : std_logic_vector(14 downto 0)             := (others => '0');
 begin
 
     rst_h                           <= not rst_n;
@@ -55,7 +54,7 @@ begin
     can_frame_o.eff                 <= can_frame_s.eff;
     can_frame_o.err                 <= can_frame_s.err;
     can_frame_o.can_dlc             <= can_frame_s.can_dlc;
-    can_frame_o.crc                 <= crc_s;
+    can_frame_o.crc                 <= can_frame_s.crc;
     can_frame_o.data                <= can_frame_s.data;
 
 
@@ -166,7 +165,7 @@ begin
             stuff_bit_i             => stuff_bit_s,
             rxd_sync_i              => rxd_s,
 
-            crc_i                   => crc_s,
+            crc_i                   => can_frame_s.crc,
             crc_valid_i             => valid_crc_s,
 
             enable_i                => enable_crc_s,
