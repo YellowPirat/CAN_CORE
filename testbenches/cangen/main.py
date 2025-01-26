@@ -1,7 +1,7 @@
 import yaml
 import argparse
 from error_utils import implement_error
-from frame_utils import save_to_csv, print_frame_details
+from frame_utils import save_to_csv
 from frame_generator import generate_data_frame, generate_error_frame, generate_remote_frame
 
 def main():
@@ -76,7 +76,30 @@ def main():
                 frames.append(frame_without_error) # Same frame without error
             else: # Remote frame without errors
                 frames.append(frame_without_error)
-        print_frame_details(frame_number, bus_idle, frame_type, frame_without_error, frame_with_error, error_type, error_flag_length)
+
+        print(f"\nFrame {frame_number}:")
+        print(f"Bus idle length: {bus_idle}")
+        print(f"Error type: {error_type}")
+        print(f"Frame type: {frame_type}")
+        print(f"Number of stuffed bits: {frame_without_error['stuffed_bits_count']}")
+        print(f"ID (hex): {frame_without_error['id_hex']}")
+        print(f"ID (bin): {frame_without_error['id_bin']}")
+        print(f"DLC: {frame_without_error['dlc']}")
+        if frame_type == "data":
+            print(f"Data: {frame_without_error['data']}")
+        print(f"CRC (hex): {frame_without_error['crc_hex']}")
+        print(f"CRC (bin): {frame_without_error['crc_bin']}")
+        if error_type:
+            print(f"Length of the error flag is: {len(error_flag_length)}")
+            print(f"Frame {frame_number} with error:    {frame_with_error['stuffed_frame']}")
+            if error_type == "crc":
+                error_indicators = [' '] * len(frame_with_error['stuffed_frame'])
+                for loc in frame_with_error["error_locations"]:
+                    error_indicators[loc] = '^'
+                print(f"Error:                 {''.join(error_indicators)}")
+            else:
+                print(f"Error:                {' ' * (frame_with_error['error_locations'] + 1)}^")
+            print(f"Frame {frame_number} without error: {frame_without_error['stuffed_frame']}")
 
     print("")
     save_to_csv(frames, f"can_message.csv")
