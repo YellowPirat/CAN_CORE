@@ -1,16 +1,16 @@
 import yaml
 import argparse
-from error_utils import implement_error
 from frame_utils import save_to_csv
+from error_utils import implement_error
 from frame_generator import generate_data_frame, generate_error_frame, generate_remote_frame
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", help="Path to the yaml config file")
+    parser.add_argument("-p", "--path", help="Path to the YAML config file")
     args = parser.parse_args()
 
     if not args.path:
-        print("Wrong or no path specified. Please specifiy a path to the yaml config file using '-p' or '--path'. For more information refer to '--help'")
+        print("Wrong or no path specified. Please specifiy a path to the YAML config file using '-p' or '--path'. For more information refer to '--help'")
         return
 
     with open(args.path) as stream:
@@ -19,7 +19,7 @@ def main():
     frames = []
     frame_number = 0
 
-    start_idle = {"stuffed_frame": [1] * 30}
+    start_idle = {"stuffed_frame": [1] * 64}
     frames.append(start_idle)
     
     for frame in yaml_data['Frames']:
