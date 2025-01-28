@@ -10,23 +10,18 @@ entity uni_reg is
         startCnt_g              : positive
     );
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        reload_i                : in    std_logic;
-        rxd_i                   : in    std_logic;
-        store_i                 : in    std_logic;
-        pos_i                   : in    std_logic_vector(log2ceil(startCnt_g + 1) - 1 downto 0);
-
-        
-        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0)
+        clk                     : in    std_logic                                                   := '0';
+        rst_n                   : in    std_logic                                                   := '0';
+        reload_i                : in    std_logic                                                   := '0';
+        rxd_i                   : in    std_logic                                                   := '0';
+        store_i                 : in    std_logic                                                   := '0';
+        pos_i                   : in    std_logic_vector(log2ceil(startCnt_g + 1) - 1 downto 0)     := (others => '0');
+        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0)                   := (others => '0')
     ); 
 end entity;
 
 architecture rtl of uni_reg is
-
-    signal reg_s                : std_logic_vector(startCnt_g - 1 downto 0);
-    
+    signal reg_s                : std_logic_vector(startCnt_g - 1 downto 0)                         := (others => '0');
 
 begin
 

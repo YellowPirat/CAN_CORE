@@ -4,19 +4,17 @@ library ieee;
 
 entity warm_start is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        rxd_sync_i          : in    std_logic;
-        sample_i            : in    std_logic;
-
-        rxd_sync_o          : out   std_logic
+        clk                 : in    std_logic                   := '0';
+        rst_n               : in    std_logic                   := '1';
+        rxd_sync_i          : in    std_logic                   := '1';
+        sample_i            : in    std_logic                   := '0';
+        rxd_sync_o          : out   std_logic                   := '1'
     );
 end entity;
 
 architecture rtl of warm_start is
 
-    signal cnt_s            : unsigned(3 downto 0);
+    signal cnt_s            : unsigned(3 downto 0)              := to_unsigned(0, 4);
 
 begin
 

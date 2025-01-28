@@ -9,13 +9,13 @@ end entity;
 
 architecture tbench of t_core is
 
-  signal clk, rst_n : std_logic := '0';
-  signal simstop : boolean      := false;
+  signal clk, rst_n             : std_logic                             := '0';
+  signal simstop                : boolean                               := false;
 
-  signal axi_intf_o             : axi_lite_output_intf_t;
-  signal axi_intf_i             : axi_lite_input_intf_t;
+  signal axi_intf_o             : axi_lite_output_intf_t                := axi_lite_output_intf_default;
+  signal axi_intf_i             : axi_lite_input_intf_t                 := axi_lite_input_intf_default;
 
-  signal rxd_async_s            : std_logic_vector(1 downto 0);
+  signal rxd_async_s            : std_logic_vector(1 downto 0)          := (others => '0');
 
 begin
   
@@ -50,7 +50,7 @@ begin
 
     hps_engine_i0 : entity work.t_hps_engine
         generic map(
-          can_core_count_g  => 2
+          can_core_count_g  => 1
         )
         port map(
         clk                 => clk,

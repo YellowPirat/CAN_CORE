@@ -44,14 +44,16 @@ SRC_FILES = \
 	../../extern/olo/src/axi/vhdl/olo_axi_lite_slave.vhd \
 	../../extern/olo/src/intf/vhdl/olo_intf_sync.vhd \
     ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
+    ../../extern/olo/src/intf/vhdl/olo_intf_uart.vhd \
     ../../src/interfaces/per_intf.vhd \
     ../../src/interfaces/can_core_intf.vhd \
     ../../src/interfaces/axi_lite_intf.vhd \
+    ../../src/interfaces/baud_intf.vhd \
     ../../src/can_core/idle_detect/idle_detect.vhd \
     ../../src/can_core/destuffing/destuffing_logic.vhd \
     ../../src/can_core/destuffing/destuffing_cntr.vhd \
     ../../src/can_core/destuffing/last_bit.vhd \
-    ../../src/can_core/destuffing/destuffing.vhd \
+    ../../src/can_core/destuffing/de1_destuffing.vhd \
     ../../src/can_core/sampling/sample_edge_detect.vhd \
     ../../src/can_core/sampling/resync_cntr.vhd \
     ../../src/can_core/sampling/sample_validator.vhd \
@@ -74,6 +76,8 @@ SRC_FILES = \
     ../../src/can_core/error_handling/ef_cntr.vhd \
     ../../src/can_core/error_handling/error_handling_cntr.vhd \
     ../../src/can_core/error_handling/de1_error_handling.vhd \
+    ../../src/can_core/crc/crc_calculation.vhd \
+    ../../src/can_core/crc/crc_state_machine.vhd \
     ../../src/can_core/crc/de1_crc.vhd \
     ../../src/can_core/frame_valid/frame_valid_cntr.vhd \
     ../../src/can_core/frame_valid/de1_frame_valid.vhd \
@@ -102,8 +106,6 @@ SRC_FILES = \
 	../cangen/t_cangen.vhd \
 	../exchange_interface/t_hps_engine.vhd \
     t_core.vhd
-
-
 
 # Ziel: Analyse der Basis VHDL-Dateien
 ghdlinit: analyze

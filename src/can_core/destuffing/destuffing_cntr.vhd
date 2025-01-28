@@ -4,15 +4,13 @@ use ieee.numeric_std.all;
 
 entity destuffing_cntr is
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        enable_i                : in    std_logic;
-        disable_destuffing_i    : in    std_logic;
-        stuff_error_i           : in    std_logic;
-
-        enable_destuffing_o : out   std_logic;
-        reload_destuffing_o : out   std_logic
+        clk                         : in    std_logic                           := '0';
+        rst_n                       : in    std_logic                           := '1';
+        enable_i                    : in    std_logic                           := '0';
+        disable_destuffing_i        : in    std_logic                           := '0';
+        stuff_error_i               : in    std_logic                           := '0';
+        enable_destuffing_o         : out   std_logic                           := '0';
+        reload_destuffing_o         : out   std_logic                           := '0'
     );
 end entity;
 
@@ -25,10 +23,10 @@ architecture rtl of destuffing_cntr is
         wait_bus_inactive_s
     );
 
-    signal current_state, new_state : state_t;
+    signal current_state, new_state : state_t                                   := idle_s;
 
-    signal enable_destuffing_s      : std_logic;
-    signal reload_destuffing_s      : std_logic;
+    signal enable_destuffing_s      : std_logic                                 := '0';
+    signal reload_destuffing_s      : std_logic                                 := '0';
 
 begin
 
@@ -64,8 +62,6 @@ begin
             when destuffing_disable_s =>
                 if enable_i = '1' and disable_destuffing_i = '1' then
                     new_state               <= destuffing_enable_s;
-                    --enable_destuffing_s     <= '1';
-                    --reload_destuffing_s     <= '1';
                 end if;
 
             when others =>

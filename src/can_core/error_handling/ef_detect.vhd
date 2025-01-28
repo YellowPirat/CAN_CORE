@@ -4,26 +4,25 @@ use ieee.numeric_std.all;
 
 entity ef_detect is
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
+        clk                         : in    std_logic                       := '0';
+        rst_n                       : in    std_logic                       := '1';
+        rxd_i                       : in    std_logic                       := '1';
+        sample_i                    : in    std_logic                       := '0';
+        enable_i                    : in    std_logic                       := '0';
 
-        rxd_i                   : in    std_logic;
-        sample_i                : in    std_logic;
-        enable_i                : in    std_logic;
+        pe_dec_o                    : out   std_logic                       := '0';
+        pe_cnt_done_i               : in    std_logic                       := '0';
+        pe_cnt_i                    : in    unsigned(2 downto 0)            := (others => '0');
 
-        pe_dec_o                : out   std_logic;
-        pe_cnt_done_i           : in    std_logic;
-        pe_cnt_i                : in    unsigned(2 downto 0);
+        ae_dec_o                    : out   std_logic                       := '0';
+        ae_cnt_done_i               : in    std_logic                       := '0';
+        ae_cnt_i                    : in    unsigned(2 downto 0)            := (others => '0');
 
-        ae_dec_o                : out   std_logic;
-        ae_cnt_done_i           : in    std_logic;
-        ae_cnt_i                : in    unsigned(2 downto 0);
+        ed_dec_o                    : out   std_logic                       := '0';
+        ed_cnt_done_i               : in    std_logic                       := '0';
 
-        ed_dec_o                : out   std_logic;
-        ed_cnt_done_i           : in    std_logic;
-
-        eof_detect_o            : out   std_logic;
-        reload_o                : out   std_logic
+        eof_detect_o                : out   std_logic                       := '0';
+        reload_o                    : out   std_logic                       := '0'
     );
 end entity;
 
@@ -40,12 +39,12 @@ architecture rtl of ef_detect is
 
     signal current_state, new_state : state_t;
 
-    signal eof_detect_s             : std_logic;
+    signal eof_detect_s             : std_logic                             := '0';
 
-    signal pe_dec_s                 : std_logic;
-    signal ae_dec_s                 : std_logic;
-    signal ed_dec_s                 : std_logic;
-    signal reload_s                 : std_logic;
+    signal pe_dec_s                 : std_logic                             := '0';
+    signal ae_dec_s                 : std_logic                             := '0';
+    signal ed_dec_s                 : std_logic                             := '0';
+    signal reload_s                 : std_logic                             := '0';
 
 begin
 
@@ -133,7 +132,7 @@ begin
                 reload_s            <= '1';
 
             when error_s => 
-                new_state           <= if_s;
+                new_state           <= passive_error_s;
           
 
             when others =>

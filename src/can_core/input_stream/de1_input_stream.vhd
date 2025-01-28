@@ -1,96 +1,85 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.can_core_intf.all;
 
 entity de1_input_stream is
     port(
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        rxd_sync_i              : in    std_logic;
-        sample_i                : in    std_logic;
-        stuff_bit_i             : in    std_logic;
-        bus_active_detect_i     : in    std_logic;
-
-        id_o                    : out   std_logic_vector(28 downto 0);
-        rtr_o                   : out   std_logic;
-        eff_o                   : out   std_logic;
-        err_o                   : out   std_logic;
-        dlc_o                   : out   std_logic_vector(3 downto 0);
-        data_o                  : out   std_logic_vector(63 downto 0);
-        crc_o                   : out   std_logic_vector(14 downto 0);
-
-        valid_o                 : out   std_logic;
-		  
-        frame_finished_o        : out   std_logic;
-
-        reset_i                 : in    std_logic;
-        decode_error_o          : out   std_logic;
-        enable_destuffing_o     : out   std_logic;
-        sof_state_o             : out   std_logic;
-        new_frame_started_o     : out   std_logic
+        clk                     : in    std_logic                           := '0';
+        rst_n                   : in    std_logic                           := '1';
+        rxd_sync_i              : in    std_logic                           := '1';
+        sample_i                : in    std_logic                           := '0';
+        stuff_bit_i             : in    std_logic                           := '0';
+        bus_active_detect_i     : in    std_logic                           := '0';
+        can_frame_o             : out   can_core_out_intf_t                 := can_core_intf_default;
+        valid_o                 : out   std_logic                           := '0';
+        frame_finished_o        : out   std_logic                           := '0';
+        reset_i                 : in    std_logic                           := '0';
+        decode_error_o          : out   std_logic                           := '0';
+        enable_destuffing_o     : out   std_logic                           := '0';
+        sof_state_o             : out   std_logic                           := '0';
+        new_frame_started_o     : out   std_logic                           := '0';
+        enable_crc_o            : out   std_logic                           := '0';
+        reset_crc_o             : out   std_logic                           := '0';
+        valid_crc_o             : out   std_logic                           := '0'
     );
 end entity;
 
 architecture rtl of de1_input_stream is
 
-    signal frame_finished_s     : std_logic;
-    signal reload_s             : std_logic;
+
+    signal reload_s             : std_logic                                 := '0';
 
     -- ID
-    signal id_dec_s             : std_logic;
-    signal id_cnt_done_s        : std_logic;
-    signal id_sample_s          : std_logic;
-    signal id_data_s            : std_logic_vector(10 downto 0);
+    signal id_dec_s             : std_logic                                 := '0';
+    signal id_cnt_done_s        : std_logic                                 := '0';
+    signal id_sample_s          : std_logic                                 := '0';
+    signal id_data_s            : std_logic_vector(10 downto 0)             := (others => '0');
     -- EID
-    signal eid_dec_s            : std_logic;
-    signal eid_cnt_done_s       : std_logic;
-    signal eid_sample_s         : std_logic;
-    signal eid_data_s           : std_logic_vector(17 downto 0);
+    signal eid_dec_s            : std_logic                                 := '0';
+    signal eid_cnt_done_s       : std_logic                                 := '0';
+    signal eid_sample_s         : std_logic                                 := '0';
+    signal eid_data_s           : std_logic_vector(17 downto 0)             := (others => '0');
     -- DLC
-    signal dlc_dec_s            : std_logic;
-    signal dlc_cnt_done_s       : std_logic;
-    signal dlc_sample_s         : std_logic;
-    signal dlc_data_s           : std_logic_vector(3 downto 0);
+    signal dlc_dec_s            : std_logic                                 := '0';
+    signal dlc_cnt_done_s       : std_logic                                 := '0';
+    signal dlc_sample_s         : std_logic                                 := '0';
+    signal dlc_data_s           : std_logic_vector(3 downto 0)             := (others => '0');
     -- DATA
-    signal data_dec_s           : std_logic_vector(7 downto 0);
-    signal data_cnt_done_s      : std_logic_vector(7 downto 0);
-    signal data_sample_s        : std_logic_vector(7 downto 0);
-    signal data_s               : std_logic_vector(63 downto 0);
+    signal data_dec_s           : std_logic_vector(7 downto 0)             := (others => '0');
+    signal data_cnt_done_s      : std_logic_vector(7 downto 0)             := (others => '0');
+    signal data_sample_s        : std_logic_vector(7 downto 0)             := (others => '0');
+    signal data_s               : std_logic_vector(63 downto 0)            := (others => '0');
     -- CRC
-    signal crc_dec_s            : std_logic;
-    signal crc_cnt_done_s       : std_logic;
-    signal crc_sample_s         : std_logic;
-    signal crc_data_s           : std_logic_vector(14 downto 0);
+    signal crc_dec_s            : std_logic                                 := '0';
+    signal crc_cnt_done_s       : std_logic                                 := '0';
+    signal crc_sample_s         : std_logic                                 := '0';
+    signal crc_data_s           : std_logic_vector(14 downto 0)             := (others => '0');
     -- ERR DEL
-    signal eof_dec_s        : std_logic;
-    signal eof_cnt_done_s   : std_logic;
+    signal eof_dec_s            : std_logic                                 := '0';
+    signal eof_cnt_done_s       : std_logic                                 := '0';
     --OLF
-    signal olf_dec_s            : std_logic;
-    signal olf_cnt_done_s       : std_logic;
-    signal olf_reload_s         : std_logic;
+    signal olf_dec_s            : std_logic                                 := '0';
+    signal olf_cnt_done_s       : std_logic                                 := '0';
+    signal olf_reload_s         : std_logic                                 := '0';
     -- OLD
-    signal old_dec_s            : std_logic;
-    signal old_cnt_done_s       : std_logic;
-    signal old_reload_s         : std_logic;
+    signal old_dec_s            : std_logic                                 := '0';
+    signal old_cnt_done_s       : std_logic                                 := '0';
+    signal old_reload_s         : std_logic                                 := '0';
 
     -- FLAGS
-    signal rtr_sample_s         : std_logic;
-    signal eff_sample_s         : std_logic;
-    signal err_sample_s         : std_logic;
-    signal eff_s                : std_logic;
+    signal rtr_sample_s         : std_logic                                 := '0';
+    signal eff_sample_s         : std_logic                                 := '0';
+    signal err_sample_s         : std_logic                                 := '0';
+    signal eff_s                : std_logic                                 := '0';
 
-
-
-    
 begin
 
     -- OUTPUT MAPPING
-    frame_finished_o        <= frame_finished_s;
-    eff_o                   <= eff_s;
-    --data_o                  <= data_s;
-    dlc_o                   <= dlc_data_s;
-    crc_o                   <= crc_data_s;
+
+    can_frame_o.eff                   <= eff_s;
+    can_frame_o.can_dlc                   <= dlc_data_s;
+    can_frame_o.crc                   <= crc_data_s;
 
     new_frame_started_o     <= reload_s;
 
@@ -98,7 +87,7 @@ begin
         port map(
             data_i          => data_s,
             dlc_i           => dlc_data_s,
-            data_o          => data_o
+            data_o          => can_frame_o.data
         );
 
     id_mapping_i0 : entity work.id_mapping
@@ -106,7 +95,7 @@ begin
             eff_i               => eff_s,
             eid_i               => eid_data_s,
             id_i                => id_data_s,
-            id_o                => id_o
+            id_o                => can_frame_o.can_id
         );
 
 
@@ -256,7 +245,7 @@ begin
             sample_i            => rtr_sample_s,
             reload_i            => reload_s,
 
-            data_o              => rtr_o
+            data_o              => can_frame_o.rtr
         );
 
     eff_reg_i0 : entity work.bit_reg
@@ -280,7 +269,7 @@ begin
             sample_i            => err_sample_s,
             reload_i            => reload_s,
 
-            data_o              => err_o
+            data_o              => can_frame_o.err
         );
 
 
@@ -293,7 +282,7 @@ begin
             sample_i            => sample_i,
             stuff_bit_i         => stuff_bit_i,
             bus_active_i        => bus_active_detect_i,
-            frame_done_o        => frame_finished_s,
+            frame_done_o        => frame_finished_o,
             reload_o            => reload_s,
 
             -- ID
@@ -346,7 +335,12 @@ begin
             decode_error_o      => decode_error_o,
             enable_destuffing_o => enable_destuffing_o,
             data_valid_o        => valid_o,
-            sof_state_o         => sof_state_o
+            sof_state_o         => sof_state_o,
+
+            -- CRC
+            enable_crc_o        => enable_crc_o,
+            reset_crc_o         => reset_crc_o,
+            valid_crc_o         => valid_crc_o
         );
 
 end rtl ;

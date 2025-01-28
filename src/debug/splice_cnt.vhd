@@ -7,23 +7,23 @@ library work;
 
 entity splice_cnt is
     generic(
-        start_cnt_g         : positive
+        start_cnt_g         : positive                                                  
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                 : in    std_logic                                                           := '0';
+        rst_n               : in    std_logic                                                           := '1';
 
-        reload_i            : in    std_logic;
-        en_i                : in    std_logic;
+        reload_i            : in    std_logic                                                           := '0';
+        en_i                : in    std_logic                                                           := '0';
 
-        done_o              : out   std_logic;
-        cnt_o               : out   std_logic_vector(log2ceil(start_cnt_g + 1) - 1 downto 0)
+        done_o              : out   std_logic                                                           := '0';
+        cnt_o               : out   std_logic_vector(log2ceil(start_cnt_g + 1) - 1 downto 0)            := (others => '0')
     );
 end entity;
 
 architecture rtl of splice_cnt is
 
-    signal cnt_s            : unsigned(log2ceil(start_cnt_g + 1) - 1 downto 0);
+    signal cnt_s            : unsigned(log2ceil(start_cnt_g + 1) - 1 downto 0)                          := (others => '0');
 
 begin
     done_o  <= '1' when cnt_s = 0 else '0';

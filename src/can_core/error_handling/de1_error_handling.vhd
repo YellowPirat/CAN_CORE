@@ -4,32 +4,27 @@ use ieee.numeric_std.all;
 
 entity de1_error_handling is
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        rxd_i                   : in    std_logic;
-        sample_i                : in    std_logic;
-
-        new_frame_started_i     : in    std_logic;
-
-        stuff_error_i           : in    std_logic;
-        decode_error_i          : in    std_logic;
-        sample_error_i          : in    std_logic;
-        crc_error_i             : in    std_logic;
-
-        reset_core_o            : out   std_logic;
-        reset_destuffing_o      : out   std_logic;
-
-        error_o                 : out   std_logic;
-        error_code_o            : out   std_logic_vector(15 downto 0)
+        clk                     : in    std_logic                               := '0';
+        rst_n                   : in    std_logic                               := '1';
+        rxd_i                   : in    std_logic                               := '1';
+        sample_i                : in    std_logic                               := '0';
+        new_frame_started_i     : in    std_logic                               := '0';
+        stuff_error_i           : in    std_logic                               := '0';
+        decode_error_i          : in    std_logic                               := '0';
+        sample_error_i          : in    std_logic                               := '0';
+        crc_error_i             : in    std_logic                               := '0';
+        reset_core_o            : out   std_logic                               := '0';
+        reset_destuffing_o      : out   std_logic                               := '0';
+        error_o                 : out   std_logic                               := '0';
+        error_code_o            : out   std_logic_vector(15 downto 0)           := (others => '0')
     );
 end entity;
 
 architecture rtl of de1_error_handling is
 
 
-    signal eof_detect_s         : std_logic;
-    signal enable_eof_detect_s  : std_logic;
+    signal eof_detect_s         : std_logic                                     := '0';
+    signal enable_eof_detect_s  : std_logic                                     := '0';
 
 begin
 
@@ -91,6 +86,7 @@ begin
             stuff_error_i       => stuff_error_i,
             decode_error_i      => decode_error_i,
             sample_error_i      => sample_error_i,
+            crc_error_i         => crc_error_i,
 
             eof_detect_i        => eof_detect_s,
 

@@ -4,20 +4,18 @@ use ieee.numeric_std.all;
 
 entity bit_reg is
     port(
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        data_i                  : in    std_logic;
-        sample_i                : in    std_logic;
-        reload_i                : in    std_logic;
-
-        data_o                  : out   std_logic
+        clk                     : in    std_logic                   := '0';
+        rst_n                   : in    std_logic                   := '1';
+        data_i                  : in    std_logic                   := '1';
+        sample_i                : in    std_logic                   := '0';
+        reload_i                : in    std_logic                   := '0';
+        data_o                  : out   std_logic                   := '0'
     );
 end entity;
 
 architecture rtl of bit_reg is
 
-    signal data_s               : std_logic;
+    signal data_s               : std_logic                         := '0';
 
 begin
 

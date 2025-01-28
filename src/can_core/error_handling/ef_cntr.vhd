@@ -4,31 +4,29 @@ use ieee.numeric_std.all;
 
 entity ef_cntr is
     port(
-        clk             : in    std_logic;
-        rst_n           : in    std_logic;
-
-        rxd_i           : in    std_logic;
-        sample_i        : in    std_logic;
-        enable_i        : in    std_logic;
-
-        eof_detect_o    : out    std_logic
+        clk                     : in    std_logic                       := '0';
+        rst_n                   : in    std_logic                       := '1';
+        rxd_i                   : in    std_logic                       := '1';
+        sample_i                : in    std_logic                       := '0';
+        enable_i                : in    std_logic                       := '0';
+        eof_detect_o            : out   std_logic                       := '0'
     );
 end entity;
 
 architecture rtl of ef_cntr is
 
-    signal pe_dec_s             : std_logic;
-    signal pe_cnt_done_s        : std_logic;
-    signal pe_cnt_s             : unsigned(2 downto 0);
+    signal pe_dec_s             : std_logic                             := '0';
+    signal pe_cnt_done_s        : std_logic                             := '0';
+    signal pe_cnt_s             : unsigned(2 downto 0)                  := (others => '0');
 
-    signal ae_dec_s             : std_logic;
-    signal ae_cnt_done_s        : std_logic;
-    signal ae_cnt_s             : unsigned(2 downto 0);
+    signal ae_dec_s             : std_logic                             := '0';
+    signal ae_cnt_done_s        : std_logic                             := '0';
+    signal ae_cnt_s             : unsigned(2 downto 0)                  := (others => '0');
 
-    signal ed_dec_s             : std_logic;
-    signal ed_cnt_done_s        : std_logic;
+    signal ed_dec_s             : std_logic                             := '0';
+    signal ed_cnt_done_s        : std_logic                             := '0';
 
-    signal reload_s             : std_logic;
+    signal reload_s             : std_logic                             := '0';
 
 begin 
 

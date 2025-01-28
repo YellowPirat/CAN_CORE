@@ -10,17 +10,15 @@ entity field_reg is
         startCnt_g              : positive
     );
     port(
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        reload_i                : in    std_logic;
-        dec_i                   : in    std_logic;
-        store_i                 : in    std_logic;
-        data_i                  : in    std_logic;
-
-        done_o                  : out   std_logic;
-        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0);
-        cnt_o                   : out   unsigned(log2ceil(startCnt_g + 1) - 1 downto 0)
+        clk                     : in    std_logic                                           := '0';
+        rst_n                   : in    std_logic                                           := '1';
+        reload_i                : in    std_logic                                           := '0';
+        dec_i                   : in    std_logic                                           := '0';
+        store_i                 : in    std_logic                                           := '0';
+        data_i                  : in    std_logic                                           := '0';
+        done_o                  : out   std_logic                                           := '0';
+        data_o                  : out   std_logic_vector(startCnt_g - 1 downto 0)           := (others => '0');
+        cnt_o                   : out   unsigned(log2ceil(startCnt_g + 1) - 1 downto 0)     := to_unsigned(0, log2ceil(startCnt_g + 1))
     );
 end entity;
 

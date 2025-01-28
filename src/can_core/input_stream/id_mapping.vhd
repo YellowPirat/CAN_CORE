@@ -4,17 +4,16 @@ use ieee.numeric_std.all;
 
 entity id_mapping is
     port(
-        eff_i           : in    std_logic;
-        eid_i           : in    std_logic_vector(17 downto 0);
-        id_i            : in    std_logic_vector(10 downto 0);
-
-        id_o            : out   std_logic_vector(28 downto 0)
+        eff_i           : in    std_logic                                   := '0';
+        eid_i           : in    std_logic_vector(17 downto 0)               := (others => '0');
+        id_i            : in    std_logic_vector(10 downto 0)               := (others => '0');
+        id_o            : out   std_logic_vector(28 downto 0)               := (others => '0')
     );
 end entity;
 
 architecture rtl of id_mapping is
 
-    signal id_s         : std_logic_vector(28 downto 0);
+    signal id_s         : std_logic_vector(28 downto 0)                     := (others => '0');
 
 begin
 

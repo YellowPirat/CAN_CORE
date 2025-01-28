@@ -4,31 +4,41 @@ library ieee;
 
 entity uart_cntr is 
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                                 : in    std_logic                       := '0';
+        rst_n                               : in    std_logic                       := '1';
 
-        data_valid_i        : in    std_logic;
-        uart_ready_i        : in    std_logic;
-        done_i              : in    std_logic;
+        data_valid_i                        : in    std_logic                       := '0';
+        uart_ready_i                        : in    std_logic                       := '0';
+        done_i                              : in    std_logic                       := '0';
         
-        uart_valid_o        : out   std_logic;
+        uart_valid_o                        : out   std_logic                       := '0';
 
-        cnt_en_o            : out   std_logic;
-        reload_o            : out   std_logic;
-        lf_o                : out   std_logic;
-        rl_o                : out   std_logic
+        cnt_en_o                            : out   std_logic                       := '0';
+        reload_o                            : out   std_logic                       := '0';
+        lf_o                                : out   std_logic                       := '0';
+        rl_o                                : out   std_logic                       := '0'
     );
 end entity;
 
 architecture rtl of uart_cntr is
-    type state_t is (idle_s, write_uart_s, wait_uart_s, wait_lf_s, write_lf_s, done_s, wait_rl_s, write_rl_s);
-    signal current_state, new_state : state_t;
+    type state_t is (
+        idle_s, 
+        write_uart_s, 
+        wait_uart_s, 
+        wait_lf_s, 
+        write_lf_s, 
+        done_s, 
+        wait_rl_s, 
+        write_rl_s
+    );
 
-    signal uart_valid_s     : std_logic;
-    signal cnt_en_s         : std_logic;
-    signal reload_s         : std_logic;
-    signal lf_s             : std_logic;
-    signal rl_s             : std_logic;
+    signal current_state, new_state         : state_t                               := idle_s;
+
+    signal uart_valid_s                     : std_logic                             := '0';
+    signal cnt_en_s                         : std_logic                             := '0';
+    signal reload_s                         : std_logic                             := '0';
+    signal lf_s                             : std_logic                             := '0';
+    signal rl_s                             : std_logic                             := '0';
 
 
 begin

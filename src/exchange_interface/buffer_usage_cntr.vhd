@@ -6,24 +6,21 @@ library ieee;
 
 entity buffer_usage_cntr is
     generic(
-        memory_depth_g      : positive := 10
+        memory_depth_g      : positive                                                                  := 10
     );
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        inc_i               : in    std_logic;
-        dec_i               : in    std_logic;
-
-        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
-
-        clr_i               : in    std_logic
+        clk                 : in    std_logic                                                           := '0';
+        rst_n               : in    std_logic                                                           := '1';
+        inc_i               : in    std_logic                                                           := '0';
+        dec_i               : in    std_logic                                                           := '0';
+        cnt_o               : out   std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0)         := (others => '0');
+        clr_i               : in    std_logic                                                           := '0'
     );
 end entity;
 
 architecture rtl of buffer_usage_cntr is
 
-    signal valid_edge_s     : std_logic;
+    signal valid_edge_s     : std_logic                                                                 := '0';
 
 begin
 

@@ -4,67 +4,71 @@ use ieee.numeric_std.all;
 
 entity frame_detect is
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-
-        rxd_i                   : in    std_logic;
-        sample_i                : in    std_logic;
-        stuff_bit_i             : in    std_logic;
-        bus_active_i            : in    std_logic;
-        frame_done_o            : out   std_logic;
-        reload_o                : out   std_logic;
+        clk                     : in    std_logic                           := '0';
+        rst_n                   : in    std_logic                           := '1';
+        rxd_i                   : in    std_logic                           := '1';
+        sample_i                : in    std_logic                           := '0';
+        stuff_bit_i             : in    std_logic                           := '0';
+        bus_active_i            : in    std_logic                           := '0';
+        frame_done_o            : out   std_logic                           := '0';
+        reload_o                : out   std_logic                           := '0';
         
         -- ID
-        id_dec_o                : out   std_logic;
-        id_cnt_done_i           : in    std_logic;
-        id_sample_o             : out   std_logic;
+        id_dec_o                : out   std_logic                           := '0';
+        id_cnt_done_i           : in    std_logic                           := '0';
+        id_sample_o             : out   std_logic                           := '0';
 
         -- EID
-        eid_dec_o               : out   std_logic;
-        eid_cnt_done_i          : in    std_logic;
-        eid_sample_o            : out   std_logic;
+        eid_dec_o               : out   std_logic                           := '0';
+        eid_cnt_done_i          : in    std_logic                           := '0';
+        eid_sample_o            : out   std_logic                           := '0';
 
         -- DLC
-        dlc_dec_o               : out   std_logic;
-        dlc_cnt_done_i          : in    std_logic;
-        dlc_sample_o            : out   std_logic;
-        dlc_data_i              : in    std_logic_vector(3 downto 0);
+        dlc_dec_o               : out   std_logic                           := '0';
+        dlc_cnt_done_i          : in    std_logic                           := '0';
+        dlc_sample_o            : out   std_logic                           := '0';
+        dlc_data_i              : in    std_logic_vector(3 downto 0)        := (others => '0');
 
         -- DATA
-        data_dec_o              : out   std_logic_vector(7 downto 0);
-        data_cnt_done_i         : in    std_logic_vector(7 downto 0);
-        data_sample_o           : out   std_logic_vector(7 downto 0);
+        data_dec_o              : out   std_logic_vector(7 downto 0)        := (others => '0');
+        data_cnt_done_i         : in    std_logic_vector(7 downto 0)        := (others => '0');
+        data_sample_o           : out   std_logic_vector(7 downto 0)        := (others => '0');
 
         -- CRC
-        crc_dec_o               : out   std_logic;
-        crc_cnt_done_i          : in    std_logic;
-        crc_sample_o            : out   std_logic;
+        crc_dec_o               : out   std_logic                           := '0';
+        crc_cnt_done_i          : in    std_logic                           := '0';
+        crc_sample_o            : out   std_logic                           := '0';
 
         -- EOF
-        eof_dec_o           : out   std_logic;
-        eof_cnt_done_i      : in    std_logic;
+        eof_dec_o               : out   std_logic                           := '0';
+        eof_cnt_done_i          : in    std_logic                           := '0';
 
         -- OLF
-        olf_dec_o               : out   std_logic;
-        olf_cnt_done_i          : in    std_logic;
-        olf_reload_o            : out   std_logic;
+        olf_dec_o               : out   std_logic                           := '0';
+        olf_cnt_done_i          : in    std_logic                           := '0';
+        olf_reload_o            : out   std_logic                           := '0';
 
         -- OLD
-        old_dec_o               : out   std_logic;
-        old_cnt_done_i          : in    std_logic;
-        old_reload_o            : out   std_logic;
+        old_dec_o               : out   std_logic                           := '0';
+        old_cnt_done_i          : in    std_logic                           := '0';
+        old_reload_o            : out   std_logic                           := '0';
 
         -- Stuff
-        rtr_sample_o            : out   std_logic;
-        eff_sample_o            : out   std_logic;
-        err_sample_o            : out   std_logic;
+        rtr_sample_o            : out   std_logic                           := '0';
+        eff_sample_o            : out   std_logic                           := '0';
+        err_sample_o            : out   std_logic                           := '0';
 
         -- HANDLING
         reset_i                 : in    std_logic;
         decode_error_o          : out   std_logic;
         enable_destuffing_o     : out   std_logic;
         data_valid_o            : out   std_logic;
-        sof_state_o             : out   std_logic
+        sof_state_o             : out   std_logic;
+
+        -- CRC
+        enable_crc_o            : out   std_logic;
+        reset_crc_o             : out   std_logic;
+        valid_crc_o             : out   std_logic
     );
 
 end entity;
@@ -104,45 +108,49 @@ architecture rtl of frame_detect is
 
     signal current_state, new_state : state_t;
 
-    signal valid_sample_s       : std_logic;
-    signal frame_finished_s     : std_logic;
-    signal reload_s         : std_logic;
+    signal valid_sample_s       : std_logic                                 := '0';
+    signal frame_finished_s     : std_logic                                 := '0';
+    signal reload_s             : std_logic                                 := '0';
 
     -- OUTPUT SIGNALS
     -- ID
-    signal id_dec_s             : std_logic;
-    signal id_sample_s          : std_logic;
+    signal id_dec_s             : std_logic                                 := '0';
+    signal id_sample_s          : std_logic                                 := '0';
     -- STUFF
-    signal rtr_sample_s         : std_logic;
-    signal eff_sample_s          : std_logic;
-    signal err_sample_s          : std_logic;
+    signal rtr_sample_s         : std_logic                                 := '0';
+    signal eff_sample_s         : std_logic                                 := '0';
+    signal err_sample_s         : std_logic                                 := '0';
     -- EID
-    signal eid_dec_s            : std_logic;
-    signal eid_sample_s         : std_logic;
+    signal eid_dec_s            : std_logic                                 := '0';
+    signal eid_sample_s         : std_logic                                 := '0';
     -- DLC
-    signal dlc_dec_s            : std_logic;
-    signal dlc_sample_s         : std_logic;
+    signal dlc_dec_s            : std_logic                                 := '0';
+    signal dlc_sample_s         : std_logic                                 := '0';
     -- DATA
-    signal data_dec_s           : std_logic_vector(7 downto 0);
-    signal data_sample_s        : std_logic_vector(7 downto 0);
+    signal data_dec_s           : std_logic_vector(7 downto 0)              := (others => '0');
+    signal data_sample_s        : std_logic_vector(7 downto 0)              := (others => '0');
     -- CRC
-    signal crc_dec_s            : std_logic;
-    signal crc_sample_s         : std_logic;
+    signal crc_dec_s            : std_logic                                 := '0';
+    signal crc_sample_s         : std_logic                                 := '0';
     -- ERROR-FRAME
-    signal error_frame_error_s  : std_logic;
+    signal error_frame_error_s  : std_logic                                 := '0';
     -- ERROR_DEL
-    signal eof_dec_s      : std_logic;
+    signal eof_dec_s            : std_logic                                 := '0';
     -- OLF
-    signal olf_dec_s            : std_logic;
-    signal olf_reload_s         : std_logic;
+    signal olf_dec_s            : std_logic                                 := '0';
+    signal olf_reload_s         : std_logic                                 := '0';
     -- OLD
-    signal old_dec_s            : std_logic;
-    signal old_reload_s         : std_logic;
+    signal old_dec_s            : std_logic                                 := '0';
+    signal old_reload_s         : std_logic                                 := '0';
     -- HANDLING
     signal decode_error_s       : std_logic;
     signal enable_destuffing_s  : std_logic;
     signal data_valid_s         : std_logic;
     signal sof_state_s          : std_logic;
+    --CRC
+    signal enable_crc_s         : std_logic;
+    signal reset_crc_s          : std_logic;
+    signal valid_crc_s          : std_logic;
     
 
 begin
@@ -179,6 +187,10 @@ begin
     enable_destuffing_o     <= enable_destuffing_s;
     data_valid_o            <= data_valid_s;
     sof_state_o             <= sof_state_s;
+    --CRC
+    enable_crc_o            <= enable_crc_s;
+    reset_crc_o             <= reset_crc_s;
+    valid_crc_o             <= valid_crc_s;
 
     frame_done_o            <= frame_finished_s;
     reload_o                <= reload_s;
@@ -244,6 +256,10 @@ begin
         enable_destuffing_s     <= '0';
         data_valid_s            <= '0';
         sof_state_s             <= '0';
+        -- CRC
+        enable_crc_s            <= '0';
+        reset_crc_s             <= '0';
+        valid_crc_s             <= '0';
 
         case current_state is
             when idle_s =>
@@ -255,8 +271,10 @@ begin
                     reload_s                        <= '1';
                     enable_destuffing_s             <= '1';
                     sof_state_s                     <= '0';
+                    enable_crc_s                    <= '1';
                 else 
                     sof_state_s                     <= '1';
+                    reset_crc_s                     <= '1';
                 end if;
 
             when valid_sof_s => 
@@ -265,9 +283,11 @@ begin
                     reload_s                        <= '1';
                     enable_destuffing_s             <= '1';
                     sof_state_s                     <= '0';
+                    enable_crc_s                    <= '1';
                 else
                     sof_state_s                     <= '1';
                     data_valid_s                    <= '1';
+                    reset_crc_s                     <= '1';
                 end if;
 
             when id_s =>
@@ -280,8 +300,11 @@ begin
                     new_state                       <= rtr_s;
                     id_sample_s                     <= '1';
                 end if;
+
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when rtr_s =>
@@ -293,6 +316,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when ide_s => 
@@ -306,6 +331,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when eid_s =>
@@ -320,6 +347,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when ertr_s => 
@@ -331,6 +360,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when r1_s =>
@@ -341,6 +372,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
             
             when r0_s =>
@@ -351,6 +384,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when dlc_s =>
@@ -365,6 +400,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
                 
             when wait_dlc_s =>
@@ -394,6 +431,8 @@ begin
 
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data8_s =>
@@ -408,6 +447,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data7_s =>
@@ -422,6 +463,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data6_s =>
@@ -436,6 +479,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
 
@@ -451,6 +496,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data4_s =>
@@ -465,6 +512,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data3_s =>
@@ -479,6 +528,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data2_s =>
@@ -493,6 +544,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when data1_s =>
@@ -507,6 +560,8 @@ begin
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
+                else 
+                    enable_crc_s                    <= '1';
                 end if;
 
             when crc_s =>
@@ -518,6 +573,7 @@ begin
                 elsif valid_sample_s = '1' and crc_cnt_done_i = '1' then
                     new_state                       <= crc_del_s;
                     crc_sample_s                    <= '1';
+                    
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;
@@ -528,9 +584,11 @@ begin
 
                 if valid_sample_s = '1' and rxd_i = '1' then
                     new_state                       <= ack_slot_s;
+                    valid_crc_s                     <= '1';
                 elsif valid_sample_s = '1' and rxd_i = '0' then
                     new_state                       <= invalid_sof_s;
                     decode_error_s                  <= '1';
+                    valid_crc_s                     <= '1';
                 end if;
                 if reset_i = '1' then
                     new_state                       <= invalid_sof_s;

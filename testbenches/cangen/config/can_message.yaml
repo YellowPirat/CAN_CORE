@@ -3,10 +3,11 @@
 # bus_idle: default=0, else lenght of bus idle period
 Frames:
   - id: 0x777 # standard frame
-    dlc: 1
+    dlc: 2
     error:
     data:
-    - 0x11
+    - 0xe7
+    - 0x83
   - id: 0x123 # standard frame
     dlc: 2
     error:
@@ -22,16 +23,23 @@ Frames:
     - 0x33
     - 0x44
     - 0x55
-
   - id: 0x125 # standard frame
-    dlc: 8
+    dlc: 2
     error:
     data:
-    - 0x11
-    - 0x22
-    - 0x33
-    - 0x44
-    - 0x55
-    - 0x66
-    - 0x77
-    - 0x88
+    - 0xde
+    - 0xad
+  - id: 0x18 # standard frame
+    dlc: 2
+    error:
+    data:
+    - 0xde
+    - 0xad
+  - id: 0x15 # standard frame
+    dlc: 4
+    error:
+    data:
+    - 0xde
+    - 0xad
+    - 0xbe
+    - 0xef

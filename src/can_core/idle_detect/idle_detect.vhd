@@ -4,22 +4,22 @@ use ieee.numeric_std.all;
 
 entity idle_detect is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-        frame_end_i         : in    std_logic;
-        edge_i              : in    std_logic;
-        hard_reload_o       : out   std_logic;
-        bus_active_o        : out   std_logic
+        clk                             : in    std_logic               := '0';
+        rst_n                           : in    std_logic               := '1';
+        frame_end_i                     : in    std_logic               := '0';
+        edge_i                          : in    std_logic               := '0';
+        hard_reload_o                   : out   std_logic               := '0';
+        bus_active_o                    : out   std_logic               := '0'
     );
 end entity;
 
 architecture rtl of idle_detect is
 
     type state_t is (idle_s, active_s);
-    signal current_state, new_state : state_t;
+    signal current_state, new_state     : state_t                       := idle_s;
 
-    signal reload_s      : std_logic := '0';
-    signal bus_active_s  : std_logic;
+    signal reload_s                     : std_logic                     := '0';
+    signal bus_active_s                 : std_logic                     := '0';
 
 begin
 

@@ -4,19 +4,17 @@ use ieee.numeric_std.all;
 
 entity last_bit is
     port (
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
-
-        data_i              : in    std_logic;
-        sample_i            : in    std_logic;
-
-        last_bit_o          : out   std_logic
+        clk                     : in    std_logic               := '0';
+        rst_n                   : in    std_logic               := '1';
+        data_i                  : in    std_logic               := '1';
+        sample_i                : in    std_logic               := '0';
+        last_bit_o              : out   std_logic               := '0'
     );
 end entity;
 
 architecture rtl of last_bit is
 
-    signal last_bit_s   : std_logic;
+    signal last_bit_s           : std_logic                     := '1';
 
 begin
 

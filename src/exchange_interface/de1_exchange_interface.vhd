@@ -5,33 +5,24 @@ library ieee;
 use work.axi_lite_intf.all;
 use work.can_core_intf.all;
 use work.peripheral_intf.all;
+use work.baud_intf.all;
 use work.olo_base_pkg_math.all;
 
 entity de1_exchange_interface is
     generic (
-        memory_depth_g          : positive := 10;
-        width_g                 : positive;
-        offset_g                : std_logic_vector(20 downto 0)
+        memory_depth_g          : positive                                  := 10;
+        width_g                 : positive                                  := 32;
+        offset_g                : std_logic_vector(20 downto 0)             := (others =>'0')
     );
     port (
-        clk                     : in    std_logic;
-        rst_n                   : in    std_logic;
-        
-        axi_intf_o              : out   axi_lite_input_intf_t;
-        axi_intf_i              : in    axi_lite_output_intf_t;
-
-        can_frame_i             : in    can_core_out_intf_t;
-        can_frame_valid_i       : in    std_logic;
-
-        peripheral_status_i     : in    per_intf_t;
-
-        sync_seg_o              : out   unsigned(width_g - 1 downto 0);
-        prob_seg_o              : out   unsigned(width_g - 1 downto 0);
-        phase_seg1_o            : out   unsigned(width_g - 1 downto 0);
-        phase_seg2_o            : out   unsigned(width_g - 1 downto 0);
-        prescaler_o             : out   unsigned(width_g - 1 downto 0); 
-
-        driver_reset_o          : out   std_logic
+        clk                     : in    std_logic                           := '0';
+        rst_n                   : in    std_logic                           := '1';
+        axi_intf_o              : out   axi_lite_input_intf_t               := axi_lite_input_intf_default;
+        axi_intf_i              : in    axi_lite_output_intf_t              := axi_lite_output_intf_default;
+        can_frame_i             : in    can_core_out_intf_t                 := can_core_intf_default;
+        can_frame_valid_i       : in    std_logic                           := '0';
+        baud_config_o           : out   baud_intf_t                         := baud_intf_default;
+        driver_reset_o          : out   std_logic                           := '1'
     );
 end de1_exchange_interface;
 
@@ -39,23 +30,19 @@ architecture rtl of de1_exchange_interface is
 
     
 
-    signal frame_missed_s       : std_logic;
-    signal fifo_out_ready_s     : std_logic;
-    signal fifo_in_valid_s      : std_logic;
-    signal fifo_in_ready_s      : std_logic;
-    signal fifo_out_valid_s     : std_logic;
-    signal fifo_out_data_s      : std_logic_vector(255 downto 0);
-
-    signal can_frame_vec_s      : can_core_vector_t;
-    signal peripheral_status_s  : per_intf_t;
-
-    signal load_new_s           : std_logic;
-
-    signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0);
-
-    signal driver_reset_s       : std_logic;
-    signal comb_rst_s           : std_logic;
-    signal comb_rst_h           : std_logic;
+    signal frame_missed_s       : std_logic                                                         := '0';
+    signal fifo_out_ready_s     : std_logic                                                         := '0';
+    signal fifo_in_valid_s      : std_logic                                                         := '0';
+    signal fifo_in_ready_s      : std_logic                                                         := '0';
+    signal fifo_out_valid_s     : std_logic                                                         := '0';
+    signal fifo_out_data_s      : std_logic_vector(255 downto 0)                                    := (others => '0');
+    signal can_frame_vec_s      : can_core_vector_t                                                 := (others => '0');
+    signal peripheral_status_s  : per_intf_t                                                        := get_emtpy;
+    signal load_new_s           : std_logic                                                         := '0';
+    signal buffer_usage_s       : std_logic_vector(log2ceil(memory_depth_g + 1) - 1 downto 0)       := (others => '0');
+    signal driver_reset_s       : std_logic                                                         := '0';
+    signal comb_rst_s           : std_logic                                                         := '1';
+    signal comb_rst_h           : std_logic                                                         := '0';
 
 begin
 
@@ -106,7 +93,6 @@ begin
             clk                 => clk,
             rst_n               => comb_rst_s,
 
-            per_status_i        => peripheral_status_i,
             per_status_o        => peripheral_status_s,
 
             buffer_usage_i      => buffer_usage_s,
@@ -152,11 +138,7 @@ begin
 
             load_new_o              => load_new_s,
 
-            sync_seg_o              => sync_seg_o,
-            prob_seg_o              => prob_seg_o,
-            phase_seg1_o            => phase_seg1_o,
-            phase_seg2_o            => phase_seg2_o,
-            prescaler_o             => prescaler_o,
+            baud_config_o           => baud_config_o,
 
             driver_reset_o          => driver_reset_s
         );

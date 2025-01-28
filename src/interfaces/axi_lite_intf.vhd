@@ -69,6 +69,8 @@ package axi_lite_intf is
 
     function get_axi_lite_intf(axi_lite_comp_intf : axi_lite_comb_intf_t) return axi_lite_intf_t;
     function get_axi_comp_intf(axi_lite_intf : axi_lite_intf_t) return axi_lite_comb_intf_t;
+    function axi_lite_input_intf_default return axi_lite_input_intf_t;
+    function axi_lite_output_intf_default return axi_lite_output_intf_t;
 
     type axi_addr_vec_t is array (natural range <>) of std_logic_vector(20 downto 0);
     type axi_data_vec_t is array (natural range <>) of std_logic_vector(31 downto 0);
@@ -78,6 +80,35 @@ package axi_lite_intf is
 end package axi_lite_intf;
 
 package body axi_lite_intf is
+
+    function axi_lite_input_intf_default return axi_lite_input_intf_t is
+        variable ret : axi_lite_input_intf_t;
+    begin
+        ret.axi_awready         := '0';
+        ret.axi_wready          := '0';
+        ret.axi_bresp           := (others => '0');
+        ret.axi_bvalid          := '0';
+        ret.axi_arready         := '0';
+        ret.axi_rdata           := (others => '0');
+        ret.axi_rresp           := (others => '0');
+        ret.axi_rvalid          := '0';
+        return ret;
+    end function;
+
+    function axi_lite_output_intf_default return axi_lite_output_intf_t is
+        variable ret : axi_lite_output_intf_t;
+    begin
+        ret.axi_awaddr          := (others => '0');
+        ret.axi_awvalid         := '0';
+        ret.axi_wdata           := (others => '0');
+        ret.axi_wvalid          := '0';
+        ret.axi_wstrb           := (others => '0');
+        ret.axi_bready          := '0';
+        ret.axi_araddr          := (others => '0');
+        ret.axi_arvalid         := '0';
+        ret.axi_rready          := '0';
+        return ret;
+    end function;
 
     function get_axi_lite_intf(axi_lite_comp_intf : axi_lite_comb_intf_t) return axi_lite_intf_t is 
         variable ret : axi_lite_intf_t;

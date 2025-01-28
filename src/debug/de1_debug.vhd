@@ -11,18 +11,18 @@ library work;
 
 entity de1_debug is
     generic (
-        widght_g            : positive := 8
+        widght_g            : positive                                                              := 8
     );
     port(
-        clk                 : in    std_logic;
-        rst_n               : in    std_logic;
+        clk                 : in    std_logic                                                       := '0';
+        rst_n               : in    std_logic                                                       := '1';
 
-        can_frame_i         : in    can_core_out_intf_t;
+        can_frame_i         : in    can_core_out_intf_t                                             := can_core_intf_default;
         
-        valid_i             : in    std_logic;
+        valid_i             : in    std_logic                                                       := '0';
 
 
-        txd_o               : out   std_logic
+        txd_o               : out   std_logic                                                       := '0'
     );  
 end entity;
 
@@ -30,26 +30,26 @@ end entity;
 
 architecture rtl of de1_debug is
 
-    signal reload_s             : std_logic;
-    signal en_s                 : std_logic;
-    signal done_s               : std_logic;
+    signal reload_s             : std_logic                                                         := '0';
+    signal en_s                 : std_logic                                                         := '0';
+    signal done_s               : std_logic                                                         := '0';
 
-    signal rst_h                : std_logic;
+    signal rst_h                : std_logic                                                         := '0';
 
-    signal tx_valid_s           : std_logic;
-    signal tx_ready_s           : std_logic;
-    signal tx_data_s            : std_logic_vector(7 downto 0);
+    signal tx_valid_s           : std_logic                                                         := '0';
+    signal tx_ready_s           : std_logic                                                         := '0';
+    signal tx_data_s            : std_logic_vector(7 downto 0)                                      := (others => '0');
 
-    signal rxd_s                : std_logic;
+    signal rxd_s                : std_logic                                                         := '0';
 
-    signal cnt_s                : std_logic_vector(log2ceil(widght_g / 4 + 1) - 1 downto 0);
+    signal cnt_s                : std_logic_vector(log2ceil(widght_g / 4 + 1) - 1 downto 0)         := (others => '0');
 
-    signal data_splice_s        : std_logic_vector(3 downto 0);
+    signal data_splice_s        : std_logic_vector(3 downto 0)                                      := (others => '0');
 
-    signal lf_s                 : std_logic;
-    signal rl_s                 : std_logic;
+    signal lf_s                 : std_logic                                                         := '0';
+    signal rl_s                 : std_logic                                                         := '0';
 
-    signal data_s               : std_logic_vector(widght_g - 1 downto 0);
+    signal data_s               : std_logic_vector(widght_g - 1 downto 0)                           := (others => '0');
 
 begin
 
