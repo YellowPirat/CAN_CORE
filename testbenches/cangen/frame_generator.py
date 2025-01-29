@@ -32,8 +32,8 @@ def generate_data_frame(frame_id, id_type, dlc, data_bytes, bus_idle):
             "id_bin": f"{identifier}",
             "dlc": dlc,
             "data": data_bytes,
-            "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
+            "crc_bin": crc,
             "stuffed_frame": stuffed_frame + trailing_bits,
             "stuffed_positions": stuffed_positions
         }
@@ -70,8 +70,8 @@ def generate_data_frame(frame_id, id_type, dlc, data_bytes, bus_idle):
             "id_bin": f"{identifier_a}_{identifier_b}",
             "dlc": dlc,
             "data": data_bytes,
-            "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
+            "crc_bin": crc,
             "stuffed_frame": stuffed_frame + trailing_bits,
             "stuffed_positions": stuffed_positions
         }
@@ -104,8 +104,8 @@ def generate_remote_frame(frame_id, id_type, dlc, bus_idle):
             "id_hex": hex(frame_id),
             "id_bin": f"{identifier}",
             "dlc": dlc,
-            "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
+            "crc_bin": crc,
             "stuffed_frame": stuffed_frame + trailing_bits,
             "stuffed_positions": stuffed_positions
         }
@@ -139,8 +139,8 @@ def generate_remote_frame(frame_id, id_type, dlc, bus_idle):
             "id_hex": hex(frame_id),
             "id_bin": f"{identifier_a}_{identifier_b}",
             "dlc": dlc,
-            "crc_bin": crc,
             "crc_hex": hex(int(crc, 2)),
+            "crc_bin": crc,
             "stuffed_frame": stuffed_frame + trailing_bits,
             "stuffed_positions": stuffed_positions
         }
