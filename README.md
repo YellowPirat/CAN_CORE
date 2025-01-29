@@ -1,5 +1,35 @@
-# Install Quartus
+# Introduction
+This is repository contains a CAN interface writen in VHDL.
+The interface is capable of reading data from a CAN-Network.
+The read data is than provided with an AXI4-Lite Interface. 
+In the Top-Level Entity you can specifiy how many CAN-Cores are 
+initialised during synthesis. All CAN-Cores are than connected with an 
+AXI Interconnect. The Top-Level entity one AXI interface, for a 
+master implementation. The different CAN-Cores are aranged in 
+different memory areas.
 
+# Structure
+This picture describes the structure of the entities.
+```mermaid
+
+graph TD;
+    YellowPirat --> Core
+    YellowPirat --> CycloneHPS-Core
+    Core --> SMMS
+    SMMS --> ExchangeInterface_1
+    ExchangeInterface_1 --> CAN_Core_1
+    SMMS --> ExchangeInterface_2
+    ExchangeInterface_2 --> CAN_Core_2
+    SMMS --> ExchangeInterface_n
+    ExchangeInterface_n --> CAN_Core_n
+```
+
+The entity YellowPirat is specific for our HW implementation. 
+For different HW-platforms, this part must be adapted.
+The Core entity is the TopLevel-Entity of this project.
+
+# Install Quartus
+Refer to (https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_virtual_cae_system)
 
 # Install CAN_CORE
 ```
@@ -34,16 +64,19 @@ sudo update-binfmts --enable qemu-arm
 Refer to [de1soc-imager](./linux/de1soc-imager/README.md)
 
 # Usage
+## UART
 Connection via UART
 ```
 gtkterm --port=/dev/ttyUSB0
 ```
 
+## Reading a Frame
 Read data from the AXI register 
 ```
     sudo memtool md 0xff200000+44
 ```
 
+## Setting Baudrate Config
 Config Sample Unit 1M
 ```
 sudo memtool mw 0xff20002c 0x00000001
