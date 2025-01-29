@@ -1,10 +1,10 @@
 # error: default=None, else "stuff", "form", "crc", "ack"
 # type: default="data", else "remote"
-# bus_idle: default=0, else lenght of bus idle period
+# bus_idle: default=0, else length of bus idle period
 Frames:
   - id: 0x777 # standard frame
     dlc: 2
-    error:
+    error: "crc"
     data:
     - 0xe7
     - 0x83

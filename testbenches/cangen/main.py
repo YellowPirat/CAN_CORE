@@ -47,7 +47,7 @@ def main():
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
                 error_locations = frame_with_error["error_locations"]
                 error_frame, error_flag_length = generate_error_frame().values()
-                if error_type == "crc" or error_type == "ack": # The reason for specific handling of crc errorand ack error is that the error flag starts at the bit following ACK delimiter
+                if error_type == "crc": # The reason for specific handling of crc error is that the error flag starts at the bit following ACK delimiter
                     ack_delimiter = len(frame_with_error["stuffed_frame"]) - 11 - bus_idle
                     frame_before_error_flag = frame_with_error["stuffed_frame"][:ack_delimiter+1]
                     combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
@@ -65,7 +65,7 @@ def main():
                 frame_with_error = implement_error(frame_without_error.copy(), error_type, frame_without_error["stuffed_positions"], bus_idle)
                 error_locations = frame_with_error["error_locations"]
                 error_frame, error_flag_length = generate_error_frame().values()
-                if error_type == "crc" or error_type == "ack": # The reason for specific handling of crc errorand ack error is that the error flag starts at the bit following ACK delimiter
+                if error_type == "crc": # The reason for specific handling of crc error is that the error flag starts at the bit following ACK delimiter
                     ack_delimiter = len(frame_with_error["stuffed_frame"]) - 11 - bus_idle
                     frame_before_error_flag = frame_with_error["stuffed_frame"][:ack_delimiter+1]
                     combined_frame = {"stuffed_frame": frame_before_error_flag + error_frame}
